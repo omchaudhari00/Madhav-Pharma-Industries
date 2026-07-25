@@ -1,0 +1,70 @@
+from django.db import models
+from accounts.models import User, Address
+from quotations.models import Quotation
+import uuid
+
+class Payment(models.Model):
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Completed', 'Completed'),
+        ('Failed', 'Failed'),
+    )
+    payment_id = models.CharField(max_length=50, unique=True, blank=True)
+    quotation = models.OneToOneField(Quotation, on_delete=models.CASCADE, related_name='payment')
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    transaction_reference = models.CharField(max_length=100, blank=True, null=True)
+    payment_date = models.DateTimeField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.payment_id:
+            self.payment_id = f"PAY-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.payment_id
+
+class Invoice(models.Model):
+    invoice_number = models.CharField(max_length=50, unique=True, blank=True)
+    quotation = models.OneToOneField(Quotation, on_delete=models.CASCADE, related_name='invoice')
+    payment = models.OneToOneField(Payment, on_delete=models.CASCADE, related_name='invoice')
+    tax_information = models.TextField(blank=True, null=True)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    invoice_date = models.DateTimeField(auto_now_add=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.invoice_number:
+            self.invoice_number = f"INV-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.invoice_number
+
+class Order(models.Model):
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Confirmed', 'Confirmed'),
+        ('Processing', 'Processing'),
+        ('Shipped', 'Shipped'),
+        ('Delivered', 'Delivered'),
+        ('Cancelled', 'Cancelled'),
+    )
+    
+    order_number = models.CharField(max_length=50, unique=True, blank=True)
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    quotation = models.OneToOneField(Quotation, on_delete=models.CASCADE, related_name='order')
+    payment = models.OneToOneField(Payment, on_delete=models.CASCADE, related_name='order')
+    invoice = models.OneToOneField(Invoice, on_delete=models.CASCADE, related_name='order')
+    shipping_address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, related_name='orders_shipped')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            self.order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.order_number
