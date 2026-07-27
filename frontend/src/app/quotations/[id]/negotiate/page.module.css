@@ -1,0 +1,92 @@
+.wrapper {
+  min-height: 100vh;
+}
+
+.header {
+  padding: 5rem 0 3rem;
+  border-bottom: 1px solid var(--hairline);
+  background-color: var(--paper-low);
+}
+
+.formSection {
+  padding: 5rem 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 4rem;
+  align-items: flex-start;
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+}
+
+.snapshotCol {
+  border: 1px solid var(--hairline);
+  background-color: var(--paper);
+  padding: 2.5rem;
+}
+
+.formCol {
+  border: 1px solid var(--hairline);
+  background-color: var(--paper);
+  padding: 3rem;
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--hairline);
+  background-color: var(--paper);
+  color: var(--ink);
+  font-size: 14px;
+  font-family: var(--font-primary);
+  outline: none;
+}
+
+.formTextarea {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid var(--hairline);
+  background-color: var(--paper);
+  color: var(--ink);
+  font-size: 14px;
+  font-family: var(--font-primary);
+  outline: none;
+  resize: vertical;
+}
+
+.formInput:focus, .formTextarea:focus, .inputGroup:focus-within {
+  border-color: var(--ink);
+}
+
+.inputGroup {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--hairline);
+  background-color: var(--paper);
+  color: var(--ink);
+  font-size: 14px;
+  font-family: var(--font-primary);
+  border-radius: 10px !important;
+}
+
+.inputGroup input {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  width: 100%;
+  color: var(--ink);
+  font-size: 14px;
+  font-family: var(--font-primary);
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+}

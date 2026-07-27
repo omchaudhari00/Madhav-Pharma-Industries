@@ -1,0 +1,47 @@
+.wrapper {
+  width: 100%;
+}
+
+.tableBox {
+  border: 1px solid var(--hairline);
+  background-color: var(--paper);
+  padding: 2.5rem;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(2, 18, 10, 0.75);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.modalBox {
+  background-color: var(--paper);
+  border: 1px solid var(--hairline);
+  padding: 3rem;
+  max-width: 580px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.modalInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--hairline);
+  background-color: var(--paper-low);
+  color: var(--ink);
+  font-size: 14px;
+  font-family: var(--font-primary);
+  outline: none;
+}
+
+.modalInput:focus {
+  border-color: var(--ink);
+}

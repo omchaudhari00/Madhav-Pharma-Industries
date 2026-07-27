@@ -1,0 +1,99 @@
+.adminWrapper {
+  display: flex;
+  min-height: calc(100vh - 64px);
+  width: 100%;
+}
+
+.sidebar {
+  width: 280px;
+  background-color: var(--paper);
+  border-right: 1px solid var(--hairline);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  flex-shrink: 0;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    display: none;
+  }
+}
+
+.brandBox {
+  padding: 2.5rem 2rem 1.5rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.brandTitle {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+}
+
+.navMenu {
+  flex: 1;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  color: var(--ink-variant);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.navItem:hover {
+  background-color: var(--paper-high);
+  color: var(--ink);
+}
+
+.activeNav {
+  background-color: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.sidebarFooter {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--hairline);
+  background-color: var(--paper-low);
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background-color: var(--paper-low);
+}
+
+.adminTopBar {
+  height: 52px;
+  border-bottom: 1px solid var(--hairline);
+  background-color: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+}
+
+.viewport {
+  padding: 3rem;
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .viewport {
+    padding: 1.5rem;
+  }
+}

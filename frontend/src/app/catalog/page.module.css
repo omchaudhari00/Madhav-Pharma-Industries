@@ -1,0 +1,114 @@
+.wrapper {
+  min-height: 100vh;
+}
+
+.header {
+  padding: 5rem 0 3rem;
+  border-bottom: 1px solid var(--hairline);
+  background-color: var(--paper-low);
+}
+
+.filterBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding-top: 2rem;
+  border-top: 1px solid var(--hairline);
+}
+
+.categoryTabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.catTab {
+  padding: 0.65rem 1.25rem;
+  border: 1px solid var(--hairline);
+  background-color: var(--paper);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.catTab:hover {
+  border-color: var(--ink);
+}
+
+.catTabActive {
+  background-color: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--hairline);
+  background-color: var(--paper);
+  padding: 0.65rem 1.25rem;
+  flex: 1;
+  max-width: 480px;
+}
+
+.searchInput {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 13px;
+  color: var(--ink);
+  outline: none;
+  font-family: var(--font-primary);
+}
+
+.catalogSection {
+  padding: 4rem 0 6rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.specTable {
+  border-top: 1px solid var(--card-dark-tint);
+  border-bottom: 1px solid var(--card-dark-tint);
+  padding: 0.85rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.specRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #fff;
+}
+
+.specRow span {
+  color: var(--ink-variant);
+}
+
+.emptyBox {
+  padding: 6rem 0;
+  text-align: center;
+  border: 1px solid var(--hairline);
+  background-color: var(--paper-low);
+}

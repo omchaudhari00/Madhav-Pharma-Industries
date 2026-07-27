@@ -1,0 +1,86 @@
+.wrapper {
+  min-height: calc(100vh - 64px);
+  display: flex;
+}
+
+.splitGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .splitGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.editorialCol {
+  background-color: var(--card-dark);
+  color: #fff;
+  padding: 5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid var(--hairline);
+}
+
+@media (max-width: 768px) {
+  .editorialCol {
+    padding: 3rem 2rem;
+  }
+}
+
+.formCol {
+  background-color: var(--paper);
+  padding: 5rem 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .formCol {
+    padding: 3rem 2rem;
+  }
+}
+
+.tabBar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--hairline);
+  margin-bottom: 2.5rem;
+}
+
+.tabBtn {
+  padding: 1rem;
+  background-color: var(--paper-low);
+  color: var(--ink-variant);
+  border: none;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tabBtnActive {
+  background-color: var(--ink);
+  color: var(--paper);
+}
+
+.inputField {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--hairline);
+  background-color: var(--paper);
+  color: var(--ink);
+  font-size: 14px;
+  font-family: var(--font-primary);
+  outline: none;
+}
+
+.inputField:focus {
+  border-color: var(--ink);
+}

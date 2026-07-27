@@ -1,0 +1,40 @@
+.wrapper {
+  min-height: 100vh;
+}
+
+.headerSection {
+  padding: 5rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.principlesSection {
+  padding: 5rem 0;
+  border-bottom: 1px solid var(--hairline);
+  background-color: var(--paper-low);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--hairline);
+  background-color: var(--paper);
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.col {
+  padding: 3rem 2.5rem;
+  border-right: 1px solid var(--hairline);
+}
+
+.col:last-child {
+  border-right: none;
+}
+
+.tableSection {
+  padding: 5rem 0;
+}
