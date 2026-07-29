@@ -12,20 +12,6 @@ export default function Footer() {
             <p className={styles.tagline}>
               SWISS-MODERNIST B2B PHARMACEUTICAL EXTRACTS & ESSENTIAL OILS FOUNDRY.
             </p>
-            <div className={styles.metadataBox}>
-              <div className={styles.metaRow}>
-                <span>GMP CERTIFIED FACILITY:</span>
-                <strong>MP-8820-IN</strong>
-              </div>
-              <div className={styles.metaRow}>
-                <span>FDA REGISTRATION:</span>
-                <strong>VERIFIED 2026</strong>
-              </div>
-              <div className={styles.metaRow}>
-                <span>ISO STANDARD:</span>
-                <strong>ISO 9001:2015</strong>
-              </div>
-            </div>
           </div>
 
           {/* Column 2: Catalog Categories */}
@@ -76,7 +62,6 @@ export default function Footer() {
           <p>© 2026 MADHAV PHARMA INDUSTRIES. ALL RIGHTS RESERVED. SWISS-MODERNIST DESIGN SYSTEM.</p>
           <div className={styles.bottomLinks}>
             <Link href="/quality">Quality Assurance</Link>
-            <Link href="/process">Our Process</Link>
             <Link href="/admin">Admin Console</Link>
           </div>
         </div>

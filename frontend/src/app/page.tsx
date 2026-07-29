@@ -40,7 +40,7 @@ export default function HomePage() {
   return (
     <div className={styles.homeWrapper}>
       {/* 1. HERO SECTION (SWISS-MODERNIST TYPOGRAPHY SPECIMEN) */}
-      <section className={styles.heroSection}>
+      <section className={`${styles.heroSection} relative z-10`}>
         <div className="container-max">
           <motion.div
             className={styles.heroContent}
@@ -61,7 +61,7 @@ export default function HomePage() {
 
             <motion.div variants={itemVars} className={styles.heroBottomBar}>
               <p className={styles.heroDesc}>
-                Manufacturing high-purity botanical extracts, essential oils, and standardized oleoresins for global pharmaceutical, nutraceutical, and clinical research institutions since 1988.
+                Manufacturing high-purity botanical extracts, essential oils, and standardized oleoresins for global pharmaceutical, nutraceutical, and clinical research institutions.
               </p>
               <div className={styles.heroActions}>
                 <Link href="/catalog" className="btn-primary">
@@ -76,26 +76,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. INFINITE SWISS-MODERNIST MARQUEE BANNER */}
-      <div className={styles.marqueeSection}>
-        <motion.div
-          className={styles.marqueeTrack}
-          animate={{ x: [0, -1400] }}
-          transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
-        >
-          <span>GMP CERTIFIED FOUNDRY • HPLC & GC-MS VERIFIED PURITY • ZERO-RATED EXPORT DOCUMENTATION • ISO 9001:2015 • CERTIFICATE OF ANALYSIS BATCH ANALYZED • </span>
-          <span>GMP CERTIFIED FOUNDRY • HPLC & GC-MS VERIFIED PURITY • ZERO-RATED EXPORT DOCUMENTATION • ISO 9001:2015 • CERTIFICATE OF ANALYSIS BATCH ANALYZED • </span>
-        </motion.div>
-      </div>
-
       {/* 3. FOUNDRY MODERNIST STATS GRID (HAIRLINE BORDERS) */}
-      <section className={styles.statsSection}>
+      <section className={`${styles.statsSection} relative z-10`}>
         <div className="container-max">
           <div className={styles.statsGrid}>
             <div className={styles.statCell}>
-              <span className="label-caps label-gold">FOUNDED</span>
-              <p className={styles.statValue}>1988</p>
-              <p className={styles.statDesc}>38 years of botanical extraction expertise and clinical compliance.</p>
+              <span className="label-caps label-gold">FACILITY STANDARDS</span>
+              <p className={styles.statValue}>WHO-GMP</p>
+              <p className={styles.statDesc}>Certified pharmaceutical manufacturing facility adhering to global clinical compliance.</p>
             </div>
             <div className={styles.statCell}>
               <span className="label-caps label-gold">SPECIMEN ARCHIVE</span>
@@ -117,7 +105,7 @@ export default function HomePage() {
       </section>
 
       {/* 4. FEATURED SPECIMENS ARCHIVE (CARD DARK #122019) */}
-      <section className={styles.specimensSection}>
+      <section className={`${styles.specimensSection} relative z-10`}>
         <div className="container-max">
           <div className={styles.sectionHeader}>
             <div>
@@ -195,15 +183,15 @@ export default function HomePage() {
       </section>
 
       {/* 5. EDITORIAL B2B WORKFLOW TIMELINE */}
-      <section className={styles.workflowSection}>
+      <section className={`${styles.workflowSection} relative z-10`}>
         <div className="container-max">
           <div className={styles.sectionHeader}>
             <div>
               <span className="label-caps label-gold">ENTERPRISE PROTOCOL</span>
               <h2 className="headline-lg mt-2">HOW B2B CLIENTS WORK WITH US</h2>
             </div>
-            <Link href="/process" className="btn-secondary">
-              DETAILED EXTRACTION PROCESS →
+            <Link href="/quality" className="btn-secondary">
+              QUALITY & HPLC VERIFICATION →
             </Link>
           </div>
 
@@ -241,7 +229,7 @@ export default function HomePage() {
       </section>
 
       {/* 6. CALL TO ACTION BLOCK */}
-      <section className={styles.ctaSection}>
+      <section className={`${styles.ctaSection} relative z-10`}>
         <div className="container-max">
           <div className={styles.ctaBox}>
             <div>

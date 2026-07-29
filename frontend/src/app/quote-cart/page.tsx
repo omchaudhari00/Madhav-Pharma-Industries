@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import ScrollStack, { ScrollStackItem } from '@/components/ScrollStack';
+import Counter from '@/components/Counter';
 import styles from './page.module.css';
 
 interface CartItem {
@@ -36,6 +38,8 @@ const DEFAULT_ITEMS: CartItem[] = [
 export default function QuoteCartPage() {
   const router = useRouter();
   const [items, setItems] = useState<CartItem[]>([]);
+  const [editingQuantityIndex, setEditingQuantityIndex] = useState<number | null>(null);
+  const [tempQuantityVal, setTempQuantityVal] = useState<string>('');
   const [incoterm, setIncoterm] = useState('CIF Rotterdam Port (Sea Cargo)');
   const [packaging, setPackaging] = useState('Nitrogen-flushed 25kg Epoxy Aluminum Drum');
   const [clientNotes, setClientNotes] = useState('');
@@ -61,6 +65,13 @@ export default function QuoteCartPage() {
     const next = [...items];
     const newQty = Math.max(10, next[idx].quantity_kg + delta);
     next[idx].quantity_kg = newQty;
+    setItems(next);
+    localStorage.setItem('mp_quote_cart', JSON.stringify(next));
+  };
+
+  const updateQuantityDirect = (idx: number, newQty: number) => {
+    const next = [...items];
+    next[idx].quantity_kg = Math.max(1, newQty);
     setItems(next);
     localStorage.setItem('mp_quote_cart', JSON.stringify(next));
   };
@@ -116,10 +127,14 @@ export default function QuoteCartPage() {
           <div className={styles.cartGrid}>
             {/* Items Column */}
             <div className={styles.itemsCol}>
-              <div className="flex justify-between items-center hairline-b pb-4 mb-6">
+              <div className="flex justify-between items-center hairline-b pb-5 mb-6">
                 <div>
                   <span className="label-caps label-gold">SELECTED SPECIMENS</span>
-                  <h2 className="headline-md mt-1">CART ITEMS ({items.length})</h2>
+                  <h2 className="headline-md mt-1 flex items-center gap-1">
+                    <span>CART ITEMS (</span>
+                    <Counter value={items.length} fontSize={24} padding={2} gap={1} textColor="var(--ink, #122019)" fontWeight={800} />
+                    <span>)</span>
+                  </h2>
                 </div>
                 {items.length > 0 && (
                   <button
@@ -145,10 +160,10 @@ export default function QuoteCartPage() {
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <ScrollStack useWindowScroll={true} itemDistance={30}>
                   {items.map((it, index) => (
-                    <div key={index} className={styles.itemCard}>
-                      <div className="flex justify-between items-start hairline-b pb-4 mb-6">
+                    <ScrollStackItem key={index} itemClassName={styles.itemCard}>
+                      <div className="flex justify-between items-center hairline-b pb-5 mb-6">
                         <div>
                           <span className="label-caps text-[var(--gold)]">{it.code}</span>
                           <h3 className="text-xl font-extrabold mt-1">{it.product_name}</h3>
@@ -165,22 +180,64 @@ export default function QuoteCartPage() {
                         {/* Quantity Selector - no border on + and - */}
                         <div>
                           <label className="label-caps block mb-2 text-[var(--ink-variant)]">DRUM QUANTITY (KG)</label>
-                          <div className="flex items-center bg-[var(--paper)] rounded-[10px] overflow-hidden px-2 py-1.5 border border-[var(--hairline)]">
+                          <div className="flex items-center justify-between bg-[var(--paper)] rounded-[10px] overflow-hidden px-3 py-1.5 border border-[var(--hairline)]">
                             <button
+                              type="button"
                               onClick={() => updateQuantity(index, -25)}
                               style={{ border: 'none', outline: 'none', background: 'transparent' }}
-                              className="px-3 py-1 font-extrabold text-lg hover:text-[var(--gold)] transition-colors cursor-pointer"
+                              className="px-2 py-1 font-extrabold text-lg hover:text-[var(--gold)] transition-colors cursor-pointer shrink-0"
                               title="Decrease quantity by 25kg"
                             >
                               −
                             </button>
-                            <span className="flex-1 text-center font-extrabold text-sm sm:text-base py-1">
-                              {it.quantity_kg} KG
-                            </span>
+                            <div
+                              className="flex-1 flex items-center justify-center gap-1.5 cursor-pointer select-none py-1 mx-2"
+                              onClick={() => {
+                                setEditingQuantityIndex(index);
+                                setTempQuantityVal(String(it.quantity_kg));
+                              }}
+                              title="Click to manually type quantity"
+                            >
+                              {editingQuantityIndex === index ? (
+                                <input
+                                  type="number"
+                                  autoFocus
+                                  min={1}
+                                  value={tempQuantityVal}
+                                  onChange={(e) => setTempQuantityVal(e.target.value)}
+                                  onBlur={() => {
+                                    updateQuantityDirect(index, parseInt(tempQuantityVal, 10) || it.quantity_kg);
+                                    setEditingQuantityIndex(null);
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === 'Escape') {
+                                      updateQuantityDirect(index, parseInt(tempQuantityVal, 10) || it.quantity_kg);
+                                      setEditingQuantityIndex(null);
+                                    }
+                                  }}
+                                  className="w-20 text-center font-black text-lg bg-transparent border-b-2 border-[var(--gold)] outline-none"
+                                />
+                              ) : (
+                                <div className="flex items-center gap-1">
+                                  <Counter
+                                    value={it.quantity_kg}
+                                    fontSize={18}
+                                    padding={2}
+                                    gap={2}
+                                    textColor="var(--ink, #122019)"
+                                    fontWeight={900}
+                                  />
+                                </div>
+                              )}
+                              <span className="font-black text-sm sm:text-base tracking-wider text-[var(--ink)] font-bold">
+                                KG
+                              </span>
+                            </div>
                             <button
+                              type="button"
                               onClick={() => updateQuantity(index, 25)}
                               style={{ border: 'none', outline: 'none', background: 'transparent' }}
-                              className="px-3 py-1 font-extrabold text-lg hover:text-[var(--gold)] transition-colors cursor-pointer"
+                              className="px-2 py-1 font-extrabold text-lg hover:text-[var(--gold)] transition-colors cursor-pointer shrink-0"
                               title="Increase quantity by 25kg"
                             >
                               +
@@ -210,9 +267,9 @@ export default function QuoteCartPage() {
                           </span>
                         </div>
                       </div>
-                    </div>
+                    </ScrollStackItem>
                   ))}
-                </div>
+                </ScrollStack>
               )}
 
               {/* Commercial Terms Form */}

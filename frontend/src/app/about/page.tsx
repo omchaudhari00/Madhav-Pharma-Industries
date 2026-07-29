@@ -12,7 +12,7 @@ export default function AboutPage() {
       <section className={styles.headerSection}>
         <div className="container-max">
           <div className="flex justify-between items-center hairline-b pb-4 mb-8">
-            <span className="label-caps label-gold">CORPORATE BIOGRAPHY • EST. 1988</span>
+            <span className="label-caps label-gold">CORPORATE BIOGRAPHY</span>
             <span className="label-caps">GMP FACILITY CODE: MP-8820-IN</span>
           </div>
 
@@ -21,7 +21,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            A THREE-DECADE FOUNDRY OF BOTANICAL PURITY & CHEMICAL EXACTITUDE.
+            A SWISS-MODERNIST FOUNDRY OF BOTANICAL PURITY & CHEMICAL EXACTITUDE.
           </motion.h1>
 
           <p className="text-xl text-[var(--ink-variant)] max-w-2xl">

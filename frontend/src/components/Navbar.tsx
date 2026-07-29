@@ -3,15 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import StaggeredMenu, { StaggeredMenuItem, StaggeredMenuSocialItem } from './StaggeredMenu';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(2); // Initial sample cart count
+  const [cartCount, setCartCount] = useState(2);
 
   useEffect(() => {
-    // Check local storage for quote cart count if available
     const storedCart = localStorage.getItem('mp_quote_cart');
     if (storedCart) {
       try {
@@ -23,98 +22,53 @@ export default function Navbar() {
     }
   }, [pathname]);
 
-  const navLinks = [
-    { name: 'Products', href: '/catalog' },
-    { name: 'Our Process', href: '/process' },
-    { name: 'Quality', href: '/quality' },
-    { name: 'Quotations', href: '/quotations' },
-    { name: 'Orders', href: '/orders' },
-    { name: 'Invoices', href: '/invoices' },
-    { name: 'Admin Console', href: '/admin', gold: true },
+  const menuItems: StaggeredMenuItem[] = [
+    { label: 'Home', ariaLabel: 'Go to home page', link: '/' },
+    { label: 'Products & Specimens', ariaLabel: 'Explore Botanical Catalog', link: '/catalog' },
+    { label: 'Quality Assurance', ariaLabel: 'View Purity & HPLC Protocols', link: '/quality' },
+    { label: 'B2B Quotations', ariaLabel: 'Manage Quotations & Negotiations', link: '/quotations' },
+    { label: 'Enterprise Orders', ariaLabel: 'Track Bulk Orders', link: '/orders' },
+    { label: 'Invoices & Tax', ariaLabel: 'Download Invoices & LUT Records', link: '/invoices' },
+    { label: 'Admin Console', ariaLabel: 'Access Administration', link: '/admin' }
+  ];
+
+  const socialItems: StaggeredMenuSocialItem[] = [
+    { label: 'LinkedIn B2B', link: 'https://linkedin.com' },
+    { label: 'Regulatory Desk', link: 'mailto:regulatory@madhavpharma.com' },
+    { label: 'Export Documentation', link: '/quality' }
   ];
 
   return (
-    <>
-      <header className={styles.navbar}>
-        <div className={styles.container}>
-          {/* Logo Brand */}
-          <div className={styles.brandGroup}>
-            <button 
-              className={styles.menuTrigger} 
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label="Toggle Navigation"
-            >
-              <span className="material-symbols-outlined">{mobileOpen ? 'close' : 'menu'}</span>
-            </button>
-            <Link href="/" className={styles.brandTitle}>
-              MADHAV PHARMA
-            </Link>
-          </div>
-
-          {/* Desktop Links */}
-          <nav className={styles.desktopNav}>
-            {navLinks.map((link) => {
-              const active = pathname === link.href || pathname.startsWith(link.href + '/');
-              return (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className={`${styles.navLink} ${active ? styles.activeLink : ''} ${link.gold ? styles.goldLink : ''}`}
-                >
-                  {link.name}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Right Action Bar */}
-          <div className={styles.actions}>
+    <div className="w-full relative z-40">
+      <StaggeredMenu
+        isFixed={false}
+        position="right"
+        items={menuItems}
+        socialItems={socialItems}
+        displaySocials={true}
+        displayItemNumbering={true}
+        menuButtonColor="#122019"
+        openMenuButtonColor="#ffffff"
+        changeMenuColorOnOpen={true}
+        colors={['#1c2822', '#2a3e35', '#d4af37']}
+        accentColor="#d4af37"
+        customLogo={
+          <Link href="/" className={styles.brandTitle}>
+            MADHAV PHARMA
+          </Link>
+        }
+        rightActions={
+          <div className="flex items-center gap-4">
             <Link href="/quote-cart" className={styles.cartBtn}>
               <span className="label-caps">Cart</span>
               {cartCount > 0 && <span className={styles.cartBadge}>{cartCount}</span>}
             </Link>
-
             <Link href="/auth" className={styles.loginBtn}>
               <span className="label-caps">Sign In / Up</span>
             </Link>
           </div>
-        </div>
-      </header>
-
-      {/* Mobile Drawer */}
-      {mobileOpen && (
-        <div className={styles.mobileDrawer}>
-          <div className={styles.mobileNav}>
-            <p className={styles.drawerHeader}>ENTERPRISE NAVIGATION</p>
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className={`${styles.mobileLink} ${pathname === link.href ? styles.activeMobile : ''}`}
-              >
-                {link.name}
-              </Link>
-            ))}
-            <div className="pt-6 border-t border-[var(--hairline)] flex flex-col gap-3">
-              <Link
-                href="/quote-cart"
-                onClick={() => setMobileOpen(false)}
-                className="btn-primary w-full"
-              >
-                Cart ({cartCount})
-              </Link>
-              <Link
-                href="/auth"
-                onClick={() => setMobileOpen(false)}
-                className="btn-secondary w-full"
-              >
-                Sign In / Up
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+        }
+      />
+    </div>
   );
 }

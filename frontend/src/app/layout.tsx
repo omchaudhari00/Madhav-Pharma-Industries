@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import SmoothScroll from '@/components/SmoothScroll';
+import ScrollBackground from '@/components/ScrollBackground';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -17,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
+        <ScrollBackground />
         <Navbar />
         <SmoothScroll>
           <div className="min-h-screen flex flex-col">

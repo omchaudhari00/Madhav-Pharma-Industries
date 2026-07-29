@@ -72,46 +72,49 @@ function CatalogContent() {
       {/* Editorial Catalog Header */}
       <section className={styles.header}>
         <div className="container-max">
-          <div className="flex justify-between items-center hairline-b pb-4 mb-8">
-            <span className="label-caps label-gold">SPECIMEN DIRECTORY • SERIES 2026</span>
-            <span className="label-caps">ANALYTICAL PURITY VERIFIED BY GC-MS / HPLC</span>
-          </div>
-
-          <h1 className="headline-lg max-w-3xl mb-6">
-            BOTANICAL SPECIMEN CATALOG.
-          </h1>
-          <p className="text-lg text-[var(--ink-variant)] max-w-2xl mb-8">
-            Browse our complete archive of standardized botanical extracts, essential oils, and oleoresin actives. Every specimen includes downloadable HPLC certificates and bulk tier pricing.
-          </p>
-
-          {/* Filter Bar & Search */}
-          <div className={styles.filterBar}>
-            <div className={styles.categoryTabs}>
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCat(cat)}
-                  className={`${styles.catTab} ${selectedCat === cat ? styles.catTabActive : ''}`}
-                >
-                  {cat}
-                </button>
-              ))}
+          <div className="w-full lg:w-2/3 pr-0 lg:pr-8 text-left">
+            <div className="flex flex-wrap items-center gap-3 hairline-b pb-4 mb-8 text-left">
+              <span className="label-caps label-gold">SPECIMEN DIRECTORY • SERIES 2026</span>
+              <span className="text-[var(--ink-variant)]">•</span>
+              <span className="label-caps">ANALYTICAL PURITY VERIFIED BY GC-MS / HPLC</span>
             </div>
 
-            <div className={styles.searchBox}>
-              <span className="material-symbols-outlined text-[var(--ink-variant)]">search</span>
-              <input
-                type="text"
-                placeholder="Search CAS Number, Botanical Name, or Specimen Code..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={styles.searchInput}
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="text-xs font-bold uppercase">
-                  CLEAR
-                </button>
-              )}
+            <h1 className="headline-lg mb-6 text-left">
+              BOTANICAL SPECIMEN CATALOG.
+            </h1>
+            <p className="text-lg text-[var(--ink-variant)] mb-8 text-left">
+              Browse our complete archive of standardized botanical extracts, essential oils, and oleoresin actives. Every specimen includes downloadable HPLC certificates and bulk tier pricing.
+            </p>
+
+            {/* Filter Bar & Search */}
+            <div className={styles.filterBar}>
+              <div className={styles.categoryTabs}>
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCat(cat)}
+                    className={`${styles.catTab} ${selectedCat === cat ? styles.catTabActive : ''}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              <div className={styles.searchBox}>
+                <span className="material-symbols-outlined text-[var(--ink-variant)]">search</span>
+                <input
+                  type="text"
+                  placeholder="Search CAS Number, Botanical Name, or Specimen Code..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={styles.searchInput}
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="text-xs font-bold uppercase">
+                    CLEAR
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

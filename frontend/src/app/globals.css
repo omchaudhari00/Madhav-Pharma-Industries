@@ -303,8 +303,103 @@ a {
   height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--paper);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--ink);
+}
+
+/* ==========================================================================
+   TRANSPARENT & BORDERLESS DESIGN OVERRIDES (SMOOTH SCROLL BACKGROUND)
+   ========================================================================== */
+
+/* Remove borders from all components, sections, dividers, tables, cards, and hairline classes */
+*,
+*::before,
+*::after,
+section,
+div,
+header,
+footer,
+nav,
+article,
+aside,
+table,
+thead,
+tbody,
+tr,
+th,
+td,
+[class*="card"],
+[class*="Card"],
+[class*="box"],
+[class*="Box"],
+[class*="cell"],
+[class*="Cell"],
+[class*="section"],
+[class*="Section"],
+.hairline-b,
+.hairline-t,
+.hairline-l,
+.hairline-r,
+.hairline-border {
+  border-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Make backgrounds transparent across body, navbar, footer, sections, cards, tables, and wrappers */
+body,
+.specimen-card,
+.foundry-table,
+.foundry-table th,
+.foundry-table td,
+[class*="card"],
+[class*="Card"],
+[class*="box"],
+[class*="Box"],
+[class*="section"],
+[class*="Section"],
+[class*="container"],
+[class*="Container"],
+[class*="wrapper"],
+[class*="Wrapper"],
+[class*="grid"],
+[class*="Grid"],
+[class*="cell"],
+[class*="Cell"],
+[class*="marquee"],
+[class*="Marquee"],
+header,
+footer,
+nav {
+  background: transparent !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+}
+
+/* Subtle borderless glassmorphism for specimen cards so text remains readable over the animation */
+.specimen-card {
+  background: rgba(18, 32, 25, 0.28) !important;
+  backdrop-filter: blur(10px) !important;
+  border: none !important;
+}
+
+.specimen-card:hover {
+  background: rgba(18, 32, 25, 0.45) !important;
+  transform: translateY(-4px);
+}
+
+/* Buttons remain borderless with a clean semi-transparent background */
+.btn-primary,
+.btn-secondary {
+  border: none !important;
+  background: rgba(2, 18, 10, 0.8) !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover {
+  background: var(--gold) !important;
+  color: #ffffff !important;
 }
