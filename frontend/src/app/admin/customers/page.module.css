@@ -1,9 +1,0 @@
-.wrapper {
-  width: 100%;
-}
-
-.tableBox {
-  border: 1px solid var(--hairline);
-  background-color: var(--paper);
-  padding: 2.5rem;
-}

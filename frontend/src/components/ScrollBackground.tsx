@@ -18,6 +18,14 @@ export default function ScrollBackground() {
     let currentFrameIndex = 0;
     let animationFrameId: number;
 
+    function isPhoneOrPortrait(): boolean {
+      if (typeof window === 'undefined') return false;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      // Phone screens (<= 768px width) OR portrait/16:9 phone aspect ratio (height >= width)
+      return width <= 768 || height >= width;
+    }
+
     function resizeCanvas() {
       if (!canvas || !ctx) return;
       const dpr = window.devicePixelRatio || 1;
@@ -28,10 +36,14 @@ export default function ScrollBackground() {
     }
 
     function drawFrame(index: number, force = false) {
-      if (index < 0 || index >= frameCount || !ctx) return;
-      if (!force && index === lastDrawnFrame) return;
+      if (!ctx) return;
+      const isPhone = isPhoneOrPortrait();
+      const actualIndex = isPhone ? frameCount - 1 : index;
 
-      let img = images[index];
+      if (actualIndex < 0 || actualIndex >= frameCount) return;
+      if (!force && actualIndex === lastDrawnFrame) return;
+
+      let img = images[actualIndex];
       if (!img || !img.complete || img.naturalWidth === 0) {
         // Fallback: use closest loaded frame to ensure smooth rendering without blank canvas
         let closestImg: HTMLImageElement | null = null;
@@ -39,7 +51,7 @@ export default function ScrollBackground() {
         for (let i = 0; i < frameCount; i++) {
           const candidate = images[i];
           if (candidate && candidate.complete && candidate.naturalWidth > 0) {
-            const diff = Math.abs(i - index);
+            const diff = Math.abs(i - actualIndex);
             if (diff < minDiff) {
               minDiff = diff;
               closestImg = candidate;
@@ -63,27 +75,47 @@ export default function ScrollBackground() {
       const y = (height - drawHeight) / 2;
 
       ctx.drawImage(img, x, y, drawWidth, drawHeight);
-      lastDrawnFrame = index;
+      lastDrawnFrame = actualIndex;
     }
 
-    // Preload all 300 image frames from public/scroll-frames/
-    for (let i = 1; i <= frameCount; i++) {
+    // Preload helper function
+    function loadFrame(i: number) {
+      if (i < 1 || i > frameCount) return;
+      const idx = i - 1;
+      if (images[idx]) return;
+
       const img = new Image();
       img.decoding = 'async';
       const frameNumber = String(i).padStart(3, '0');
       img.src = `/scroll-frames/ezgif-frame-${frameNumber}.jpg`;
-
-      const idx = i - 1;
       images[idx] = img;
 
       img.onload = () => {
-        if (idx === Math.round(currentFrameIndex)) {
-          drawFrame(idx, true);
+        const isPhone = isPhoneOrPortrait();
+        const targetDrawIndex = isPhone ? frameCount - 1 : Math.round(currentFrameIndex);
+        if (idx === targetDrawIndex || (isPhone && idx === frameCount - 1)) {
+          drawFrame(targetDrawIndex, true);
         }
       };
     }
 
+    // Immediately load last frame first for phone permanent background, then first frame for desktop
+    loadFrame(frameCount);
+    loadFrame(1);
+
+    // Preload remaining frames
+    for (let i = 1; i <= frameCount; i++) {
+      loadFrame(i);
+    }
+
     function updateTargetFrame() {
+      if (isPhoneOrPortrait()) {
+        targetFrameIndex = frameCount - 1;
+        currentFrameIndex = frameCount - 1;
+        drawFrame(frameCount - 1);
+        return;
+      }
+
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
 
@@ -96,6 +128,16 @@ export default function ScrollBackground() {
     }
 
     function animate() {
+      if (isPhoneOrPortrait()) {
+        if (lastDrawnFrame !== frameCount - 1) {
+          currentFrameIndex = frameCount - 1;
+          targetFrameIndex = frameCount - 1;
+          drawFrame(frameCount - 1);
+        }
+        animationFrameId = requestAnimationFrame(animate);
+        return;
+      }
+
       const diff = targetFrameIndex - currentFrameIndex;
       if (Math.abs(diff) > 0.001) {
         currentFrameIndex += diff * 0.15;
@@ -128,8 +170,8 @@ export default function ScrollBackground() {
         position: 'fixed',
         top: 0,
         left: 0,
-        width: '100vw',
-        height: '100vh',
+        width: '100%',
+        height: '100%',
         pointerEvents: 'none',
         zIndex: 0,
         opacity: 0.5,
