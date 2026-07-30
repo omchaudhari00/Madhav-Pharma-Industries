@@ -1,12 +1,13 @@
 import React from 'react';
 import { ContactUsSection } from './ContactUsSection';
+import { ProductShowcase } from './ProductShowcase';
 import { useApp } from '../context/AppContext';
 
 export const AboutSection: React.FC = () => {
   const { openCart } = useApp();
 
   return (
-    <section id="about" className="relative w-full bg-transparent text-white py-20 px-6 lg:px-12 max-w-7xl mx-auto font-display">
+    <section id="about" className="relative w-full bg-transparent text-white py-20 px-4 sm:px-8 lg:px-12 xl:px-16 max-w-full font-display">
 
       {/* Top Header Banner */}
       <div className="text-center mb-16 sm:mb-24">
@@ -37,32 +38,9 @@ export const AboutSection: React.FC = () => {
         </div>
       </div>
 
-      {/* Glassmorphism Showcase: 16:9 aspect ratio container with 3 stacked boxes on the left + 1 large box on the right */}
-      <div className="my-12 lg:my-16 py-6 lg:py-10 w-full flex justify-center">
-        <div className="w-full max-w-5xl aspect-[16/9] flex gap-4 sm:gap-6 items-stretch">
-          {/* Left Column: 3 glassmorphism boxes stacked vertically, filling height proportionally */}
-          <div className="w-1/3 sm:w-1/4 lg:w-1/3 flex flex-col gap-3 sm:gap-4 h-full flex-shrink-0">
-            {[1, 2, 3].map((boxNum) => (
-              <div
-                key={boxNum}
-                className="relative group rounded-2xl sm:rounded-3xl p-4 sm:p-6 bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] hover:border-white/25 hover:bg-neutral-900/50 transition-all duration-500 flex-1 h-0 overflow-hidden"
-              >
-                {/* Top glossy glass edge highlight */}
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
-                {/* Subtle glass reflection highlight */}
-                <div className="absolute -top-10 -right-10 w-28 h-28 bg-white/5 rounded-full blur-xl pointer-events-none group-hover:bg-white/10 transition-colors duration-500" />
-              </div>
-            ))}
-          </div>
-
-          {/* Right Column: Large glassmorphism box filling full height beside the 3 stacked boxes */}
-          <div className="flex-1 h-full relative group rounded-2xl sm:rounded-3xl p-6 sm:p-8 bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] hover:border-white/25 hover:bg-neutral-900/50 transition-all duration-500 overflow-hidden flex flex-col justify-between">
-            {/* Top glossy glass edge highlight */}
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
-            {/* Subtle glass reflection highlight */}
-            <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none group-hover:bg-white/10 transition-colors duration-500" />
-          </div>
-        </div>
+      {/* Product Showcase matching reference design (3 stacked cards + main featured card) */}
+      <div className="my-12 lg:my-16 py-2">
+        <ProductShowcase />
       </div>
 
       {/* Bottom Section: Our Skills & 4 Glassmorphism Cards */}
