@@ -63,20 +63,20 @@ const PRODUCTS: ProductShowcaseItem[] = [
 ];
 
 export const ProductShowcase: React.FC = () => {
-  const { addToCart } = useApp();
+  const { addToCart, isProductOutOfStock } = useApp();
   const [activeProductId, setActiveProductId] = useState<string>('cumin-seed-oil');
 
   const activeProduct = PRODUCTS.find((p) => p.id === activeProductId) || PRODUCTS[0];
 
-  const handleShopNow = (product: ProductShowcaseItem) => {
-    addToCart({
-      id: product.id,
-      name: product.name,
-      grade: product.grade,
-      unitPrice: product.unitPrice,
-      imageUrl: product.heroImage,
-    }, 5);
-  };
+    const handleShopNow = (product: ProductShowcaseItem) => {
+      addToCart({
+        id: product.id,
+        name: product.name,
+        grade: product.grade,
+        unitPrice: product.unitPrice,
+        imageUrl: product.heroImage,
+      }, 1);
+    };
 
   return (
     <div className="w-full max-w-full my-8">
@@ -111,12 +111,15 @@ export const ProductShowcase: React.FC = () => {
                 </div>
 
                 <div className="relative z-10 flex-1 pr-3">
-                  <h4 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-display drop-shadow-md">
-                    {prod.categoryTitle}
-                  </h4>
-                  <p className="text-xs sm:text-sm text-amber-200/90 font-sans-custom mt-1 font-semibold drop-shadow-sm">
-                    {prod.categorySubtitle}
-                  </p>
+                  <div>
+                    <span className="text-xs font-semibold text-[#d4a373] tracking-widest uppercase block mb-1">
+                      {prod.categoryTitle} <span className="text-neutral-400 font-normal">{prod.categorySubtitle}</span>
+                      {isProductOutOfStock(prod.id) && <span className="ml-2 text-[10px] text-red-400 font-bold">(OUT OF STOCK)</span>}
+                    </span>
+                    <h4 className="text-lg sm:text-xl font-serif text-white font-bold leading-tight">
+                      {prod.name}
+                    </h4>
+                  </div>
                 </div>
 
                 <div className="relative z-10">
@@ -153,10 +156,16 @@ export const ProductShowcase: React.FC = () => {
 
           <div className="w-full md:w-7/12 z-10 flex flex-col justify-between h-full relative">
             <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#d4a373]/60 bg-[#d4a373]/15 text-[#d4a373] text-xs sm:text-sm font-bold tracking-widest uppercase mb-6 shadow-sm backdrop-blur-md">
-                <Star className="w-4 h-4 fill-[#d4a373] text-[#d4a373]" />
-                <span>{activeProduct.badgeText}</span>
-              </div>
+              {isProductOutOfStock(activeProduct.id) ? (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-red-500/60 bg-red-500/15 text-red-400 text-xs sm:text-sm font-bold tracking-widest uppercase mb-6 shadow-sm backdrop-blur-md">
+                  <span>🔴 OUT OF STOCK</span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#d4a373]/60 bg-[#d4a373]/15 text-[#d4a373] text-xs sm:text-sm font-bold tracking-widest uppercase mb-6 shadow-sm backdrop-blur-md">
+                  <Star className="w-4 h-4 fill-[#d4a373] text-[#d4a373]" />
+                  <span>{activeProduct.badgeText}</span>
+                </div>
+              )}
 
               <h3 className="text-4xl sm:text-6xl lg:text-7xl font-serif text-white tracking-tight leading-[1.05] mb-5">
                 {activeProduct.titleWhite}
@@ -203,11 +212,16 @@ export const ProductShowcase: React.FC = () => {
 
             <div>
               <button
-                onClick={() => handleShopNow(activeProduct)}
-                className="group relative inline-flex items-center justify-center gap-3 px-9 py-4 rounded-full bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 font-extrabold text-xs sm:text-sm lg:text-base uppercase tracking-wider transition-all duration-300 shadow-[0_6px_24px_rgba(212,163,115,0.35)] hover:shadow-[0_8px_32px_rgba(212,163,115,0.55)] transform hover:-translate-y-0.5 cursor-pointer"
+                onClick={() => !isProductOutOfStock(activeProduct.id) && handleShopNow(activeProduct)}
+                disabled={isProductOutOfStock(activeProduct.id)}
+                className={`group relative inline-flex items-center justify-center gap-3 px-9 py-4 rounded-full font-extrabold text-xs sm:text-sm lg:text-base uppercase tracking-wider transition-all duration-300 ${
+                  isProductOutOfStock(activeProduct.id)
+                    ? 'bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed'
+                    : 'bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 shadow-[0_6px_24px_rgba(212,163,115,0.35)] hover:shadow-[0_8px_32px_rgba(212,163,115,0.55)] transform hover:-translate-y-0.5 cursor-pointer'
+                }`}
               >
-                <span>SHOP NOW</span>
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-neutral-950 group-hover:translate-x-1 transition-transform" />
+                <span>{isProductOutOfStock(activeProduct.id) ? 'OUT OF STOCK' : 'SHOP NOW'}</span>
+                {!isProductOutOfStock(activeProduct.id) && <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-neutral-950 group-hover:translate-x-1 transition-transform" />}
               </button>
             </div>
           </div>

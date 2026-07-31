@@ -34,7 +34,7 @@ const renderStatusBadge = (status: string) => {
 };
 
 export const AdminDashboard: React.FC = () => {
-  const { user, setPortal } = useApp();
+  const { user, setPortal, toggleProductStock, isProductOutOfStock } = useApp();
   const [activeTab, setActiveTab] = useState<
     'overview' | 'quotes' | 'customers' | 'products' | 'sales' | 'orders' | 'settings'
   >('overview');
@@ -88,10 +88,10 @@ export const AdminDashboard: React.FC = () => {
   }, [activeTab]);
 
   const [products, setProducts] = useState([
-    { id: 1, name: 'Pure Cumin Seed Oil (Jeera Oil)', moq: '5 KG', price: '₹120/KG', availability: 'In Stock', active: true },
-    { id: 2, name: 'Natural Fennel Seed Oil', moq: '10 KG', price: '₹85/KG', availability: 'In Stock', active: true },
-    { id: 3, name: 'Pure Ajwain Seed Oil', moq: '5 KG', price: '₹95/KG', availability: 'In Stock', active: true },
-    { id: 4, name: 'Organic Coriander Essential Oil', moq: '5 KG', price: '₹110/KG', availability: 'Made to Order', active: true },
+    { id: 1, codeId: 'cumin-seed-oil', name: 'Pure Cumin Seed Oil (Jeera Oil)', moq: '5 KG', price: '₹120/KG', availability: 'In Stock', active: true },
+    { id: 2, codeId: 'fennel-seed-oil', name: 'Natural Fennel Seed Oil', moq: '10 KG', price: '₹85/KG', availability: 'In Stock', active: true },
+    { id: 3, codeId: 'ajwain-seed-oil', name: 'Pure Ajwain Seed Oil', moq: '5 KG', price: '₹95/KG', availability: 'In Stock', active: true },
+    { id: 4, codeId: 'coriander-oil', name: 'Organic Coriander Essential Oil', moq: '5 KG', price: '₹110/KG', availability: 'In Stock', active: true },
   ]);
 
   const [salesUsers, setSalesUsers] = useState([
@@ -114,7 +114,13 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const handleToggleProductStatus = (id: number) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, availability: p.availability === 'In Stock' ? 'Out of Stock' : 'In Stock' } : p));
+    setProducts(prev => prev.map(p => {
+      if (p.id === id) {
+        if (p.codeId) toggleProductStock(p.codeId);
+        return { ...p, availability: p.availability === 'In Stock' ? 'Out of Stock' : 'In Stock' };
+      }
+      return p;
+    }));
   };
 
   return (

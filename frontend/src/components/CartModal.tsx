@@ -1,17 +1,25 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Trash2, ShoppingBag, Plus, Minus, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export const CartModal: React.FC = () => {
   const { isCartOpen, closeCart, cartItems, updateQuantity, removeFromCart, clearCart, openAuth, user, token, setPortal } = useApp();
+  const [expectedPrices, setExpectedPrices] = useState<Record<string, string>>({});
+  const [qtyInputs, setQtyInputs] = useState<Record<string, string>>({});
 
   if (!isCartOpen) return null;
 
-  const totalEstimatedUSD = cartItems.reduce((acc, item) => acc + item.quantityKg * item.unitPrice, 0);
+  const totalEstimatedINR = cartItems.reduce((acc, item) => acc + item.quantityKg * item.unitPrice, 0);
 
   const handleRequestQuote = async () => {
+    const invalidItem = cartItems.find(i => !i.quantityKg || i.quantityKg <= 0);
+    if (invalidItem) {
+      alert(`Please increase quantity above 0 kg for "${invalidItem.name}".`);
+      return;
+    }
+
     if (!user) {
       closeCart();
       openAuth('signin');
@@ -23,12 +31,17 @@ export const CartModal: React.FC = () => {
       date: new Date().toISOString().split('T')[0],
       product: cartItems.map(i => i.name).join(', '),
       quantity: `${cartItems.reduce((acc, i) => acc + i.quantityKg, 0)} KG`,
-      items: cartItems.map(i => ({
-        name: i.name,
-        quantityKg: i.quantityKg,
-        unitPrice: i.unitPrice
-      })),
-      requestedPrice: `₹${cartItems.length > 0 ? cartItems[0].unitPrice : '1,500'} / KG`,
+      items: cartItems.map(i => {
+        const expected = expectedPrices[i.id] ? parseInt(expectedPrices[i.id]) : undefined;
+        return {
+          name: i.name,
+          quantityKg: i.quantityKg,
+          unitPrice: expected || i.unitPrice,
+          expectedPrice: expected ? `₹${expected}/kg` : undefined,
+          standardPrice: `₹${i.unitPrice}/kg`
+        };
+      }),
+      requestedPrice: `₹${cartItems.length > 0 ? (expectedPrices[cartItems[0].id] ? expectedPrices[cartItems[0].id] : cartItems[0].unitPrice) : '1,500'} / KG`,
       offeredPrice: 'Pending Sales Review',
       status: 'Pending',
       salesAgent: 'Unassigned',
@@ -132,30 +145,76 @@ export const CartModal: React.FC = () => {
                       <p className="text-[11px] text-neutral-400 mt-0.5">{item.grade}</p>
 
                       <div className="mt-3 flex items-center justify-between">
-                        {/* Quantity controls in kg */}
-                        <div className="flex items-center space-x-2 bg-neutral-950 border border-neutral-800 rounded-lg p-1">
-                          <button
-                            onClick={() => updateQuantity(item.id, Math.max(1, item.quantityKg - 5))}
-                            className="p-1 text-neutral-400 hover:text-white transition-colors"
-                            aria-label="Decrease quantity"
-                          >
-                            <Minus className="w-3.5 h-3.5" />
-                          </button>
-                          <span className="text-xs font-bold text-white px-2">
-                            {item.quantityKg} kg
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantityKg + 5)}
-                            className="p-1 text-neutral-400 hover:text-white transition-colors"
-                            aria-label="Increase quantity"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                          </button>
+                        {/* Writable Decimal Quantity input in kg with - / + buttons */}
+                        <div className="flex flex-col items-start">
+                          <div className="flex items-center space-x-1 bg-neutral-950 border border-neutral-800 rounded-lg p-1 focus-within:border-amber-500/50">
+                            <button
+                              onClick={() => {
+                                const current = item.quantityKg || 1;
+                                const nextVal = Math.max(0.1, Number((current - 1).toFixed(2)));
+                                updateQuantity(item.id, nextVal);
+                                setQtyInputs(prev => ({ ...prev, [item.id]: String(nextVal) }));
+                              }}
+                              className="p-1 text-neutral-400 hover:text-white transition-colors"
+                              aria-label="Decrease quantity"
+                            >
+                              <Minus className="w-3.5 h-3.5" />
+                            </button>
+                            <div className="flex items-center px-1">
+                              <input
+                                type="number"
+                                step="any"
+                                min="0"
+                                placeholder="0.0"
+                                value={qtyInputs[item.id] !== undefined ? qtyInputs[item.id] : (item.quantityKg === 0 ? '' : String(item.quantityKg))}
+                                onChange={(e) => {
+                                  const rawStr = e.target.value;
+                                  setQtyInputs(prev => ({ ...prev, [item.id]: rawStr }));
+                                  const val = parseFloat(rawStr);
+                                  updateQuantity(item.id, isNaN(val) ? 0 : val);
+                                }}
+                                className="w-12 bg-transparent text-center text-xs font-bold text-white placeholder-neutral-600 focus:outline-none font-mono"
+                              />
+                              <span className="text-xs font-bold text-neutral-400 pr-0.5">kg</span>
+                            </div>
+                            <button
+                              onClick={() => {
+                                const current = item.quantityKg || 0;
+                                const nextVal = Number((current + 1).toFixed(2));
+                                updateQuantity(item.id, nextVal);
+                                setQtyInputs(prev => ({ ...prev, [item.id]: String(nextVal) }));
+                              }}
+                              className="p-1 text-neutral-400 hover:text-white transition-colors"
+                              aria-label="Increase quantity"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          {(!item.quantityKg || item.quantityKg <= 0) && (
+                            <span className="text-[10px] text-red-400 font-bold mt-1">
+                              ⚠️ Increase quantity (&gt; 0 kg)
+                            </span>
+                          )}
                         </div>
 
                         <span className="text-xs font-bold text-neutral-300">
-                          ~${item.quantityKg * item.unitPrice}
+                          ₹{(item.quantityKg * (expectedPrices[item.id] ? parseInt(expectedPrices[item.id]) || item.unitPrice : item.unitPrice)).toLocaleString()}
                         </span>
+                      </div>
+
+                      <div className="mt-2.5 pt-2 border-t border-neutral-800/60 flex items-center justify-between">
+                        <span className="text-[11px] text-neutral-400 font-medium">Expected Price (Optional):</span>
+                        <div className="flex items-center bg-neutral-950 border border-neutral-800 rounded-lg px-2 py-1 w-32 focus-within:border-amber-500/50">
+                          <span className="text-xs text-neutral-500 mr-1">₹</span>
+                          <input
+                            type="number"
+                            placeholder={`e.g. ${item.unitPrice}`}
+                            value={expectedPrices[item.id] || ''}
+                            onChange={(e) => setExpectedPrices(prev => ({ ...prev, [item.id]: e.target.value }))}
+                            className="w-full bg-transparent text-xs text-white placeholder-neutral-600 focus:outline-none font-mono"
+                          />
+                          <span className="text-[10px] text-neutral-500 ml-1">/kg</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -176,7 +235,7 @@ export const CartModal: React.FC = () => {
               <div className="flex items-center justify-between text-base mb-6">
                 <span className="text-neutral-300 font-medium">Estimated Pricing</span>
                 <span className="font-extrabold text-white text-lg">
-                  ~${totalEstimatedUSD.toLocaleString()} USD
+                  ~₹{totalEstimatedINR.toLocaleString()}
                 </span>
               </div>
 

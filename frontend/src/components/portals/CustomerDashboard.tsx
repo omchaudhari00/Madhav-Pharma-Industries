@@ -15,13 +15,17 @@ const getIndividualItems = (q: any) => {
       return names.map((name: string) => ({
         name,
         quantityKg: perItem,
-        unitPrice: q.items[0].unitPrice || 1500
+        unitPrice: q.items[0].unitPrice || 1500,
+        expectedPrice: q.items[0].expectedPrice,
+        standardPrice: q.items[0].standardPrice
       }));
     }
     return q.items.map((i: any) => ({
       name: i.name || i.product_details?.name || i.product || 'Bulk Pharma API',
       quantityKg: i.quantityKg || i.quantity || 5,
-      unitPrice: i.unitPrice || i.requested_price || 1500
+      unitPrice: i.unitPrice || i.requested_price || 1500,
+      expectedPrice: i.expectedPrice,
+      standardPrice: i.standardPrice
     }));
   }
   const names = (q.product || 'Bulk Pharma API').split(',').map((p: string) => p.trim()).filter(Boolean);
@@ -280,11 +284,22 @@ export const CustomerDashboard: React.FC = () => {
                       </div>
                       <div className="mt-2 space-y-1.5">
                         {getIndividualItems(q).map((item: any, idx: number) => (
-                          <div key={idx} className="flex items-center gap-2 text-sm sm:text-base">
-                            <span className="w-2 h-2 rounded-full bg-[#d4a373] shrink-0" />
-                            <span className="font-mono font-bold text-amber-200">{item.quantityKg} kg</span>
-                            <span className="text-neutral-400">of</span>
-                            <span className="font-bold text-white">{item.name}</span>
+                          <div key={idx} className="flex flex-wrap items-center justify-between gap-2 text-sm sm:text-base py-1 border-b border-white/5 last:border-0">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-[#d4a373] shrink-0" />
+                              <span className="font-mono font-bold text-amber-200">{item.quantityKg} kg</span>
+                              <span className="text-neutral-400">of</span>
+                              <span className="font-bold text-white">{item.name}</span>
+                            </div>
+                            {item.expectedPrice ? (
+                              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                                Expected: {item.expectedPrice}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-neutral-400">
+                                Standard: ₹{item.unitPrice}/kg
+                              </span>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -319,9 +334,29 @@ export const CustomerDashboard: React.FC = () => {
                     <div className="text-xs text-neutral-400">
                       Assigned Agent: <strong className="text-white">{q.salesAgent}</strong>
                     </div>
-
                     <div className="flex items-center gap-2">
-                      {q.status === 'Approved by Sales' || q.status === 'Accepted by Customer' ? (
+                      {q.status === 'Pending' || q.status === 'Pending Sales Review' ? (
+                        <div className="px-4 py-2 rounded-xl bg-neutral-800/80 border border-neutral-700 text-neutral-400 text-xs font-semibold flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                          <span>Awaiting Sales Rep Offer & Review...</span>
+                        </div>
+                      ) : q.status === 'Rejected: Out of Stock' ? (
+                        <div className="px-4 py-2 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs font-semibold">
+                          🔴 Quotation Closed - Out of Stock
+                        </div>
+                      ) : q.status === 'Rejected by Customer' ? (
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-1.5 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs font-semibold">
+                            Rejected by You
+                          </span>
+                          <button 
+                            onClick={() => handleQuoteAction(q.id, 'revision')}
+                            className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold text-xs uppercase transition-all"
+                          >
+                            Make Counter-Offer
+                          </button>
+                        </div>
+                      ) : q.status === 'Approved by Sales' || q.status === 'Accepted by Customer' ? (
                         <>
                           <button 
                             onClick={() => handlePayAndGenerateInvoice(q)}

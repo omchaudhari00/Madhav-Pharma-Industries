@@ -15,13 +15,17 @@ const getIndividualItems = (q: any) => {
       return names.map((name: string) => ({
         name,
         quantityKg: perItem,
-        unitPrice: q.items[0].unitPrice || 1500
+        unitPrice: q.items[0].unitPrice || 1500,
+        expectedPrice: q.items[0].expectedPrice,
+        standardPrice: q.items[0].standardPrice
       }));
     }
     return q.items.map((i: any) => ({
       name: i.name || i.product_details?.name || i.product || 'Bulk Pharma API',
       quantityKg: i.quantityKg || i.quantity || 5,
-      unitPrice: i.unitPrice || i.requested_price || 1500
+      unitPrice: i.unitPrice || i.requested_price || 1500,
+      expectedPrice: i.expectedPrice,
+      standardPrice: i.standardPrice
     }));
   }
   const names = (q.product || 'Bulk Pharma API').split(',').map((p: string) => p.trim()).filter(Boolean);
@@ -71,7 +75,19 @@ export const SalesDashboard: React.FC = () => {
         console.error('Failed to fetch backend quotes:', e);
       }
       const localQuotes = JSON.parse(localStorage.getItem('madhav_quotes') || '[]');
-      const combined = [...backendQuotes];
+      const combined = backendQuotes.map(bq => {
+        const matchingLocal = localQuotes.find((lq: any) => lq.id === bq.id);
+        if (matchingLocal) {
+          return {
+            ...bq,
+            status: matchingLocal.status || bq.status,
+            targetPrice: matchingLocal.offeredPrice || matchingLocal.targetPrice || bq.targetPrice,
+            customerNote: matchingLocal.notes || bq.customerNote,
+            salesRemarks: matchingLocal.salesRemarks || bq.salesRemarks
+          };
+        }
+        return bq;
+      });
       localQuotes.forEach((lq: any) => {
         if (!combined.some(bq => bq.id === lq.id)) {
           combined.push({
@@ -90,7 +106,7 @@ export const SalesDashboard: React.FC = () => {
   const [assignedCustomers, setAssignedCustomers] = useState<any[]>([]);
   const [salesOrders, setSalesOrders] = useState<any[]>([]);
 
-  const handleQuoteAction = async (id: string, action: 'approve' | 'reject' | 'negotiate', newPrice?: string, remarks?: string) => {
+  const handleQuoteAction = async (id: string, action: 'approve' | 'reject' | 'negotiate' | 'out_of_stock', newPrice?: string, remarks?: string) => {
     try {
       await fetch(`/api/quotations/quotations/${id}/sales_action/`, {
         method: 'POST',
@@ -100,21 +116,22 @@ export const SalesDashboard: React.FC = () => {
     } catch (e) {
       console.error(e);
     }
-    const newStatus = action === 'approve' ? 'Approved by Sales' : action === 'reject' ? 'Rejected by Sales' : 'Under Negotiation';
+    const newStatus = action === 'approve' ? 'Approved by Sales' : action === 'out_of_stock' ? 'Rejected: Out of Stock' : action === 'reject' ? 'Rejected by Sales' : 'Counter Offer by Sales';
+    const noteText = action === 'out_of_stock' ? (remarks || 'Product is currently out of stock. Quotation closed.') : (remarks || '');
     const existing = JSON.parse(localStorage.getItem('madhav_quotes') || '[]');
     const updated = existing.map((q: any) => q.id === id ? {
       ...q,
       status: newStatus,
       offeredPrice: newPrice ? `₹${newPrice} / KG` : q.offeredPrice,
-      notes: remarks || q.notes,
-      salesRemarks: remarks || q.salesRemarks
+      notes: noteText || q.notes,
+      salesRemarks: noteText || q.salesRemarks
     } : q);
     localStorage.setItem('madhav_quotes', JSON.stringify(updated));
 
     setMyQuotes(prev => prev.map(q => q.id === id ? {
       ...q,
       targetPrice: newPrice || q.targetPrice,
-      salesRemarks: remarks || q.salesRemarks,
+      salesRemarks: noteText || q.salesRemarks,
       status: newStatus
     } : q));
     setSelectedQuote(null);
@@ -235,11 +252,18 @@ export const SalesDashboard: React.FC = () => {
                       <h4 className="text-lg font-bold text-white mt-1">{q.customer}</h4>
                       <div className="mt-1 space-y-1">
                         {getIndividualItems(q).map((item: any, idx: number) => (
-                          <div key={idx} className="flex items-center gap-2 text-xs text-neutral-300">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
-                            <span className="font-mono font-bold text-amber-200">{item.quantityKg} kg</span>
-                            <span className="text-neutral-400">of</span>
-                            <span className="font-semibold text-white">{item.name}</span>
+                          <div key={idx} className="flex flex-wrap items-center justify-between gap-1 text-xs text-neutral-300 py-0.5 border-b border-white/5 last:border-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
+                              <span className="font-mono font-bold text-amber-200">{item.quantityKg} kg</span>
+                              <span className="text-neutral-400">of</span>
+                              <span className="font-semibold text-white">{item.name}</span>
+                            </div>
+                            {item.expectedPrice && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
+                                Exp: {item.expectedPrice}
+                              </span>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -340,26 +364,40 @@ export const SalesDashboard: React.FC = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 pt-2">
+                  {selectedQuote.status === 'Rejected by Customer' && (
+                    <div className="p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-xs text-red-200">
+                      <strong className="text-red-400 block mb-1">Customer Rejected Previous Offer</strong>
+                      You can submit a new counter-offer price below to reopen negotiations, or reject/close the deal.
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
                     <button 
                       type="button"
                       onClick={() => handleQuoteAction(selectedQuote.id, 'approve')}
                       className="py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-neutral-950 font-extrabold text-xs uppercase tracking-wider shadow-lg transition-colors"
                     >
-                      Approve
+                      Approve Deal
                     </button>
                     <button 
                       type="submit"
                       className="py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-neutral-950 font-extrabold text-xs uppercase tracking-wider shadow-lg transition-colors"
                     >
-                      Negotiate
+                      Send Offer
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => handleQuoteAction(selectedQuote.id, 'out_of_stock')}
+                      className="py-3 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-neutral-950 font-extrabold text-xs uppercase tracking-wider shadow-lg transition-colors"
+                    >
+                      No Stock (Turn Off)
                     </button>
                     <button 
                       type="button"
                       onClick={() => handleQuoteAction(selectedQuote.id, 'reject')}
                       className="py-3 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-neutral-950 font-extrabold text-xs uppercase tracking-wider shadow-lg transition-colors"
                     >
-                      Reject
+                      Reject Deal
                     </button>
                   </div>
                 </form>

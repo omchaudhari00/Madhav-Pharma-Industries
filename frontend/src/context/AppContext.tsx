@@ -42,6 +42,9 @@ interface AppContextType {
   currentPortal: 'storefront' | 'admin' | 'sales' | 'customer';
   setPortal: (portal: 'storefront' | 'admin' | 'sales' | 'customer') => void;
   switchDemoRole: (role: 'Admin' | 'Sales' | 'Customer', stage?: 'Lead' | 'Customer') => void;
+  outOfStockProducts: Record<string, boolean>;
+  toggleProductStock: (productId: string) => void;
+  isProductOutOfStock: (productId: string) => boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -75,6 +78,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     else setPortal('customer');
   };
 
+  const [outOfStockProducts, setOutOfStockProducts] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     // Load stored auth on mount
     try {
@@ -89,6 +94,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const storedCart = localStorage.getItem('madhav_cart');
       if (storedCart) {
         setCartItems(JSON.parse(storedCart));
+      }
+      const storedOos = localStorage.getItem('madhav_out_of_stock');
+      if (storedOos) {
+        setOutOfStockProducts(JSON.parse(storedOos));
       }
     } catch (e) {
       console.error('Error loading stored state', e);
@@ -132,7 +141,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsCartOpen(false);
   };
 
-  const addToCart = (item: Omit<CartItem, 'quantityKg'>, quantity = 5) => {
+  const addToCart = (item: Omit<CartItem, 'quantityKg'>, quantity = 1) => {
     setCartItems(prev => {
       const existingIndex = prev.findIndex(i => i.id === item.id);
       let updated: CartItem[];
@@ -157,12 +166,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateQuantity = (id: string, quantityKg: number) => {
-    if (quantityKg <= 0) {
-      removeFromCart(id);
-      return;
-    }
     setCartItems(prev => {
-      const updated = prev.map(i => i.id === id ? { ...i, quantityKg } : i);
+      const updated = prev.map(i => i.id === id ? { ...i, quantityKg: isNaN(quantityKg) ? 0 : quantityKg } : i);
       localStorage.setItem('madhav_cart', JSON.stringify(updated));
       return updated;
     });
@@ -174,6 +179,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const cartTotalCount = cartItems.reduce((sum, item) => sum + item.quantityKg, 0);
+
+  const toggleProductStock = (productId: string) => {
+    setOutOfStockProducts(prev => {
+      const updated = { ...prev, [productId]: !prev[productId] };
+      localStorage.setItem('madhav_out_of_stock', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const isProductOutOfStock = (productId: string) => {
+    return !!outOfStockProducts[productId];
+  };
 
   return (
     <AppContext.Provider
@@ -198,6 +215,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currentPortal,
         setPortal,
         switchDemoRole,
+        outOfStockProducts,
+        toggleProductStock,
+        isProductOutOfStock,
       }}
     >
       {children}
