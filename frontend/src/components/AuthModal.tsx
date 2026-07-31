@@ -106,14 +106,14 @@ export const AuthModal: React.FC = () => {
         }),
       });
 
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setSignUpStep('otp');
       } else {
-        // Demo fallback: proceed to OTP screen
-        setSignUpStep('otp');
+        setSignUpError(data.error || 'Failed to send OTP. Please check your details.');
       }
     } catch (err) {
-      setSignUpStep('otp');
+      setSignUpError('Network error. Could not connect to authentication server.');
     } finally {
       setSignUpLoading(false);
     }
@@ -138,7 +138,7 @@ export const AuthModal: React.FC = () => {
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
         login(data.user || {
@@ -149,27 +149,10 @@ export const AuthModal: React.FC = () => {
         }, data.tokens?.access);
         closeAuth();
       } else {
-        // Fallback for demo verification
-        if (otp.length >= 4) {
-          login({
-            email: email,
-            mobile_number: mobileNumber,
-            first_name: firstName,
-            last_name: lastName,
-          }, 'demo-access-token');
-          closeAuth();
-        } else {
-          setSignUpError(data.error || 'Invalid OTP code.');
-        }
+        setSignUpError(data.error || 'Invalid or expired OTP code.');
       }
     } catch (err) {
-      login({
-        email: email,
-        mobile_number: mobileNumber,
-        first_name: firstName,
-        last_name: lastName,
-      }, 'demo-access-token');
-      closeAuth();
+      setSignUpError('Network error. Could not verify OTP with server.');
     } finally {
       setSignUpLoading(false);
     }

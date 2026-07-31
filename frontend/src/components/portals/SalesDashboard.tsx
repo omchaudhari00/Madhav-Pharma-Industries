@@ -175,9 +175,17 @@ export const SalesDashboard: React.FC = () => {
                     <div className="text-right">
                       <div className="text-xs text-neutral-400">Requested: <span className="font-mono text-white">{q.requestedPrice}</span></div>
                       <div className="text-sm font-bold text-[#d4a373]">Offered: {q.targetPrice}</div>
-                      <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-white/10 text-xs text-neutral-300">
+                      <div className={`inline-flex items-center justify-center mt-1 px-3 py-1 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${
+                        q.status === 'Approved by Sales'
+                          ? 'bg-blue-500/15 border-blue-500/30 text-blue-300'
+                          : q.status === 'Under Negotiation'
+                          ? 'bg-amber-500/15 border-amber-500/30 text-amber-300'
+                          : q.status === 'Accepted by Customer'
+                          ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                          : 'bg-white/10 border-white/20 text-neutral-200'
+                      }`}>
                         {q.status}
-                      </span>
+                      </div>
                     </div>
                   </div>
 
@@ -341,16 +349,22 @@ export const SalesDashboard: React.FC = () => {
                       <td className="py-4 px-4 text-neutral-300">{ord.product}</td>
                       <td className="py-4 px-4 font-mono text-white">{ord.amount}</td>
                       <td className="py-4 px-4">
-                        <span className="px-3 py-1 rounded-full bg-white/10 text-xs font-semibold">
+                        <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${
+                          ord.status === 'Delivered'
+                            ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                            : ord.status === 'Shipped'
+                            ? 'bg-blue-500/15 border-blue-500/30 text-blue-300'
+                            : 'bg-amber-500/15 border-amber-500/30 text-amber-300'
+                        }`}>
                           {ord.status}
-                        </span>
+                        </div>
                       </td>
                       <td className="py-4 px-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          ord.payment === 'Completed' ? 'text-emerald-400 bg-emerald-500/15' : 'text-amber-400 bg-amber-500/15'
+                        <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${
+                          ord.payment === 'Completed' ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30' : 'text-amber-300 bg-amber-500/15 border-amber-500/30'
                         }`}>
                           {ord.payment}
-                        </span>
+                        </div>
                       </td>
                     </tr>
                   ))}

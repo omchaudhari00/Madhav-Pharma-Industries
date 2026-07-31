@@ -8,6 +8,8 @@ from .serializers import (
     QuotationSerializer, NegotiationHistorySerializer
 )
 from django.db import transaction
+from django.core.mail import send_mail
+from django.conf import settings
 
 class QuoteCartViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
@@ -101,6 +103,17 @@ class QuotationViewSet(viewsets.ModelViewSet):
         action_type = request.data.get('action') # 'accept' or 'reject'
         if action_type == 'accept':
             quotation.status = 'Accepted by Customer'
+            if quotation.sales_agent and quotation.sales_agent.email:
+                try:
+                    send_mail(
+                        subject=f"Quotation #{quotation.id} Accepted by Customer",
+                        message=f"Hello {quotation.sales_agent.first_name or 'Sales Representative'},\n\nQuotation #{quotation.id} has been Accepted by {quotation.customer}.\n\nYou can proceed with converting this quotation into an order.\n\nRegards,\nMadhav Pharma Industries",
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[quotation.sales_agent.email],
+                        fail_silently=True,
+                    )
+                except Exception as e:
+                    print(f"[Email Alert Error] {e}")
         elif action_type == 'reject':
             quotation.status = 'Rejected by Customer'
         else:
@@ -130,5 +143,16 @@ class QuotationViewSet(viewsets.ModelViewSet):
         if new_status:
             quotation.status = new_status
             quotation.save()
+            if new_status == 'Approved by Sales' and quotation.customer and quotation.customer.email:
+                try:
+                    send_mail(
+                        subject=f"Quotation #{quotation.id} Approved by Sales",
+                        message=f"Hello,\n\nYour quotation request #{quotation.id} has been Approved by Sales!\n\nPlease log in to your Customer Portal to review the approved pricing and accept the quote.\n\nRegards,\nMadhav Pharma Industries",
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[quotation.customer.email],
+                        fail_silently=True,
+                    )
+                except Exception as e:
+                    print(f"[Email Alert Error] {e}")
         return Response(QuotationSerializer(quotation).data)
 

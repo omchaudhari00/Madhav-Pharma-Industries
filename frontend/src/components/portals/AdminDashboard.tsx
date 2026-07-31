@@ -8,6 +8,31 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
+const renderStatusBadge = (status: string) => {
+  let style = 'bg-white/10 border-white/20 text-neutral-200';
+  if (status === 'Approved by Sales') {
+    style = 'bg-blue-500/15 border-blue-500/30 text-blue-300';
+  } else if (status === 'Under Negotiation') {
+    style = 'bg-amber-500/15 border-amber-500/30 text-amber-300';
+  } else if (status === 'Accepted by Customer' || status === 'Delivered' || status === 'Active' || status === 'Completed') {
+    style = 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300';
+  } else if (status === 'Rejected by Customer' || status === 'Deactivated') {
+    style = 'bg-rose-500/15 border-rose-500/30 text-rose-300';
+  } else if (status === 'Pending') {
+    style = 'bg-purple-500/15 border-purple-500/30 text-purple-300';
+  } else if (status === 'Shipped') {
+    style = 'bg-sky-500/15 border-sky-500/30 text-sky-300';
+  } else if (status === 'Processing') {
+    style = 'bg-amber-500/15 border-amber-500/30 text-amber-300';
+  }
+
+  return (
+    <div className={`inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${style}`}>
+      {status}
+    </div>
+  );
+};
+
 export const AdminDashboard: React.FC = () => {
   const { user, setPortal } = useApp();
   const [activeTab, setActiveTab] = useState<
@@ -241,21 +266,19 @@ export const AdminDashboard: React.FC = () => {
                         <td className="py-4 px-4 font-bold text-[#d4a373]">{q.id}</td>
                         <td className="py-4 px-4 font-semibold text-white">{q.customer}</td>
                         <td className="py-4 px-4">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold tracking-wide uppercase ${
+                          <div className={`inline-flex items-center justify-center px-3 py-1 rounded-xl border text-xs font-extrabold tracking-wide uppercase whitespace-nowrap shadow-sm ${
                             q.customer === 'Vedic Herbs Bio' || q.customer === 'Sanjivani Naturals'
-                              ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                              : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                              ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                              : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
                           }`}>
                             {q.customer === 'Vedic Herbs Bio' || q.customer === 'Sanjivani Naturals' ? 'Lead' : 'Customer'}
-                          </span>
+                          </div>
                         </td>
                         <td className="py-4 px-4 text-neutral-300">{q.product} ({q.quantity})</td>
                         <td className="py-4 px-4 text-white font-mono">{q.requestedPrice}</td>
                         <td className="py-4 px-4 text-neutral-300">{q.salesAgent}</td>
                         <td className="py-4 px-4">
-                          <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-semibold">
-                            {q.status}
-                          </span>
+                          {renderStatusBadge(q.status)}
                         </td>
                         <td className="py-4 px-4">
                           <button 
@@ -316,9 +339,7 @@ export const AdminDashboard: React.FC = () => {
                         </select>
                       </td>
                       <td className="py-4 px-4">
-                        <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-semibold">
-                          {q.status}
-                        </span>
+                        {renderStatusBadge(q.status)}
                       </td>
                       <td className="py-4 px-4 flex items-center gap-2">
                         <button 
@@ -378,22 +399,22 @@ export const AdminDashboard: React.FC = () => {
                         <div className="text-xs text-neutral-400">{c.phone}</div>
                       </td>
                       <td className="py-4 px-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wide ${
+                        <div className={`inline-flex items-center justify-center px-3 py-1 rounded-xl border text-xs font-extrabold uppercase tracking-wide whitespace-nowrap shadow-sm ${
                           c.stage === 'Lead'
-                            ? 'bg-amber-500/15 text-amber-300 border border-amber-500/40'
-                            : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/40'
+                            ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
+                            : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40'
                         }`}>
                           {c.stage}
-                        </span>
+                        </div>
                       </td>
                       <td className="py-4 px-4 font-mono text-white">{c.ordersCount} orders</td>
                       <td className="py-4 px-4 font-bold text-[#d4a373]">{c.totalSpent}</td>
                       <td className="py-4 px-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                          c.status === 'Active' ? 'text-emerald-400 bg-emerald-500/10' : 'text-red-400 bg-red-500/10'
+                        <div className={`inline-flex items-center justify-center px-3 py-1 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${
+                          c.status === 'Active' ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30' : 'text-red-400 bg-red-500/15 border-red-500/30'
                         }`}>
                           {c.status}
-                        </span>
+                        </div>
                       </td>
                       <td className="py-4 px-4 flex items-center gap-2">
                         <button 
@@ -449,13 +470,13 @@ export const AdminDashboard: React.FC = () => {
                       <td className="py-4 px-4 font-mono text-amber-200">{p.moq}</td>
                       <td className="py-4 px-4 font-mono text-white">{p.price}</td>
                       <td className="py-4 px-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${
                           p.availability === 'In Stock'
-                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                            : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                            ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                            : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
                         }`}>
                           {p.availability}
-                        </span>
+                        </div>
                       </td>
                       <td className="py-4 px-4">
                         <span className="text-xs text-neutral-300 underline cursor-pointer hover:text-white">COA & MSDS Attached</span>
@@ -546,16 +567,14 @@ export const AdminDashboard: React.FC = () => {
                       <td className="py-4 px-4 font-semibold text-white">{ord.customer}</td>
                       <td className="py-4 px-4 font-mono text-white">{ord.amount}</td>
                       <td className="py-4 px-4">
-                        <span className="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-semibold">
-                          {ord.status}
-                        </span>
+                        {renderStatusBadge(ord.status)}
                       </td>
                       <td className="py-4 px-4">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                          ord.payment === 'Completed' ? 'text-emerald-400 bg-emerald-500/10' : 'text-amber-400 bg-amber-500/10'
+                        <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${
+                          ord.payment === 'Completed' ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30' : 'text-amber-300 bg-amber-500/15 border-amber-500/30'
                         }`}>
                           {ord.payment}
-                        </span>
+                        </div>
                       </td>
                       <td className="py-4 px-4 text-neutral-400">{ord.date}</td>
                       <td className="py-4 px-4">

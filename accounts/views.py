@@ -6,6 +6,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone
 from datetime import timedelta
 import random
+from django.core.mail import send_mail
+from django.conf import settings
 
 from .models import User, CustomerProfile, OTPRecord
 from .serializers import (
@@ -128,10 +130,24 @@ class RequestOTPView(APIView):
                 expires_at=timezone.now() + timedelta(minutes=10)
             )
             
-            # TODO: Integrate actual Email/SMS provider here
-            print(f"MOCK OTP for {email}/{mobile_number}: {otp}")
+            # Send OTP email using Django Gmail SMTP
+            subject = "Madhav Pharma Industries - Your Verification OTP"
+            message = f"Hello,\n\nYour 6-digit verification code is: {otp}\n\nThis OTP is valid for 10 minutes. Do not share this code with anyone.\n\nRegards,\nMadhav Pharma Industries"
+            try:
+                if email:
+                    send_mail(
+                        subject=subject,
+                        message=message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[email],
+                        fail_silently=False,
+                    )
+            except Exception as e:
+                print(f"[Email Error] Failed to send OTP email to {email}: {e}")
+                # Fallback print for local debugging
+                print(f"MOCK OTP for {email}/{mobile_number}: {otp}")
             
-            return Response({"message": "OTP sent successfully. Please verify."})
+            return Response({"message": "OTP sent successfully to your email. Please verify."})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class VerifyOTPAndRegisterView(APIView):

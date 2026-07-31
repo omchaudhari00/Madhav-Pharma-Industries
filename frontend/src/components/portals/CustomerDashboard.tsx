@@ -206,15 +206,15 @@ export const CustomerDashboard: React.FC = () => {
                       <div className="text-xs text-neutral-400">Requested Price: <span className="font-mono text-white">{q.requestedPrice}</span></div>
                       <div className="text-lg font-bold text-[#d4a373] mt-0.5">Offered Price: {q.offeredPrice}</div>
                       <div className="mt-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        <div className={`inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${
                           q.status === 'Accepted by Customer'
-                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                            ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                             : q.status === 'Approved by Sales'
-                            ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
-                            : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                            ? 'bg-blue-500/15 text-blue-300 border-blue-500/30'
+                            : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
                         }`}>
                           {q.status}
-                        </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -301,9 +301,9 @@ export const CustomerDashboard: React.FC = () => {
                         <td className="py-4 px-4 font-semibold text-white">{ord.product}</td>
                         <td className="py-4 px-4 font-mono text-white">{ord.amount}</td>
                         <td className="py-4 px-4">
-                          <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-bold">
+                          <div className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl border bg-emerald-500/15 text-emerald-300 border-emerald-500/30 text-xs font-bold whitespace-nowrap shadow-sm">
                             {ord.status}
-                          </span>
+                          </div>
                         </td>
                         <td className="py-4 px-4 text-neutral-400">{ord.date}</td>
                         <td className="py-4 px-4">
