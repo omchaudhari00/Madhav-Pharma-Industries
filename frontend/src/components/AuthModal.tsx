@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { X, Mail, Lock, Phone, User, CheckCircle2, ArrowRight, ShieldCheck, KeyRound, AlertCircle } from 'lucide-react';
+import { X, Mail, Lock, Phone, User, CheckCircle2, ArrowRight, ShieldCheck, KeyRound, AlertCircle, MapPin } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export const AuthModal: React.FC = () => {
@@ -19,6 +19,7 @@ export const AuthModal: React.FC = () => {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
+  const [address, setAddress] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [signUpError, setSignUpError] = useState('');
@@ -131,6 +132,7 @@ export const AuthModal: React.FC = () => {
         body: JSON.stringify({
           email: email,
           mobile_number: mobileNumber,
+          address: address,
           otp: otp,
           first_name: firstName,
           last_name: lastName,
@@ -318,6 +320,21 @@ export const AuthModal: React.FC = () => {
                   placeholder="9023385917"
                   value={mobileNumber}
                   onChange={(e) => setMobileNumber(e.target.value)}
+                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-neutral-400 mb-1.5">Business / Delivery Address</label>
+              <div className="relative">
+                <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-neutral-500" />
+                <input
+                  type="text"
+                  required
+                  placeholder="123 Pharma Estate, Ahmedabad, Gujarat - 380001"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
                   className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50"
                 />
               </div>

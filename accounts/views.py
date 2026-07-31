@@ -9,7 +9,7 @@ import random
 from django.core.mail import send_mail
 from django.conf import settings
 
-from .models import User, CustomerProfile, OTPRecord
+from .models import User, CustomerProfile, OTPRecord, Address
 from .serializers import (
     CheckUserSerializer, LoginSerializer, 
     RegistrationRequestSerializer, OTPVerificationSerializer,
@@ -31,12 +31,9 @@ class CheckUserView(APIView):
         serializer = CheckUserSerializer(data=request.data)
         if serializer.is_valid():
             identifier = serializer.validated_data['identifier'].strip()
-            if identifier in ['theom.chaudhari@gmail.com', 'vatsaldevani2005@gmail.com']:
-                return Response({"exists": True, "message": "User exists, please provide password."})
-            user = User.objects.filter(email=identifier).first() or User.objects.filter(mobile_number=identifier).first()
-            if user:
-                return Response({"exists": True, "message": "User exists, please provide password."})
-            return Response({"exists": False, "message": "User does not exist, proceed to registration."})
+            exists = User.objects.filter(email=identifier).exists() or \
+                     User.objects.filter(mobile_number=identifier).exists()
+            return Response({"exists": exists})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(APIView):
@@ -114,8 +111,8 @@ class RequestOTPView(APIView):
     def post(self, request):
         serializer = RegistrationRequestSerializer(data=request.data)
         if serializer.is_valid():
-            email = serializer.validated_data['email']
-            mobile_number = serializer.validated_data['mobile_number']
+            email = serializer.validated_data.get('email', '').strip().lower()
+            mobile_number = serializer.validated_data.get('mobile_number', '').strip()
             
             if User.objects.filter(email__iexact=email).exists():
                 return Response({"error": "An account with this email address already exists. Please sign in instead."}, status=status.HTTP_400_BAD_REQUEST)
@@ -193,7 +190,18 @@ class VerifyOTPAndRegisterView(APIView):
                 is_verified=True
             )
             
-            CustomerProfile.objects.create(user=user)
+            profile = CustomerProfile.objects.create(user=user)
+            address_text = serializer.validated_data.get('address', '').strip()
+            if address_text:
+                Address.objects.create(
+                    customer=profile,
+                    address_line_1=address_text,
+                    city='',
+                    state='',
+                    postal_code='',
+                    country='India',
+                    is_default=True
+                )
             
             tokens = get_tokens_for_user(user)
             

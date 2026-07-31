@@ -5,16 +5,24 @@ from rest_framework.exceptions import AuthenticationFailed
 
 class UserSerializer(serializers.ModelSerializer):
     customer_stage = serializers.SerializerMethodField()
+    address = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'mobile_number', 'role', 'first_name', 'last_name', 'is_verified', 'customer_stage']
+        fields = ['id', 'email', 'mobile_number', 'role', 'first_name', 'last_name', 'is_verified', 'customer_stage', 'address']
 
     def get_customer_stage(self, obj):
         if hasattr(obj, 'customer_profile'):
             obj.customer_profile.check_and_update_stage()
             return obj.customer_profile.customer_stage
         return 'Customer' if obj.role == 'Customer' else obj.role
+
+    def get_address(self, obj):
+        if hasattr(obj, 'customer_profile'):
+            addr = obj.customer_profile.addresses.filter(is_default=True).first() or obj.customer_profile.addresses.first()
+            if addr:
+                return addr.address_line_1
+        return ''
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
@@ -63,6 +71,7 @@ class OTPVerificationSerializer(serializers.Serializer):
     first_name = serializers.CharField(required=False)
     last_name = serializers.CharField(required=False, allow_blank=True)
     password = serializers.CharField(write_only=True, required=False)
+    address = serializers.CharField(required=False, allow_blank=True)
 
     def validate_email(self, value):
         email_clean = value.strip().lower()

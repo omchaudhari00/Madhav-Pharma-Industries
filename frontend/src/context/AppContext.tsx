@@ -46,24 +46,7 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const INITIAL_CART_ITEMS: CartItem[] = [
-  {
-    id: 'cumin-seed-oil',
-    name: 'Pure Cumin Seed Oil (Jeera Oil)',
-    grade: '100% Steam Distilled • Pharmaceutical Grade',
-    quantityKg: 10,
-    unitPrice: 120,
-    imageUrl: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=200&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'fennel-oil',
-    name: 'Natural Fennel Essential Oil',
-    grade: 'High Aroma • Food & Wellness Grade',
-    quantityKg: 5,
-    unitPrice: 85,
-    imageUrl: 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=200&auto=format&fit=crop&q=80',
-  }
-];
+const INITIAL_CART_ITEMS: CartItem[] = [];
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, Users, Package, FileText, Briefcase, 
   ShoppingBag, Settings as SettingsIcon, TrendingUp, 
@@ -47,11 +47,45 @@ export const AdminDashboard: React.FC = () => {
     { id: 104, name: 'Sanjivani Naturals', email: 'info@sanjivaninatural.com', phone: '+91 97112 33445', stage: 'Lead', ordersCount: 0, totalSpent: '₹0', status: 'Active' },
   ]);
 
-  const [quotes, setQuotes] = useState([
-    { id: 'QT-8821', customer: 'Vedic Herbs Bio', product: 'Pure Cumin Seed Oil', quantity: '25 KG', requestedPrice: '₹115/KG', salesAgent: 'Vikram Sharma', status: 'Under Negotiation', date: '2 hours ago' },
-    { id: 'QT-8820', customer: 'Apex Remedies Ltd', product: 'Natural Fennel Oil', quantity: '100 KG', requestedPrice: '₹80/KG', salesAgent: 'Vikram Sharma', status: 'Approved by Sales', date: 'Today, 11:30 AM' },
-    { id: 'QT-8819', customer: 'Sanjivani Naturals', product: 'Pure Ajwain Seed Oil', quantity: '15 KG', requestedPrice: '₹92/KG', salesAgent: 'Unassigned', status: 'Pending', date: 'Yesterday' },
-  ]);
+  const [quotes, setQuotes] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadQuotes = async () => {
+      let backendQuotes: any[] = [];
+      try {
+        const res = await fetch('/api/quotations/quotations/');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            backendQuotes = data.map((item: any) => ({
+              id: item.quotation_number || `QT-${item.id}`,
+              rawId: item.id,
+              customer: item.customer_details ? `${item.customer_details.first_name} ${item.customer_details.last_name}` : 'Enterprise Client',
+              product: item.items && item.items.length > 0 ? item.items.map((i: any) => i.product_details?.name || 'Bulk Pharma API').join(', ') : 'Bulk Pharma API',
+              price: item.final_price ? `₹${item.final_price}` : `₹${item.items && item.items.length > 0 ? item.items[0].requested_price : '1,500'}/KG`,
+              status: item.status || 'Pending',
+              date: item.created_at ? new Date(item.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              salesAgent: item.sales_agent_details ? `${item.sales_agent_details.first_name} ${item.sales_agent_details.last_name}` : 'Unassigned',
+            }));
+          }
+        }
+      } catch (e) {
+        console.error('Failed to fetch backend quotes:', e);
+      }
+      const localQuotes = JSON.parse(localStorage.getItem('madhav_quotes') || '[]');
+      const combined = [...backendQuotes];
+      localQuotes.forEach((lq: any) => {
+        if (!combined.some(bq => bq.id === lq.id)) {
+          combined.push({
+            ...lq,
+            price: lq.offeredPrice || lq.requestedPrice || '₹1,500/KG',
+          });
+        }
+      });
+      setQuotes(combined);
+    };
+    loadQuotes();
+  }, [activeTab]);
 
   const [products, setProducts] = useState([
     { id: 1, name: 'Pure Cumin Seed Oil (Jeera Oil)', moq: '5 KG', price: '₹120/KG', availability: 'In Stock', active: true },
@@ -65,11 +99,7 @@ export const AdminDashboard: React.FC = () => {
     { id: 202, name: 'Pooja Verma', email: 'pooja.v@madhavpharma.com', phone: '+91 98111 22334', activeQuotes: 7, closedDeals: 24 },
   ]);
 
-  const [orders, setOrders] = useState([
-    { id: 'ORD-9901', customer: 'Apex Remedies Ltd', amount: '₹3,60,000', status: 'Delivered', payment: 'Completed', date: '28 Jul 2026' },
-    { id: 'ORD-9902', customer: 'CureAll Formulations', amount: '₹1,95,000', status: 'Shipped', payment: 'Completed', date: '29 Jul 2026' },
-    { id: 'ORD-9903', customer: 'Apex Remedies Ltd', amount: '₹2,40,000', status: 'Processing', payment: 'Pending', date: 'Today' },
-  ]);
+  const [orders, setOrders] = useState<any[]>([]);
 
   const handleAssignQuote = (quoteId: string, agentName: string) => {
     setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, salesAgent: agentName, status: 'Under Negotiation' } : q));

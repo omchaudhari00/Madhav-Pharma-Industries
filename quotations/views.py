@@ -8,6 +8,7 @@ from .serializers import (
     QuotationSerializer, NegotiationHistorySerializer
 )
 from django.db import transaction
+from django.db.models import Q
 from django.core.mail import send_mail
 from django.conf import settings
 
@@ -62,8 +63,43 @@ class QuotationViewSet(viewsets.ModelViewSet):
         if user.role == 'Admin':
             return Quotation.objects.all()
         elif user.role == 'Sales':
-            return Quotation.objects.filter(sales_agent=user)
+            return Quotation.objects.filter(Q(sales_agent=user) | Q(sales_agent__isnull=True))
         return Quotation.objects.filter(customer=user)
+
+    @action(detail=False, methods=['post'])
+    def create_from_cart(self, request):
+        user = request.user
+        items_data = request.data.get('items', [])
+        customer_notes = request.data.get('notes', '')
+        
+        from catalog.models import Product
+        with transaction.atomic():
+            quotation = Quotation.objects.create(
+                customer=user,
+                customer_notes=customer_notes,
+                status='Pending'
+            )
+            for item in items_data:
+                product_name = item.get('name')
+                product = Product.objects.filter(name__icontains=product_name).first() if product_name else None
+                if not product and product_name:
+                    product = Product.objects.create(
+                        name=product_name,
+                        grade=item.get('grade', 'Standard'),
+                        price_per_kg=item.get('unitPrice', 100),
+                        moq_kg=5,
+                        stock_status='In Stock'
+                    )
+                if product:
+                    QuotationItem.objects.create(
+                        quotation=quotation,
+                        product=product,
+                        quantity=item.get('quantityKg', 1),
+                        unit='KG',
+                        requested_price=item.get('unitPrice', 100)
+                    )
+        serializer = self.get_serializer(quotation)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
     def negotiate_price(self, request, pk=None):
@@ -120,6 +156,44 @@ class QuotationViewSet(viewsets.ModelViewSet):
             return Response({"error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
             
         quotation.save()
+        return Response(QuotationSerializer(quotation).data)
+
+    @action(detail=True, methods=['post'])
+    def sales_action(self, request, pk=None):
+        user = request.user
+        if user.role not in ['Admin', 'Sales']:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        quotation = self.get_object()
+        action_type = request.data.get('action')  # 'approve', 'reject', or 'negotiate'
+        if action_type == 'approve':
+            quotation.status = 'Approved by Sales'
+            if not quotation.sales_agent:
+                quotation.sales_agent = user
+            quotation.save()
+        elif action_type == 'reject':
+            quotation.status = 'Rejected by Customer'
+            if not quotation.sales_agent:
+                quotation.sales_agent = user
+            quotation.save()
+        elif action_type == 'negotiate':
+            new_price = request.data.get('updated_price')
+            remarks = request.data.get('remarks', '')
+            if new_price:
+                with transaction.atomic():
+                    NegotiationHistory.objects.create(
+                        quotation=quotation,
+                        previous_price=quotation.final_price,
+                        updated_price=new_price,
+                        updated_by=user,
+                        remarks=remarks
+                    )
+                    quotation.final_price = new_price
+            quotation.status = 'Under Negotiation'
+            if not quotation.sales_agent:
+                quotation.sales_agent = user
+            quotation.save()
+        else:
+            return Response({"error": "Invalid action"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(QuotationSerializer(quotation).data)
 
     @action(detail=True, methods=['post'])

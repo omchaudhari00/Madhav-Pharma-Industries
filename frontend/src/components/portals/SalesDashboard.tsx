@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Briefcase, FileText, Users, ShoppingBag, Bell, 
   PhoneCall, DollarSign, Send, ArrowLeft, MessageSquare,
@@ -6,58 +6,122 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
+const getIndividualItems = (q: any) => {
+  if (q.items && Array.isArray(q.items) && q.items.length > 0) {
+    if (q.items.length === 1 && q.items[0].name && q.items[0].name.includes(',')) {
+      const names = q.items[0].name.split(',').map((p: string) => p.trim()).filter(Boolean);
+      const total = parseInt(String(q.items[0].quantityKg || q.quantity || 10));
+      const perItem = Math.max(1, Math.round(total / names.length));
+      return names.map((name: string) => ({
+        name,
+        quantityKg: perItem,
+        unitPrice: q.items[0].unitPrice || 1500
+      }));
+    }
+    return q.items.map((i: any) => ({
+      name: i.name || i.product_details?.name || i.product || 'Bulk Pharma API',
+      quantityKg: i.quantityKg || i.quantity || 5,
+      unitPrice: i.unitPrice || i.requested_price || 1500
+    }));
+  }
+  const names = (q.product || 'Bulk Pharma API').split(',').map((p: string) => p.trim()).filter(Boolean);
+  const total = parseInt(String(q.quantity)) || names.length * 5;
+  const perItem = Math.max(1, Math.round(total / names.length));
+  return names.map((name: string) => ({
+    name,
+    quantityKg: perItem,
+    unitPrice: parseInt(String(q.requestedPrice)?.replace(/[^0-9]/g, '')) || 1500
+  }));
+};
+
 export const SalesDashboard: React.FC = () => {
   const { user, setPortal } = useApp();
   const [activeTab, setActiveTab] = useState<'quotes' | 'customers' | 'orders' | 'notifications'>('quotes');
   const [selectedQuote, setSelectedQuote] = useState<any | null>(null);
 
-  const [myQuotes, setMyQuotes] = useState([
-    { 
-      id: 'QT-8821', 
-      customer: 'Vedic Herbs Bio', 
-      stage: 'Lead',
-      product: 'Pure Cumin Seed Oil (Jeera Oil)', 
-      quantity: '25 KG', 
-      requestedPrice: '₹115/KG', 
-      targetPrice: '₹118/KG',
-      status: 'Under Negotiation', 
-      customerNote: 'Need urgent shipment for Ayurvedic batch formulation.',
-      salesRemarks: 'Offered ₹118/KG including express freight.',
-      phone: '+91 94220 55667'
-    },
-    { 
-      id: 'QT-8820', 
-      customer: 'Apex Remedies Ltd', 
-      stage: 'Customer',
-      product: 'Natural Fennel Seed Oil', 
-      quantity: '100 KG', 
-      requestedPrice: '₹80/KG', 
-      targetPrice: '₹82/KG',
-      status: 'Approved by Sales', 
-      customerNote: 'Standard monthly supply contract.',
-      salesRemarks: 'Discounted rate approved for 100 KG moq.',
-      phone: '+91 98234 11220'
-    },
-  ]);
+  const [myQuotes, setMyQuotes] = useState<any[]>([]);
 
-  const [assignedCustomers] = useState([
-    { id: 101, name: 'Apex Remedies Ltd', contactPerson: 'Mr. Alok Mehta', phone: '+91 98234 11220', stage: 'Customer', activeOrders: 2, negotiationCount: 5 },
-    { id: 102, name: 'Vedic Herbs Bio', contactPerson: 'Dr. Sunita Rao', phone: '+91 94220 55667', stage: 'Lead', activeOrders: 0, negotiationCount: 1 },
-  ]);
+  useEffect(() => {
+    const loadQuotes = async () => {
+      let backendQuotes: any[] = [];
+      try {
+        const res = await fetch('/api/quotations/quotations/');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            backendQuotes = data.map((item: any) => ({
+              id: item.quotation_number || `QT-${item.id}`,
+              rawId: item.id,
+              date: item.created_at ? new Date(item.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              product: item.items && item.items.length > 0 ? item.items.map((i: any) => i.product_details?.name || 'Bulk Pharma API').join(', ') : 'Bulk Pharma API',
+              quantity: item.items && item.items.length > 0 ? `${item.items.reduce((sum: number, i: any) => sum + (i.quantity || 0), 0)} KG` : '100 KG',
+              requestedPrice: `₹${item.items && item.items.length > 0 ? item.items[0].requested_price : '1,500'} / KG`,
+              targetPrice: item.final_price ? `₹${item.final_price}` : '₹1,500',
+              status: item.status || 'Pending',
+              customer: item.customer_details ? `${item.customer_details.first_name} ${item.customer_details.last_name}` : 'Enterprise Client',
+              customerNote: item.customer_notes || 'Quotation submitted for review',
+              customerAddress: item.customer_address || '123 Pharma Estate, Ahmedabad',
+              salesRemarks: '',
+              phone: item.customer_details?.mobile_number || '9000000000',
+              stage: item.customer_details?.customer_stage || 'Lead'
+            }));
+          }
+        }
+      } catch (e) {
+        console.error('Failed to fetch backend quotes:', e);
+      }
+      const localQuotes = JSON.parse(localStorage.getItem('madhav_quotes') || '[]');
+      const combined = [...backendQuotes];
+      localQuotes.forEach((lq: any) => {
+        if (!combined.some(bq => bq.id === lq.id)) {
+          combined.push({
+            ...lq,
+            targetPrice: lq.offeredPrice || lq.requestedPrice || '₹1,500',
+            customerNote: lq.notes || 'Quotation submitted for review',
+            salesRemarks: lq.salesRemarks || ''
+          });
+        }
+      });
+      setMyQuotes(combined);
+    };
+    loadQuotes();
+  }, [activeTab]);
 
-  const [salesOrders] = useState([
-    { id: 'ORD-9901', customer: 'Apex Remedies Ltd', product: 'Natural Fennel Seed Oil (100 KG)', amount: '₹3,60,000', status: 'Delivered', payment: 'Completed' },
-    { id: 'ORD-9903', customer: 'Apex Remedies Ltd', product: 'Pure Cumin Seed Oil (50 KG)', amount: '₹2,40,000', status: 'Processing', payment: 'Pending' },
-  ]);
+  const [assignedCustomers, setAssignedCustomers] = useState<any[]>([]);
+  const [salesOrders, setSalesOrders] = useState<any[]>([]);
 
-  const handleUpdatePrice = (id: string, newPrice: string, remarks: string) => {
+  const handleQuoteAction = async (id: string, action: 'approve' | 'reject' | 'negotiate', newPrice?: string, remarks?: string) => {
+    try {
+      await fetch(`/api/quotations/quotations/${id}/sales_action/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, updated_price: newPrice, remarks })
+      });
+    } catch (e) {
+      console.error(e);
+    }
+    const newStatus = action === 'approve' ? 'Approved by Sales' : action === 'reject' ? 'Rejected by Sales' : 'Under Negotiation';
+    const existing = JSON.parse(localStorage.getItem('madhav_quotes') || '[]');
+    const updated = existing.map((q: any) => q.id === id ? {
+      ...q,
+      status: newStatus,
+      offeredPrice: newPrice ? `₹${newPrice} / KG` : q.offeredPrice,
+      notes: remarks || q.notes,
+      salesRemarks: remarks || q.salesRemarks
+    } : q);
+    localStorage.setItem('madhav_quotes', JSON.stringify(updated));
+
     setMyQuotes(prev => prev.map(q => q.id === id ? {
       ...q,
-      targetPrice: newPrice,
-      salesRemarks: remarks,
-      status: 'Approved by Sales'
+      targetPrice: newPrice || q.targetPrice,
+      salesRemarks: remarks || q.salesRemarks,
+      status: newStatus
     } : q));
     setSelectedQuote(null);
+  };
+
+  const handleUpdatePrice = (id: string, newPrice: string, remarks: string) => {
+    handleQuoteAction(id, 'negotiate', newPrice, remarks);
   };
 
   return (
@@ -169,7 +233,16 @@ export const SalesDashboard: React.FC = () => {
                         </span>
                       </div>
                       <h4 className="text-lg font-bold text-white mt-1">{q.customer}</h4>
-                      <p className="text-xs text-neutral-300">{q.product} ({q.quantity})</p>
+                      <div className="mt-1 space-y-1">
+                        {getIndividualItems(q).map((item: any, idx: number) => (
+                          <div key={idx} className="flex items-center gap-2 text-xs text-neutral-300">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
+                            <span className="font-mono font-bold text-amber-200">{item.quantityKg} kg</span>
+                            <span className="text-neutral-400">of</span>
+                            <span className="font-semibold text-white">{item.name}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="text-right">
@@ -218,8 +291,17 @@ export const SalesDashboard: React.FC = () => {
                     <span className="font-bold text-white">{selectedQuote.customer} ({selectedQuote.stage})</span>
                   </div>
                   <div>
-                    <span className="text-neutral-400 text-xs block">Product & Volume:</span>
-                    <span className="text-neutral-200">{selectedQuote.product} • {selectedQuote.quantity}</span>
+                    <span className="text-neutral-400 text-xs block mb-1.5">Products & Volume:</span>
+                    <div className="space-y-1">
+                      {getIndividualItems(selectedQuote).map((item: any, idx: number) => (
+                        <div key={idx} className="flex items-center gap-2 text-xs text-neutral-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
+                          <span className="font-mono font-bold text-amber-200">{item.quantityKg} kg</span>
+                          <span className="text-neutral-400">of</span>
+                          <span className="font-semibold text-white">{item.name}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   <div>
                     <span className="text-neutral-400 text-xs block">Customer Note:</span>
@@ -258,20 +340,27 @@ export const SalesDashboard: React.FC = () => {
                     />
                   </div>
 
-                  <div className="flex items-center gap-3 pt-2">
+                  <div className="grid grid-cols-3 gap-2 pt-2">
+                    <button 
+                      type="button"
+                      onClick={() => handleQuoteAction(selectedQuote.id, 'approve')}
+                      className="py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-neutral-950 font-extrabold text-xs uppercase tracking-wider shadow-lg transition-colors"
+                    >
+                      Approve
+                    </button>
                     <button 
                       type="submit"
-                      className="flex-1 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-neutral-950 font-extrabold text-xs uppercase tracking-wider shadow-lg"
+                      className="py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-neutral-950 font-extrabold text-xs uppercase tracking-wider shadow-lg transition-colors"
                     >
-                      Send Approved Quote
+                      Negotiate
                     </button>
-                    <a 
-                      href={`tel:${selectedQuote.phone}`}
-                      className="px-4 py-3 rounded-xl bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-neutral-950 font-bold text-xs flex items-center gap-2"
+                    <button 
+                      type="button"
+                      onClick={() => handleQuoteAction(selectedQuote.id, 'reject')}
+                      className="py-3 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-neutral-950 font-extrabold text-xs uppercase tracking-wider shadow-lg transition-colors"
                     >
-                      <PhoneCall className="w-4 h-4" />
-                      <span>Call Lead</span>
-                    </a>
+                      Reject
+                    </button>
                   </div>
                 </form>
               </div>

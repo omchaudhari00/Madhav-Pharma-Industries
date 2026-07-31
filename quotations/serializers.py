@@ -36,8 +36,16 @@ class QuotationSerializer(serializers.ModelSerializer):
     negotiation_history = NegotiationHistorySerializer(many=True, read_only=True)
     customer_details = UserSerializer(source='customer', read_only=True)
     sales_agent_details = UserSerializer(source='sales_agent', read_only=True)
+    customer_address = serializers.SerializerMethodField()
     
     class Meta:
         model = Quotation
         fields = '__all__'
         read_only_fields = ['quotation_number', 'customer', 'status', 'created_at', 'updated_at']
+
+    def get_customer_address(self, obj):
+        if hasattr(obj.customer, 'customer_profile'):
+            addr = obj.customer.customer_profile.addresses.filter(is_default=True).first() or obj.customer.customer_profile.addresses.first()
+            if addr:
+                return addr.address_line_1
+        return ''

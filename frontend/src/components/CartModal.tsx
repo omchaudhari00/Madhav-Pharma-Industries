@@ -5,21 +5,60 @@ import { X, Trash2, ShoppingBag, Plus, Minus, ArrowRight, ShieldCheck } from 'lu
 import { useApp } from '../context/AppContext';
 
 export const CartModal: React.FC = () => {
-  const { isCartOpen, closeCart, cartItems, updateQuantity, removeFromCart, clearCart, openAuth, user } = useApp();
+  const { isCartOpen, closeCart, cartItems, updateQuantity, removeFromCart, clearCart, openAuth, user, token, setPortal } = useApp();
 
   if (!isCartOpen) return null;
 
   const totalEstimatedUSD = cartItems.reduce((acc, item) => acc + item.quantityKg * item.unitPrice, 0);
 
-  const handleRequestQuote = () => {
+  const handleRequestQuote = async () => {
     if (!user) {
       closeCart();
       openAuth('signin');
       return;
     }
-    alert(`Quotation request sent for ${cartItems.length} products! Our sales engineering team will email your formal B2B pricing quote shortly.`);
+
+    const newQuote = {
+      id: `QT-${Math.floor(1000 + Math.random() * 9000)}`,
+      date: new Date().toISOString().split('T')[0],
+      product: cartItems.map(i => i.name).join(', '),
+      quantity: `${cartItems.reduce((acc, i) => acc + i.quantityKg, 0)} KG`,
+      items: cartItems.map(i => ({
+        name: i.name,
+        quantityKg: i.quantityKg,
+        unitPrice: i.unitPrice
+      })),
+      requestedPrice: `₹${cartItems.length > 0 ? cartItems[0].unitPrice : '1,500'} / KG`,
+      offeredPrice: 'Pending Sales Review',
+      status: 'Pending',
+      salesAgent: 'Unassigned',
+      notes: 'Quotation submitted for review',
+      customerAddress: user.address || '123 Pharma Estate, Ahmedabad, Gujarat',
+      customer: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email,
+      phone: user.mobile_number || '9000000000',
+      stage: user.customer_stage || 'Lead'
+    };
+
+    const existing = JSON.parse(localStorage.getItem('madhav_quotes') || '[]');
+    localStorage.setItem('madhav_quotes', JSON.stringify([newQuote, ...existing]));
+
+    try {
+      await fetch('/api/quotations/quotations/create_from_cart/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ items: cartItems })
+      });
+    } catch (e) {
+      console.error('Backend create_from_cart failed, quote saved locally:', e);
+    }
+
+    alert(`Quotation request sent for ${cartItems.length} product(s)! Our Sales team has received your request.`);
     clearCart();
     closeCart();
+    setPortal('customer');
   };
 
   return (

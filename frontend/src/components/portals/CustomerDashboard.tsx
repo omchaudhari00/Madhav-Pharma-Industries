@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileText, ShoppingBag, User, Package, ArrowLeft, 
   CheckCircle, XCircle, RefreshCw, Award, Clock, 
@@ -6,60 +6,108 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
+const getIndividualItems = (q: any) => {
+  if (q.items && Array.isArray(q.items) && q.items.length > 0) {
+    if (q.items.length === 1 && q.items[0].name && q.items[0].name.includes(',')) {
+      const names = q.items[0].name.split(',').map((p: string) => p.trim()).filter(Boolean);
+      const total = parseInt(String(q.items[0].quantityKg || q.quantity || 10));
+      const perItem = Math.max(1, Math.round(total / names.length));
+      return names.map((name: string) => ({
+        name,
+        quantityKg: perItem,
+        unitPrice: q.items[0].unitPrice || 1500
+      }));
+    }
+    return q.items.map((i: any) => ({
+      name: i.name || i.product_details?.name || i.product || 'Bulk Pharma API',
+      quantityKg: i.quantityKg || i.quantity || 5,
+      unitPrice: i.unitPrice || i.requested_price || 1500
+    }));
+  }
+  const names = (q.product || 'Bulk Pharma API').split(',').map((p: string) => p.trim()).filter(Boolean);
+  const total = parseInt(String(q.quantity)) || names.length * 5;
+  const perItem = Math.max(1, Math.round(total / names.length));
+  return names.map((name: string) => ({
+    name,
+    quantityKg: perItem,
+    unitPrice: parseInt(String(q.requestedPrice)?.replace(/[^0-9]/g, '')) || 1500
+  }));
+};
+
 export const CustomerDashboard: React.FC = () => {
-  const { user, setPortal, openCart } = useApp();
+  const { user, setPortal, openCart, token } = useApp();
   const [activeTab, setActiveTab] = useState<'quotes' | 'orders' | 'products' | 'profile'>('quotes');
 
   const stage = user?.customer_stage || 'Lead';
   const isCustomer = stage === 'Customer';
 
-  const [myQuotes, setMyQuotes] = useState([
-    { 
-      id: 'QT-8821', 
-      product: 'Pure Cumin Seed Oil (Jeera Oil)', 
-      quantity: '25 KG', 
-      requestedPrice: '₹115/KG', 
-      offeredPrice: '₹118/KG',
-      status: 'Approved by Sales', 
-      date: 'Today, 10:15 AM',
-      salesAgent: 'Vikram Sharma',
-      notes: 'Express steam-distilled pharma batch 2026-A1'
-    },
-    { 
-      id: 'QT-8815', 
-      product: 'Natural Fennel Essential Oil', 
-      quantity: '10 KG', 
-      requestedPrice: '₹85/KG', 
-      offeredPrice: '₹85/KG',
-      status: 'Accepted by Customer', 
-      date: '24 Jul 2026',
-      salesAgent: 'Vikram Sharma',
-      notes: 'Accepted rate. Ready for invoice & shipping.'
-    },
-    { 
-      id: 'QT-8812', 
-      product: 'Pure Ajwain Seed Oil', 
-      quantity: '15 KG', 
-      requestedPrice: '₹90/KG', 
-      offeredPrice: '₹95/KG',
-      status: 'Under Negotiation', 
-      date: '20 Jul 2026',
-      salesAgent: 'Pooja Verma',
-      notes: 'Counter offer sent by sales agent.'
-    }
-  ]);
+  const [myQuotes, setMyQuotes] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
 
-  const [orders] = useState(
-    isCustomer ? [
-      { id: 'ORD-9901', product: 'Natural Fennel Essential Oil (100 KG)', amount: '₹8,50,000', status: 'Delivered', date: '12 Jun 2026', invoiceUrl: '#' },
-      { id: 'ORD-9880', product: 'Pure Cumin Seed Oil (50 KG)', amount: '₹6,00,000', status: 'Delivered', date: '04 May 2026', invoiceUrl: '#' },
-    ] : []
-  );
+  useEffect(() => {
+    const loadQuotes = async () => {
+      let backendQuotes: any[] = [];
+      try {
+        const res = await fetch('/api/quotations/quotations/', {
+          headers: {
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            backendQuotes = data.map((item: any) => ({
+              id: item.quotation_number || `QT-${item.id}`,
+              rawId: item.id,
+              date: item.created_at ? new Date(item.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              product: item.items && item.items.length > 0 ? item.items.map((i: any) => i.product_details?.name || 'Bulk Pharma API').join(', ') : 'Bulk Pharma API',
+              quantity: item.items && item.items.length > 0 ? `${item.items.reduce((sum: number, i: any) => sum + (i.quantity || 0), 0)} KG` : '100 KG',
+              items: item.items && item.items.length > 0 ? item.items.map((i: any) => ({
+                name: i.product_details?.name || 'Bulk Pharma API',
+                quantityKg: i.quantity || 0,
+                unitPrice: i.requested_price || 0
+              })) : [{ name: 'Bulk Pharma API', quantityKg: 100, unitPrice: 1500 }],
+              requestedPrice: `₹${item.items && item.items.length > 0 ? item.items[0].requested_price : '1,500'} / KG`,
+              offeredPrice: item.final_price ? `₹${item.final_price} / KG` : 'Pending Sales Review',
+              status: item.status || 'Pending',
+              salesAgent: item.sales_agent_details ? `${item.sales_agent_details.first_name} ${item.sales_agent_details.last_name}` : 'Unassigned',
+              notes: item.customer_notes || 'Quotation submitted for review',
+              finalPrice: item.final_price
+            }));
+          }
+        }
+      } catch (e) {
+        console.error('Failed to fetch backend quotes:', e);
+      }
+
+      const localQuotes = JSON.parse(localStorage.getItem('madhav_quotes') || '[]');
+      const normalizedLocal = localQuotes.map((lq: any) => ({
+        ...lq,
+        items: getIndividualItems(lq)
+      }));
+      const combined = [...normalizedLocal];
+      backendQuotes.forEach((bq: any) => {
+        if (!combined.some(lq => lq.id === bq.id)) {
+          combined.push(bq);
+        }
+      });
+      setMyQuotes(combined);
+    };
+
+    loadQuotes();
+  }, [token, activeTab]);
+
+  const updateQuoteStatusInStorage = (id: string, newStatus: string) => {
+    const existing = JSON.parse(localStorage.getItem('madhav_quotes') || '[]');
+    const updated = existing.map((q: any) => q.id === id ? { ...q, status: newStatus } : q);
+    localStorage.setItem('madhav_quotes', JSON.stringify(updated));
+  };
 
   const handleQuoteAction = (quoteId: string, action: 'accept' | 'reject' | 'revision') => {
+    let newStatus = 'Pending';
     setMyQuotes(prev => prev.map(q => {
       if (q.id === quoteId) {
-        let newStatus = q.status;
+        newStatus = q.status;
         if (action === 'accept') newStatus = 'Accepted by Customer';
         else if (action === 'reject') newStatus = 'Rejected by Customer';
         else if (action === 'revision') newStatus = 'Under Negotiation';
@@ -67,6 +115,23 @@ export const CustomerDashboard: React.FC = () => {
       }
       return q;
     }));
+    updateQuoteStatusInStorage(quoteId, newStatus);
+  };
+
+  const handlePayAndGenerateInvoice = (quote: any) => {
+    const newOrder = {
+      id: `INV-${Math.floor(1000 + Math.random() * 9000)}`,
+      product: quote.products || quote.product || 'Bulk API Order',
+      amount: `₹${quote.finalPrice || quote.targetPrice || '5,00,000'}`,
+      status: 'Paid & Processing',
+      date: new Date().toISOString().split('T')[0],
+      invoiceUrl: '#'
+    };
+    setOrders(prev => [newOrder, ...prev]);
+    setMyQuotes(prev => prev.map(item => item.id === quote.id ? { ...item, status: 'Paid / Invoice Generated' } : item));
+    updateQuoteStatusInStorage(quote.id, 'Paid / Invoice Generated');
+    setActiveTab('orders');
+    alert(`Payment successful! Invoice ${newOrder.id} has been generated and shared with Sales & Admin teams.`);
   };
 
   return (
@@ -187,19 +252,42 @@ export const CustomerDashboard: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-              {myQuotes.map((q) => (
-                <div 
-                  key={q.id} 
-                  className="p-6 sm:p-8 rounded-3xl bg-neutral-900/40 backdrop-blur-xl border border-white/10 shadow-xl space-y-4"
-                >
+              {myQuotes.length === 0 ? (
+                <div className="p-12 text-center border border-dashed border-white/10 rounded-3xl bg-neutral-900/30">
+                  <FileText className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
+                  <h4 className="text-lg font-bold text-white">No Quotation Requests Found</h4>
+                  <p className="text-xs text-neutral-400 mt-1 max-w-md mx-auto">
+                    You haven't submitted any bulk quote requests yet. Go to Products, add items to your floating cart, and click "Request Bulk Quotation" to send your request to Sales!
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('products')}
+                    className="mt-6 px-6 py-2.5 rounded-xl bg-[#d4a373] text-neutral-950 font-extrabold text-xs uppercase tracking-wider hover:bg-[#c29161] transition-colors"
+                  >
+                    Browse Pharma Products
+                  </button>
+                </div>
+              ) : (
+                myQuotes.map((q) => (
+                  <div 
+                    key={q.id} 
+                    className="p-6 sm:p-8 rounded-3xl bg-neutral-900/40 backdrop-blur-xl border border-white/10 shadow-xl space-y-4"
+                  >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-[#d4a373] text-base">{q.id}</span>
                         <span className="text-xs text-neutral-400">• {q.date}</span>
                       </div>
-                      <h4 className="text-xl font-bold text-white mt-1">{q.product}</h4>
-                      <p className="text-sm text-neutral-300 mt-0.5">Quantity Required: <span className="font-mono text-amber-200">{q.quantity}</span></p>
+                      <div className="mt-2 space-y-1.5">
+                        {getIndividualItems(q).map((item: any, idx: number) => (
+                          <div key={idx} className="flex items-center gap-2 text-sm sm:text-base">
+                            <span className="w-2 h-2 rounded-full bg-[#d4a373] shrink-0" />
+                            <span className="font-mono font-bold text-amber-200">{item.quantityKg} kg</span>
+                            <span className="text-neutral-400">of</span>
+                            <span className="font-bold text-white">{item.name}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="text-right">
@@ -233,7 +321,29 @@ export const CustomerDashboard: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {q.status !== 'Accepted by Customer' ? (
+                      {q.status === 'Approved by Sales' || q.status === 'Accepted by Customer' ? (
+                        <>
+                          <button 
+                            onClick={() => handlePayAndGenerateInvoice(q)}
+                            className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-600 hover:to-emerald-600 text-neutral-950 font-extrabold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-xl"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Pay Now & Generate Invoice</span>
+                          </button>
+                          <button 
+                            onClick={() => handleQuoteAction(q.id, 'revision')}
+                            className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold text-xs uppercase transition-all"
+                          >
+                            Request Revision
+                          </button>
+                          <button 
+                            onClick={() => handleQuoteAction(q.id, 'reject')}
+                            className="px-3 py-2 rounded-xl bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white font-bold text-xs uppercase transition-all"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      ) : q.status !== 'Paid / Invoice Generated' ? (
                         <>
                           <button 
                             onClick={() => handleQuoteAction(q.id, 'accept')}
@@ -258,13 +368,13 @@ export const CustomerDashboard: React.FC = () => {
                       ) : (
                         <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
                           <CheckCircle className="w-4 h-4" />
-                          <span>Quote Accepted • Order Invoice in Process</span>
+                          <span>Paid • Invoice Generated</span>
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
-              ))}
+              )))}
             </div>
           </div>
         )}
@@ -307,7 +417,10 @@ export const CustomerDashboard: React.FC = () => {
                         </td>
                         <td className="py-4 px-4 text-neutral-400">{ord.date}</td>
                         <td className="py-4 px-4">
-                          <button className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1.5">
+                          <button 
+                            onClick={() => alert(`Downloading GST Invoice ${ord.id}...`)}
+                            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1.5"
+                          >
                             <Download className="w-3.5 h-3.5" />
                             <span>Download PDF</span>
                           </button>
