@@ -117,8 +117,10 @@ class RequestOTPView(APIView):
             email = serializer.validated_data['email']
             mobile_number = serializer.validated_data['mobile_number']
             
-            if User.objects.filter(email=email).exists() or User.objects.filter(mobile_number=mobile_number).exists():
-                return Response({"error": "User with this email or mobile already exists"}, status=status.HTTP_400_BAD_REQUEST)
+            if User.objects.filter(email__iexact=email).exists():
+                return Response({"error": "An account with this email address already exists. Please sign in instead."}, status=status.HTTP_400_BAD_REQUEST)
+            if User.objects.filter(mobile_number=mobile_number).exists():
+                return Response({"error": "An account with this phone number already exists. Please use a different phone number or sign in."}, status=status.HTTP_400_BAD_REQUEST)
 
             # Generate OTP (Mocked for now)
             otp = str(random.randint(100000, 999999))
@@ -148,7 +150,8 @@ class RequestOTPView(APIView):
                 print(f"MOCK OTP for {email}/{mobile_number}: {otp}")
             
             return Response({"message": "OTP sent successfully to your email. Please verify."})
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        first_error = next(iter(serializer.errors.values()))[0] if serializer.errors else "Invalid registration details."
+        return Response({"error": str(first_error), "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 class VerifyOTPAndRegisterView(APIView):
     permission_classes = [AllowAny]
@@ -174,6 +177,11 @@ class VerifyOTPAndRegisterView(APIView):
             record.is_used = True
             record.save()
             
+            if email and User.objects.filter(email__iexact=email).exists():
+                return Response({"error": "An account with this email address already exists. Please sign in instead."}, status=status.HTTP_400_BAD_REQUEST)
+            if mobile_number and User.objects.filter(mobile_number=mobile_number).exists():
+                return Response({"error": "An account with this phone number already exists. Please use a different phone number or sign in."}, status=status.HTTP_400_BAD_REQUEST)
+            
             # Create user
             user = User.objects.create_user(
                 email=email,
@@ -195,7 +203,8 @@ class VerifyOTPAndRegisterView(APIView):
                 "user": UserSerializer(user).data
             }, status=status.HTTP_201_CREATED)
             
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        first_error = next(iter(serializer.errors.values()))[0] if serializer.errors else "Invalid verification details."
+        return Response({"error": str(first_error), "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 class AdminDashboardStatsView(APIView):
     permission_classes = [IsAdminUser]

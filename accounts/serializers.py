@@ -42,6 +42,18 @@ class RegistrationRequestSerializer(serializers.Serializer):
     mobile_number = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
+    def validate_email(self, value):
+        email_clean = value.strip().lower()
+        if User.objects.filter(email__iexact=email_clean).exists():
+            raise serializers.ValidationError("An account with this email address already exists. Please sign in instead.")
+        return email_clean
+
+    def validate_mobile_number(self, value):
+        mobile_clean = value.strip()
+        if User.objects.filter(mobile_number=mobile_clean).exists():
+            raise serializers.ValidationError("An account with this phone number already exists. Please use a different phone number or sign in.")
+        return mobile_clean
+
 class OTPVerificationSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False)
     mobile_number = serializers.CharField(required=False)
@@ -51,3 +63,15 @@ class OTPVerificationSerializer(serializers.Serializer):
     first_name = serializers.CharField(required=False)
     last_name = serializers.CharField(required=False, allow_blank=True)
     password = serializers.CharField(write_only=True, required=False)
+
+    def validate_email(self, value):
+        email_clean = value.strip().lower()
+        if User.objects.filter(email__iexact=email_clean).exists():
+            raise serializers.ValidationError("An account with this email address already exists. Please sign in instead.")
+        return email_clean
+
+    def validate_mobile_number(self, value):
+        mobile_clean = value.strip()
+        if User.objects.filter(mobile_number=mobile_clean).exists():
+            raise serializers.ValidationError("An account with this phone number already exists. Please use a different phone number or sign in.")
+        return mobile_clean
