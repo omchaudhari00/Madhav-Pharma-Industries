@@ -43,13 +43,25 @@ class User(AbstractUser):
         return self.email or str(self.mobile_number)
 
 class CustomerProfile(models.Model):
+    STAGE_CHOICES = (
+        ('Lead', 'Lead'),
+        ('Customer', 'Customer'),
+    )
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer_profile')
     company_name = models.CharField(max_length=255, blank=True, null=True)
     company_registration_number = models.CharField(max_length=100, blank=True, null=True)
     tax_id = models.CharField(max_length=100, blank=True, null=True)
+    customer_stage = models.CharField(max_length=20, choices=STAGE_CHOICES, default='Lead')
+    
+    def check_and_update_stage(self):
+        if self.customer_stage == 'Lead' and hasattr(self.user, 'orders') and self.user.orders.exists():
+            self.customer_stage = 'Customer'
+            self.save(update_fields=['customer_stage'])
+            return True
+        return False
     
     def __str__(self):
-        return f"{self.user}'s Profile"
+        return f"{self.user}'s Profile ({self.customer_stage})"
 
 class Address(models.Model):
     ADDRESS_TYPES = (

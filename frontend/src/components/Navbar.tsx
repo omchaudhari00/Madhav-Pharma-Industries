@@ -6,7 +6,7 @@ import { useApp } from '../context/AppContext';
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { openAuth, openCart, cartTotalCount, user, logout } = useApp();
+  const { openAuth, openCart, cartTotalCount, user, logout, switchDemoRole, setPortal } = useApp();
 
   return (
     <nav className="w-full max-w-7xl mx-auto px-6 lg:px-12 py-6 flex items-center justify-between text-white relative z-30 font-display">
@@ -52,7 +52,7 @@ export const Navbar: React.FC = () => {
       </div>
 
       {/* Right: Cart Option & SIGN IN / UP Button */}
-      <div className="hidden sm:flex items-center space-x-4">
+      <div className="flex items-center space-x-3 sm:space-x-4">
         {/* Cart Option near Login */}
         <button
           onClick={openCart}
@@ -74,18 +74,30 @@ export const Navbar: React.FC = () => {
 
         {/* User Logged In State vs Sign In / Up */}
         {user ? (
-          <div className="flex items-center space-x-3 bg-neutral-900/80 border border-neutral-800 rounded-full pl-4 pr-1.5 py-1">
-            <div className="flex items-center space-x-2 text-xs font-bold text-white">
-              <User className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{user.first_name || 'Client'}</span>
-            </div>
+          <div className="flex items-center space-x-2">
             <button
-              onClick={logout}
-              title="Log out"
-              className="p-1.5 rounded-full hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
+              onClick={() => {
+                if (user.role === 'Admin') setPortal('admin');
+                else if (user.role === 'Sales') setPortal('sales');
+                else setPortal('customer');
+              }}
+              className="px-4 py-1.5 rounded-full bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity shadow-lg"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              My Portal ({user.role})
             </button>
+            <div className="flex items-center space-x-3 bg-neutral-900/80 border border-neutral-800 rounded-full pl-4 pr-1.5 py-1">
+              <div className="flex items-center space-x-2 text-xs font-bold text-white">
+                <User className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{user.first_name || 'Client'}</span>
+              </div>
+              <button
+                onClick={logout}
+                title="Log out"
+                className="p-1.5 rounded-full hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         ) : (
           <button

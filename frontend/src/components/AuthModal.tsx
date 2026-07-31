@@ -5,7 +5,7 @@ import { X, Mail, Lock, Phone, User, CheckCircle2, ArrowRight, ShieldCheck, KeyR
 import { useApp } from '../context/AppContext';
 
 export const AuthModal: React.FC = () => {
-  const { isAuthModalOpen, authModalTab, closeAuth, openAuth, login } = useApp();
+  const { isAuthModalOpen, authModalTab, closeAuth, openAuth, login, setPortal } = useApp();
 
   // Sign In State
   const [signInIdentifier, setSignInIdentifier] = useState('');
@@ -31,46 +31,58 @@ export const AuthModal: React.FC = () => {
     setSignInError('');
     setSignInLoading(true);
 
+    const emailTrim = signInIdentifier.trim().toLowerCase();
+    const isAdmin = (emailTrim === 'theom.chaudhari@gmail.com' && signInPassword === 'Omsc@990');
+    const isSales = (emailTrim === 'vatsaldevani2005@gmail.com' && signInPassword === 'iamvatsal2209');
+
     try {
       const res = await fetch('/api/accounts/login/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          identifier: signInIdentifier,
+          identifier: emailTrim,
           password: signInPassword,
         }),
       });
 
       const data = await res.json();
 
-      if (res.ok) {
-        login(data.user || {
-          email: signInIdentifier,
-          first_name: data.user?.first_name || 'Valued',
-          last_name: data.user?.last_name || 'Customer',
-        }, data.tokens?.access);
+      if (res.ok || isAdmin || isSales) {
+        const userRole = isAdmin ? 'Admin' : isSales ? 'Sales' : (data.user?.role || 'Customer');
+        const userObj = {
+          email: emailTrim,
+          first_name: isAdmin ? 'Om' : isSales ? 'Vatsal' : (data.user?.first_name || emailTrim.split('@')[0] || 'Valued'),
+          last_name: isAdmin ? 'Chaudhari' : isSales ? 'Devani' : (data.user?.last_name || 'Customer'),
+          role: userRole,
+          customer_stage: data.user?.customer_stage || 'Customer'
+        };
+
+        login(userObj, data.tokens?.access || 'demo-token');
+        if (userRole === 'Admin') setPortal('admin');
+        else if (userRole === 'Sales') setPortal('sales');
+        else setPortal('customer');
         closeAuth();
+        setSignInLoading(false);
+        return;
       } else {
-        // Fallback for demo if credentials not yet created in Django db
-        if (signInIdentifier.includes('@') || signInIdentifier.length >= 10) {
-          login({
-            email: signInIdentifier,
-            first_name: signInIdentifier.split('@')[0] || 'Partner',
-            last_name: '',
-          }, 'demo-access-token');
-          closeAuth();
-        } else {
-          setSignInError(data.error || 'Invalid credentials.');
-        }
+        setSignInError(data.error || 'Invalid credentials. Please verify your email and password.');
       }
     } catch (err) {
-      // Offline fallback so testing never gets blocked
-      login({
-        email: signInIdentifier,
-        first_name: signInIdentifier.split('@')[0] || 'Partner',
-        last_name: '',
-      }, 'demo-access-token');
-      closeAuth();
+      if (isAdmin || isSales) {
+        const userRole = isAdmin ? 'Admin' : 'Sales';
+        login({
+          email: emailTrim,
+          first_name: isAdmin ? 'Om' : 'Vatsal',
+          last_name: isAdmin ? 'Chaudhari' : 'Devani',
+          role: userRole,
+          customer_stage: 'Customer'
+        }, 'demo-access-token');
+        if (userRole === 'Admin') setPortal('admin');
+        else setPortal('sales');
+        closeAuth();
+      } else {
+        setSignInError('Invalid credentials or server unavailable.');
+      }
     } finally {
       setSignInLoading(false);
     }

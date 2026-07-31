@@ -80,10 +80,7 @@ export const ProductShowcase: React.FC = () => {
 
   return (
     <div className="w-full max-w-full my-8">
-      {/* Container holding 3 stacked cards on left + featured hero card on right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-stretch font-display">
-
-        {/* Left Column: 3 stacked full-photo product selection cards */}
         <div className="lg:col-span-4 xl:col-span-3 flex flex-col gap-4 sm:gap-5 justify-between">
           {PRODUCTS.map((prod) => {
             const isActive = activeProductId === prod.id;
@@ -91,34 +88,38 @@ export const ProductShowcase: React.FC = () => {
               <div
                 key={prod.id}
                 onClick={() => setActiveProductId(prod.id)}
-                className={`relative group rounded-2xl p-5 sm:p-6 transition-all duration-300 cursor-pointer flex items-center justify-between overflow-hidden border min-h-[140px] sm:min-h-[155px] lg:min-h-[165px] bg-[#1a1b1e] flex-1 ${isActive
-                  ? 'border-[#d4a373] shadow-[0_6px_28px_rgba(212,163,115,0.35)] ring-1 ring-[#d4a373]/60'
-                  : 'border-white/15 hover:border-white/40 shadow-lg'
+                className={`relative group rounded-3xl p-6 transition-all duration-500 cursor-pointer flex items-center justify-between overflow-hidden border min-h-[140px] sm:min-h-[155px] lg:min-h-[165px] bg-neutral-900/30 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] hover:border-white/25 hover:bg-neutral-900/50 flex-1 ${isActive
+                  ? 'border-white/40 bg-neutral-900/50 ring-1 ring-white/20'
+                  : 'border-white/10'
                   }`}
               >
-                {/* Full Box Background Photo */}
-                <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none z-20" />
+                <div className="absolute -top-16 -right-16 w-36 h-36 bg-white/5 rounded-full blur-2xl pointer-events-none group-hover:bg-white/10 transition-colors duration-500 z-0" />
+
+                <div
+                  className="absolute right-0 inset-y-0 w-3/5 h-full overflow-hidden pointer-events-none z-0"
+                  style={{
+                    maskImage: 'linear-gradient(to right, transparent 0%, black 55%)',
+                    WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 55%)',
+                  }}
+                >
                   <img
                     src={prod.cardImage}
                     alt={prod.name}
-                    className="w-full h-full object-cover object-[85%_top] filter brightness-[0.92] contrast-[1.03] group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover object-[85%_center] opacity-45 group-hover:opacity-75 group-hover:scale-105 transition-all duration-700 filter brightness-[1.05] contrast-[1.05]"
                   />
-                  {/* Smooth dark gradient overlay for text readability on left side */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent z-10 w-full sm:w-4/5" />
                 </div>
 
-                {/* Left Text */}
-                <div className="relative z-20">
+                <div className="relative z-10 flex-1 pr-3">
                   <h4 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-display drop-shadow-md">
                     {prod.categoryTitle}
                   </h4>
-                  <p className="text-xs sm:text-sm text-amber-200/90 font-sans-custom mt-0.5 font-semibold drop-shadow-sm">
+                  <p className="text-xs sm:text-sm text-amber-200/90 font-sans-custom mt-1 font-semibold drop-shadow-sm">
                     {prod.categorySubtitle}
                   </p>
                 </div>
 
-                {/* Right Arrow Icon / Active Badge */}
-                <div className="relative z-20">
+                <div className="relative z-10">
                   <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all ${isActive
                     ? 'bg-[#d4a373] text-neutral-950 shadow-md scale-105'
                     : 'bg-black/50 text-white/70 border border-white/20 group-hover:bg-black/75 group-hover:text-white'
@@ -131,36 +132,32 @@ export const ProductShowcase: React.FC = () => {
           })}
         </div>
 
-        {/* Right Column: Large Full-Screen Hero Showcase Card (Big Box) */}
-        <div className="lg:col-span-8 xl:col-span-9 relative group rounded-3xl bg-[#191a1d] border border-white/10 p-6 sm:p-10 lg:p-14 flex flex-col md:flex-row items-center justify-between overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-500 min-h-[500px] lg:min-h-[540px]">
-          {/* Top glossy glass edge highlight */}
+        <div className="lg:col-span-8 xl:col-span-9 relative group rounded-3xl p-8 sm:p-10 lg:p-14 bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] hover:border-white/25 hover:bg-neutral-900/50 transition-all duration-500 flex flex-col md:flex-row items-center justify-between overflow-hidden min-h-[500px] lg:min-h-[540px]">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none z-20" />
+          <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/5 rounded-full blur-2xl pointer-events-none group-hover:bg-white/10 transition-colors duration-500 z-0" />
+          <div className="absolute right-10 top-1/2 -translate-y-1/2 w-80 h-80 bg-[#d4a373]/15 rounded-full blur-3xl pointer-events-none z-0" />
 
-          {/* Ambient glass blur reflection background glow */}
-          <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#d4a373]/15 rounded-full blur-3xl pointer-events-none z-0" />
-
-          {/* User Photo: Fills full card edge-to-edge as background, with bottle on right side */}
-          <div className="absolute inset-0 w-full h-full z-0 overflow-hidden rounded-3xl">
+          <div
+            className="absolute right-0 top-0 bottom-0 w-full md:w-3/5 h-full overflow-hidden pointer-events-none z-0"
+            style={{
+              maskImage: 'linear-gradient(to right, transparent 0%, black 45%)',
+              WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 45%)',
+            }}
+          >
             <img
               src={activeProduct.heroImage}
               alt={activeProduct.name}
-              className="w-full h-full object-cover object-right md:object-[86%_center] filter brightness-[0.98] contrast-[1.02] transform group-hover:scale-[1.01] transition-transform duration-700"
+              className="w-full h-full object-cover object-right sm:object-[80%_center] opacity-60 group-hover:opacity-85 filter brightness-[1.02] contrast-[1.05] transform group-hover:scale-105 transition-all duration-700"
             />
-            {/* Smooth dark gradient overlay for text readability on left side */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#17181c] via-[#17181c]/85 to-transparent z-10 w-full md:w-3/5" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#17181c]/90 via-transparent to-transparent md:hidden z-10" />
           </div>
 
-          {/* Left Content Side */}
-          <div className="w-full md:w-7/12 z-20 flex flex-col justify-between h-full relative">
+          <div className="w-full md:w-7/12 z-10 flex flex-col justify-between h-full relative">
             <div>
-              {/* BEST SELLER Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#d4a373] bg-[#d4a373]/15 text-[#d4a373] text-xs sm:text-sm font-bold tracking-widest uppercase mb-6 shadow-sm backdrop-blur-md">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#d4a373]/60 bg-[#d4a373]/15 text-[#d4a373] text-xs sm:text-sm font-bold tracking-widest uppercase mb-6 shadow-sm backdrop-blur-md">
                 <Star className="w-4 h-4 fill-[#d4a373] text-[#d4a373]" />
                 <span>{activeProduct.badgeText}</span>
               </div>
 
-              {/* Title: Serif Typography matching reference screenshot */}
               <h3 className="text-4xl sm:text-6xl lg:text-7xl font-serif text-white tracking-tight leading-[1.05] mb-5">
                 {activeProduct.titleWhite}
                 <span className="block text-[#d4a373] font-serif font-medium mt-1.5">
@@ -168,14 +165,12 @@ export const ProductShowcase: React.FC = () => {
                 </span>
               </h3>
 
-              {/* Specifications Subtitle */}
               <div className="text-neutral-300 text-sm sm:text-base leading-relaxed font-sans-custom space-y-1.5 mb-8 font-normal">
                 {activeProduct.specs.map((spec, idx) => (
                   <p key={idx}>{spec}</p>
                 ))}
               </div>
 
-              {/* 3 Circular Feature Badges */}
               <div className="flex items-center gap-6 sm:gap-8 mb-10">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border border-[#d4a373]/60 bg-[#d4a373]/15 flex items-center justify-center text-[#d4a373] mb-2 shadow-inner backdrop-blur-md">
@@ -206,7 +201,6 @@ export const ProductShowcase: React.FC = () => {
               </div>
             </div>
 
-            {/* SHOP NOW Button */}
             <div>
               <button
                 onClick={() => handleShopNow(activeProduct)}
@@ -218,7 +212,6 @@ export const ProductShowcase: React.FC = () => {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

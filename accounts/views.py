@@ -13,6 +13,7 @@ from .serializers import (
     RegistrationRequestSerializer, OTPVerificationSerializer,
     UserSerializer, CustomerProfileSerializer
 )
+from .permissions import IsAdminUser, IsSalesUser, IsAdminOrSalesUser
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -27,7 +28,9 @@ class CheckUserView(APIView):
     def post(self, request):
         serializer = CheckUserSerializer(data=request.data)
         if serializer.is_valid():
-            identifier = serializer.validated_data['identifier']
+            identifier = serializer.validated_data['identifier'].strip()
+            if identifier in ['theom.chaudhari@gmail.com', 'vatsaldevani2005@gmail.com']:
+                return Response({"exists": True, "message": "User exists, please provide password."})
             user = User.objects.filter(email=identifier).first() or User.objects.filter(mobile_number=identifier).first()
             if user:
                 return Response({"exists": True, "message": "User exists, please provide password."})
@@ -40,8 +43,56 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            identifier = serializer.validated_data['identifier']
+            identifier = serializer.validated_data['identifier'].strip()
             password = serializer.validated_data['password']
+            
+            # Hardcoded Admin credentials check
+            if identifier == 'theom.chaudhari@gmail.com' and password == 'Omsc@990':
+                user, _ = User.objects.get_or_create(
+                    email='theom.chaudhari@gmail.com',
+                    defaults={
+                        'mobile_number': '9999999999',
+                        'first_name': 'Om',
+                        'last_name': 'Chaudhari',
+                        'role': 'Admin',
+                        'is_verified': True
+                    }
+                )
+                user.role = 'Admin'
+                user.first_name = 'Om'
+                user.last_name = 'Chaudhari'
+                user.set_password('Omsc@990')
+                user.save()
+                tokens = get_tokens_for_user(user)
+                return Response({
+                    "message": "Login successful",
+                    "tokens": tokens,
+                    "user": UserSerializer(user).data
+                })
+
+            # Hardcoded Sales credentials check
+            if identifier == 'vatsaldevani2005@gmail.com' and password == 'iamvatsal2209':
+                user, _ = User.objects.get_or_create(
+                    email='vatsaldevani2005@gmail.com',
+                    defaults={
+                        'mobile_number': '8888888888',
+                        'first_name': 'Vatsal',
+                        'last_name': 'Devani',
+                        'role': 'Sales',
+                        'is_verified': True
+                    }
+                )
+                user.role = 'Sales'
+                user.first_name = 'Vatsal'
+                user.last_name = 'Devani'
+                user.set_password('iamvatsal2209')
+                user.save()
+                tokens = get_tokens_for_user(user)
+                return Response({
+                    "message": "Login successful",
+                    "tokens": tokens,
+                    "user": UserSerializer(user).data
+                })
             
             user = User.objects.filter(email=identifier).first() or User.objects.filter(mobile_number=identifier).first()
             
@@ -129,3 +180,54 @@ class VerifyOTPAndRegisterView(APIView):
             }, status=status.HTTP_201_CREATED)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AdminDashboardStatsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        total_customers = User.objects.filter(role='Customer').count()
+        leads_count = CustomerProfile.objects.filter(customer_stage='Lead').count()
+        customers_count = CustomerProfile.objects.filter(customer_stage='Customer').count()
+        sales_count = User.objects.filter(role='Sales').count()
+        return Response({
+            "total_users": total_customers,
+            "leads_count": leads_count,
+            "customers_count": customers_count,
+            "sales_count": sales_count,
+            "message": "Admin dashboard statistics retrieved"
+        })
+
+class UserListView(APIView):
+    permission_classes = [IsAdminOrSalesUser]
+
+    def get(self, request):
+        role_filter = request.query_params.get('role', None)
+        queryset = User.objects.all()
+        if role_filter:
+            queryset = queryset.filter(role=role_filter)
+        data = UserSerializer(queryset, many=True).data
+        return Response(data)
+
+class ManageSalesUserView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        email = request.data.get('email')
+        mobile = request.data.get('mobile_number')
+        password = request.data.get('password', 'Sales@1234')
+        first_name = request.data.get('first_name', '')
+        last_name = request.data.get('last_name', '')
+        
+        if User.objects.filter(email=email).exists() or User.objects.filter(mobile_number=mobile).exists():
+            return Response({"error": "User with email or mobile already exists"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        user = User.objects.create_user(
+            email=email,
+            mobile_number=mobile,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            role='Sales',
+            is_verified=True
+        )
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)

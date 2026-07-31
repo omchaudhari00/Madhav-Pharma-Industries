@@ -4,9 +4,17 @@ from django.contrib.auth import authenticate
 from rest_framework.exceptions import AuthenticationFailed
 
 class UserSerializer(serializers.ModelSerializer):
+    customer_stage = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ['id', 'email', 'mobile_number', 'role', 'first_name', 'last_name', 'is_verified']
+        fields = ['id', 'email', 'mobile_number', 'role', 'first_name', 'last_name', 'is_verified', 'customer_stage']
+
+    def get_customer_stage(self, obj):
+        if hasattr(obj, 'customer_profile'):
+            obj.customer_profile.check_and_update_stage()
+            return obj.customer_profile.customer_stage
+        return 'Customer' if obj.role == 'Customer' else obj.role
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)

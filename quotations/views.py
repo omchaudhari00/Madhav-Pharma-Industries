@@ -108,3 +108,27 @@ class QuotationViewSet(viewsets.ModelViewSet):
             
         quotation.save()
         return Response(QuotationSerializer(quotation).data)
+
+    @action(detail=True, methods=['post'])
+    def assign_sales(self, request, pk=None):
+        if request.user.role != 'Admin':
+            return Response({"error": "Only Admin can assign sales agents"}, status=status.HTTP_403_FORBIDDEN)
+        quotation = self.get_object()
+        sales_agent_id = request.data.get('sales_agent_id')
+        if not sales_agent_id:
+            return Response({"error": "sales_agent_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+        quotation.sales_agent_id = sales_agent_id
+        quotation.save()
+        return Response(QuotationSerializer(quotation).data)
+
+    @action(detail=True, methods=['post'])
+    def update_status(self, request, pk=None):
+        if request.user.role not in ['Admin', 'Sales']:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        quotation = self.get_object()
+        new_status = request.data.get('status')
+        if new_status:
+            quotation.status = new_status
+            quotation.save()
+        return Response(QuotationSerializer(quotation).data)
+

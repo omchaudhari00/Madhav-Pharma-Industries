@@ -9,6 +9,7 @@ export interface UserProfile {
   first_name: string;
   last_name?: string;
   role?: string;
+  customer_stage?: 'Lead' | 'Customer';
 }
 
 export interface CartItem {
@@ -38,6 +39,9 @@ interface AppContextType {
   updateQuantity: (id: string, quantityKg: number) => void;
   clearCart: () => void;
   cartTotalCount: number;
+  currentPortal: 'storefront' | 'admin' | 'sales' | 'customer';
+  setPortal: (portal: 'storefront' | 'admin' | 'sales' | 'customer') => void;
+  switchDemoRole: (role: 'Admin' | 'Sales' | 'Customer', stage?: 'Lead' | 'Customer') => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -68,6 +72,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup'>('signin');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>(INITIAL_CART_ITEMS);
+  const [currentPortal, setPortal] = useState<'storefront' | 'admin' | 'sales' | 'customer'>('storefront');
+
+  const switchDemoRole = (role: 'Admin' | 'Sales' | 'Customer', stage: 'Lead' | 'Customer' = 'Lead') => {
+    const demoUser: UserProfile = {
+      id: role === 'Admin' ? 1 : role === 'Sales' ? 2 : 3,
+      email: `${role.toLowerCase()}@madhavpharma.com`,
+      first_name: role === 'Admin' ? 'Rajesh' : role === 'Sales' ? 'Vikram' : 'Ananya',
+      last_name: role === 'Admin' ? 'Madhav (Owner)' : role === 'Sales' ? 'Sharma (Sales)' : 'Patel (Buyer)',
+      role: role,
+      customer_stage: role === 'Customer' ? stage : undefined,
+    };
+    setUser(demoUser);
+    localStorage.setItem('madhav_user', JSON.stringify(demoUser));
+    setToken('demo-jwt-token');
+    localStorage.setItem('madhav_token', 'demo-jwt-token');
+    if (role === 'Admin') setPortal('admin');
+    else if (role === 'Sales') setPortal('sales');
+    else setPortal('customer');
+  };
 
   useEffect(() => {
     // Load stored auth on mount
@@ -96,11 +119,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setToken(tokenStr);
       localStorage.setItem('madhav_token', tokenStr);
     }
+    if (userData.role === 'Admin') setPortal('admin');
+    else if (userData.role === 'Sales') setPortal('sales');
+    else setPortal('customer');
   };
 
   const logout = () => {
     setUser(null);
     setToken(null);
+    setPortal('storefront');
     localStorage.removeItem('madhav_user');
     localStorage.removeItem('madhav_token');
   };
@@ -185,6 +212,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateQuantity,
         clearCart,
         cartTotalCount,
+        currentPortal,
+        setPortal,
+        switchDemoRole,
       }}
     >
       {children}
