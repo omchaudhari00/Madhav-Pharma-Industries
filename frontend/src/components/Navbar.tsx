@@ -6,7 +6,7 @@ import { useApp } from '../context/AppContext';
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { openAuth, openCart, cartTotalCount, user, logout, switchDemoRole, setPortal } = useApp();
+  const { openAuth, openCart, cartTotalCount, user, logout, switchDemoRole, setPortal, shopMode, setShopMode, openRetailCheckout, retailCartTotalCount } = useApp();
 
   return (
     <header className="sticky top-0 z-50 w-full bg-neutral-950/85 backdrop-blur-md border-b border-white/10 transition-all duration-300">
@@ -54,21 +54,25 @@ export const Navbar: React.FC = () => {
 
         {/* Right: Cart Option & SIGN IN / UP or User Profile */}
         <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-          {/* Cart Option Button */}
+          {/* Unified Smart Cart Button */}
           <button
-            onClick={openCart}
-            className="relative group p-2 sm:p-2.5 rounded-full border border-neutral-800 hover:border-neutral-600 bg-neutral-900/60 backdrop-blur-sm text-white transition-all duration-300 flex items-center space-x-2 px-3 sm:px-4 shrink-0"
-            aria-label="View Quotation Cart"
+            onClick={() => {
+              if (retailCartTotalCount > 0) openRetailCheckout();
+              else if (cartTotalCount > 0) openCart();
+              else openRetailCheckout();
+            }}
+            className="relative group p-2 sm:p-2.5 rounded-full border border-[#d4a373]/60 bg-[#d4a373]/15 text-white hover:bg-[#d4a373]/25 transition-all duration-300 flex items-center space-x-2 px-3.5 sm:px-4 shrink-0 cursor-pointer"
+            aria-label="View Cart"
           >
             <div className="relative">
-              <ShoppingBag className="w-4 h-4 text-neutral-200 group-hover:text-white transition-colors" />
-              {cartTotalCount > 0 && (
+              <ShoppingBag className="w-4 h-4 text-[#d4a373] group-hover:text-white transition-colors" />
+              {(retailCartTotalCount + cartTotalCount) > 0 && (
                 <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-emerald-500 text-black text-[10px] font-extrabold flex items-center justify-center">
-                  {cartTotalCount}
+                  {retailCartTotalCount + cartTotalCount}
                 </span>
               )}
             </div>
-            <span className="text-xs font-bold uppercase tracking-wider text-neutral-200 group-hover:text-white hidden sm:inline">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#d4a373] group-hover:text-white hidden sm:inline">
               Cart
             </span>
           </button>
@@ -153,20 +157,22 @@ export const Navbar: React.FC = () => {
               Contact
             </a>
 
-            {/* Mobile Cart Option */}
+            {/* Mobile Unified Cart Option */}
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                openCart();
+                if (retailCartTotalCount > 0) openRetailCheckout();
+                else if (cartTotalCount > 0) openCart();
+                else openRetailCheckout();
               }}
               className="flex items-center justify-between py-2 text-neutral-300 hover:text-white border-t border-neutral-800 pt-4"
             >
               <span className="flex items-center space-x-2 text-base font-medium">
-                <ShoppingBag className="w-5 h-5" />
-                <span>Quotation Cart</span>
+                <ShoppingBag className="w-5 h-5 text-[#d4a373]" />
+                <span>My Cart</span>
               </span>
               <span className="px-3 py-1 rounded-full bg-emerald-500 text-black text-xs font-extrabold">
-                {cartTotalCount} kg
+                {retailCartTotalCount + cartTotalCount} items
               </span>
             </button>
 

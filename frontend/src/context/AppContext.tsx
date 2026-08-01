@@ -21,7 +21,27 @@ export interface CartItem {
   imageUrl: string;
 }
 
+export interface RetailCartItem {
+  id: string;
+  name: string;
+  sizeLabel: string;
+  quantity: number;
+  unitPrice: number;
+  imageUrl: string;
+}
+
 interface AppContextType {
+  shopMode: 'retail' | 'bulk';
+  setShopMode: (mode: 'retail' | 'bulk') => void;
+  retailCartItems: RetailCartItem[];
+  addToRetailCart: (item: Omit<RetailCartItem, 'quantity'>, quantity?: number) => void;
+  removeFromRetailCart: (id: string) => void;
+  updateRetailQuantity: (id: string, quantity: number) => void;
+  clearRetailCart: () => void;
+  retailCartTotalCount: number;
+  isRetailCheckoutOpen: boolean;
+  openRetailCheckout: () => void;
+  closeRetailCheckout: () => void;
   user: UserProfile | null;
   token: string | null;
   login: (userData: UserProfile, tokenStr?: string) => void;
@@ -60,6 +80,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [cartItems, setCartItems] = useState<CartItem[]>(INITIAL_CART_ITEMS);
   const [currentPortal, setPortal] = useState<'storefront' | 'admin' | 'sales' | 'customer'>('storefront');
 
+  const [shopMode, setShopMode] = useState<'retail' | 'bulk'>('retail');
+  const [retailCartItems, setRetailCartItems] = useState<RetailCartItem[]>([]);
+  const [isRetailCheckoutOpen, setIsRetailCheckoutOpen] = useState(false);
+
   const switchDemoRole = (role: 'Admin' | 'Sales' | 'Customer', stage: 'Lead' | 'Customer' = 'Lead') => {
     const demoUser: UserProfile = {
       id: role === 'Admin' ? 1 : role === 'Sales' ? 2 : 3,
@@ -94,6 +118,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const storedCart = localStorage.getItem('madhav_cart');
       if (storedCart) {
         setCartItems(JSON.parse(storedCart));
+      }
+      const storedRetailCart = localStorage.getItem('madhav_retail_cart');
+      if (storedRetailCart) {
+        setRetailCartItems(JSON.parse(storedRetailCart));
+      }
+      const storedMode = localStorage.getItem('madhav_shop_mode');
+      if (storedMode === 'retail' || storedMode === 'bulk') {
+        setShopMode(storedMode);
       }
       const storedOos = localStorage.getItem('madhav_out_of_stock');
       if (storedOos) {
@@ -134,6 +166,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const openCart = () => {
+    setIsRetailCheckoutOpen(false);
     setIsCartOpen(true);
   };
 
@@ -154,6 +187,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem('madhav_cart', JSON.stringify(updated));
       return updated;
     });
+    setIsRetailCheckoutOpen(false);
     setIsCartOpen(true);
   };
 
@@ -179,6 +213,65 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const cartTotalCount = cartItems.reduce((sum, item) => sum + item.quantityKg, 0);
+
+  const handleSetShopMode = (mode: 'retail' | 'bulk') => {
+    setShopMode(mode);
+    localStorage.setItem('madhav_shop_mode', mode);
+  };
+
+  const openRetailCheckout = () => {
+    setIsCartOpen(false);
+    setIsRetailCheckoutOpen(true);
+  };
+
+  const closeRetailCheckout = () => {
+    setIsRetailCheckoutOpen(false);
+  };
+
+  const addToRetailCart = (item: Omit<RetailCartItem, 'quantity'>, quantity = 1) => {
+    setRetailCartItems(prev => {
+      const existingIndex = prev.findIndex(i => i.id === item.id);
+      let updated: RetailCartItem[];
+      if (existingIndex > -1) {
+        updated = [...prev];
+        updated[existingIndex].quantity += quantity;
+      } else {
+        updated = [...prev, { ...item, quantity }];
+      }
+      localStorage.setItem('madhav_retail_cart', JSON.stringify(updated));
+      return updated;
+    });
+    setIsCartOpen(false);
+    setIsRetailCheckoutOpen(true);
+  };
+
+  const removeFromRetailCart = (id: string) => {
+    setRetailCartItems(prev => {
+      const updated = prev.filter(i => i.id !== id);
+      localStorage.setItem('madhav_retail_cart', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const updateRetailQuantity = (id: string, quantity: number) => {
+    setRetailCartItems(prev => {
+      let updated: RetailCartItem[];
+      if (quantity <= 0) {
+        updated = prev.filter(i => i.id !== id);
+      } else {
+        updated = prev.map(i => i.id === id ? { ...i, quantity } : i);
+      }
+      localStorage.setItem('madhav_retail_cart', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const clearRetailCart = () => {
+    setRetailCartItems([]);
+    localStorage.removeItem('madhav_retail_cart');
+  };
+
+  const retailCartTotalCount = retailCartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const toggleProductStock = (productId: string) => {
     setOutOfStockProducts(prev => {
@@ -218,6 +311,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         outOfStockProducts,
         toggleProductStock,
         isProductOutOfStock,
+        shopMode,
+        setShopMode: handleSetShopMode,
+        retailCartItems,
+        addToRetailCart,
+        removeFromRetailCart,
+        updateRetailQuantity,
+        clearRetailCart,
+        retailCartTotalCount,
+        isRetailCheckoutOpen,
+        openRetailCheckout,
+        closeRetailCheckout,
       }}
     >
       {children}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, Leaf, Droplets, Sparkles, ArrowRight } from 'lucide-react';
+import { Star, Leaf, Droplets, Sparkles, ArrowRight, Package, Factory, AlertCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export interface ProductShowcaseItem {
@@ -14,6 +14,7 @@ export interface ProductShowcaseItem {
   cardImage: string;
   heroImage: string;
   unitPrice: number;
+  retailPrice?: number;
   grade: string;
 }
 
@@ -30,6 +31,7 @@ const PRODUCTS: ProductShowcaseItem[] = [
     cardImage: '/images/cumin-seed-oil.png',
     heroImage: '/images/cumin-seed-oil.png',
     unitPrice: 120,
+    retailPrice: 299,
     grade: '100% Steam Distilled • Pharmaceutical Grade',
   },
   {
@@ -44,6 +46,7 @@ const PRODUCTS: ProductShowcaseItem[] = [
     cardImage: '/images/fennel-oil.jpg',
     heroImage: '/images/fennel-oil.jpg',
     unitPrice: 85,
+    retailPrice: 249,
     grade: '100% Steam Distilled • Food & Wellness Grade',
   },
   {
@@ -58,25 +61,66 @@ const PRODUCTS: ProductShowcaseItem[] = [
     cardImage: '/images/ajwain-oil.png',
     heroImage: '/images/ajwain-oil.png',
     unitPrice: 95,
+    retailPrice: 279,
     grade: '100% Steam Distilled • Pharma Grade',
+  },
+  {
+    id: 'black-seed-oil',
+    name: 'Pure Black Seed Oil (Kalonji Oil)',
+    categoryTitle: 'Black Seed',
+    categorySubtitle: 'Essential Oil',
+    titleWhite: 'Black Seed',
+    titleGold: 'Essential Oil',
+    badgeText: 'PREMIUM CHOICE',
+    specs: ['100% Pure & Cold Pressed/Distilled', 'Rich in Thymoquinone', 'Therapeutic Grade'],
+    cardImage: '/images/all-oils.png',
+    heroImage: '/images/all-oils.png',
+    unitPrice: 150,
+    retailPrice: 349,
+    grade: '100% Steam Distilled • Pharma & Wellness Grade',
   },
 ];
 
 export const ProductShowcase: React.FC = () => {
-  const { addToCart, isProductOutOfStock } = useApp();
+  const { addToCart, addToRetailCart, isProductOutOfStock } = useApp();
   const [activeProductId, setActiveProductId] = useState<string>('cumin-seed-oil');
+  const [retailQty, setRetailQty] = useState<Record<string, number>>({});
+  const [cardMode, setCardMode] = useState<Record<string, 'retail' | 'bulk'>>({});
 
   const activeProduct = PRODUCTS.find((p) => p.id === activeProductId) || PRODUCTS[0];
 
-    const handleShopNow = (product: ProductShowcaseItem) => {
-      addToCart({
-        id: product.id,
-        name: product.name,
-        grade: product.grade,
-        unitPrice: product.unitPrice,
-        imageUrl: product.heroImage,
-      }, 1);
-    };
+  const getMode = (id: string) => cardMode[id] || 'retail';
+  const setMode = (id: string, mode: 'retail' | 'bulk') => {
+    setCardMode(prev => ({ ...prev, [id]: mode }));
+  };
+
+  const getQty = (id: string) => (retailQty[id] !== undefined ? retailQty[id] : 1);
+  const changeQty = (id: string, delta: number) => {
+    const current = getQty(id);
+    const next = Math.max(1, current + delta);
+    setRetailQty(prev => ({ ...prev, [id]: next }));
+  };
+
+  const handleShopNow = (product: ProductShowcaseItem) => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      grade: product.grade,
+      unitPrice: product.unitPrice,
+      imageUrl: product.heroImage,
+    }, 1);
+  };
+
+  const handleAddRetail = (product: ProductShowcaseItem) => {
+    const qty = getQty(product.id);
+    addToRetailCart({
+      id: product.id,
+      name: product.name,
+      sizeLabel: '50ml Bottle',
+      unitPrice: product.retailPrice || 299,
+      imageUrl: product.heroImage,
+    }, qty);
+  };
 
   return (
     <div className="w-full max-w-full my-8">
@@ -158,12 +202,17 @@ export const ProductShowcase: React.FC = () => {
             <div>
               {isProductOutOfStock(activeProduct.id) ? (
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-red-500/60 bg-red-500/15 text-red-400 text-xs sm:text-sm font-bold tracking-widest uppercase mb-6 shadow-sm backdrop-blur-md">
-                  <span>🔴 OUT OF STOCK</span>
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                  <span>OUT OF STOCK</span>
                 </div>
               ) : (
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#d4a373]/60 bg-[#d4a373]/15 text-[#d4a373] text-xs sm:text-sm font-bold tracking-widest uppercase mb-6 shadow-sm backdrop-blur-md">
-                  <Star className="w-4 h-4 fill-[#d4a373] text-[#d4a373]" />
-                  <span>{activeProduct.badgeText}</span>
+                  {getMode(activeProduct.id) === 'retail' ? (
+                    <Package className="w-4 h-4 text-[#d4a373]" />
+                  ) : (
+                    <Star className="w-4 h-4 fill-[#d4a373] text-[#d4a373]" />
+                  )}
+                  <span>{getMode(activeProduct.id) === 'retail' ? '50ML RETAIL BOTTLE • FIXED PRICE' : activeProduct.badgeText}</span>
                 </div>
               )}
 
@@ -174,8 +223,48 @@ export const ProductShowcase: React.FC = () => {
                 </span>
               </h3>
 
+              {/* Pack Size Selector (Idea 4) */}
+              <div className="my-4 inline-flex flex-wrap items-center p-1.5 rounded-2xl bg-neutral-900/90 border border-white/20 text-xs sm:text-sm font-bold shadow-inner gap-1">
+                <button
+                  type="button"
+                  onClick={() => setMode(activeProduct.id, 'retail')}
+                  className={`px-4 py-2 rounded-xl transition-all duration-300 flex items-center gap-2 cursor-pointer ${
+                    getMode(activeProduct.id) === 'retail'
+                      ? 'bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 shadow-md font-extrabold'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  <Package className="w-4 h-4 shrink-0" />
+                  <span>50ml Bottle (₹{activeProduct.retailPrice || 299})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode(activeProduct.id, 'bulk')}
+                  className={`px-4 py-2 rounded-xl transition-all duration-300 flex items-center gap-2 cursor-pointer ${
+                    getMode(activeProduct.id) === 'bulk'
+                      ? 'bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 shadow-md font-extrabold'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  <Factory className="w-4 h-4 shrink-0" />
+                  <span>Bulk Drum (1kg+ B2B)</span>
+                </button>
+              </div>
+
+              {getMode(activeProduct.id) === 'retail' ? (
+                <div className="mb-4 inline-flex items-center gap-2.5 bg-[#d4a373]/20 border border-[#d4a373]/60 rounded-xl px-4 py-2 text-[#d4a373] shadow-md">
+                  <span className="text-xl sm:text-2xl font-extrabold">₹{activeProduct.retailPrice || 299}</span>
+                  <span className="text-xs sm:text-sm text-neutral-200 font-medium">/ 50ml Bottle (Fixed Size & Price)</span>
+                </div>
+              ) : (
+                <div className="mb-4 inline-flex items-center gap-2.5 bg-blue-500/20 border border-blue-500/60 rounded-xl px-4 py-2 text-blue-300 shadow-md">
+                  <span className="text-xl sm:text-2xl font-extrabold">₹{activeProduct.unitPrice}</span>
+                  <span className="text-xs sm:text-sm text-neutral-200 font-medium">/ KG (Commercial Bulk & Quotation)</span>
+                </div>
+              )}
+
               <div className="text-neutral-300 text-sm sm:text-base leading-relaxed font-sans-custom space-y-1.5 mb-8 font-normal">
-                {activeProduct.specs.map((spec, idx) => (
+                {(getMode(activeProduct.id) === 'retail' ? ['50ml Pure Bottle (Fixed Size & Price)', ...activeProduct.specs] : activeProduct.specs).map((spec, idx) => (
                   <p key={idx}>{spec}</p>
                 ))}
               </div>
@@ -211,18 +300,58 @@ export const ProductShowcase: React.FC = () => {
             </div>
 
             <div>
-              <button
-                onClick={() => !isProductOutOfStock(activeProduct.id) && handleShopNow(activeProduct)}
-                disabled={isProductOutOfStock(activeProduct.id)}
-                className={`group relative inline-flex items-center justify-center gap-3 px-9 py-4 rounded-full font-extrabold text-xs sm:text-sm lg:text-base uppercase tracking-wider transition-all duration-300 ${
-                  isProductOutOfStock(activeProduct.id)
-                    ? 'bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed'
-                    : 'bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 shadow-[0_6px_24px_rgba(212,163,115,0.35)] hover:shadow-[0_8px_32px_rgba(212,163,115,0.55)] transform hover:-translate-y-0.5 cursor-pointer'
-                }`}
-              >
-                <span>{isProductOutOfStock(activeProduct.id) ? 'OUT OF STOCK' : 'SHOP NOW'}</span>
-                {!isProductOutOfStock(activeProduct.id) && <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-neutral-950 group-hover:translate-x-1 transition-transform" />}
-              </button>
+              {getMode(activeProduct.id) === 'retail' ? (
+                <div className="flex flex-wrap items-center gap-4">
+                  {/* Quantity Selector [-] 1 [+] */}
+                  <div className="flex items-center bg-neutral-900 border border-[#d4a373]/60 rounded-full px-2 py-1.5 gap-2 shadow-inner">
+                    <button
+                      type="button"
+                      onClick={() => changeQty(activeProduct.id, -1)}
+                      className="w-9 h-9 rounded-full bg-neutral-800 hover:bg-[#d4a373] hover:text-black text-white flex items-center justify-center transition-colors font-extrabold text-lg cursor-pointer"
+                      aria-label="Decrease quantity"
+                    >
+                      -
+                    </button>
+                    <span className="text-base font-extrabold text-white min-w-[32px] text-center font-mono">
+                      {getQty(activeProduct.id)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => changeQty(activeProduct.id, 1)}
+                      className="w-9 h-9 rounded-full bg-neutral-800 hover:bg-[#d4a373] hover:text-black text-white flex items-center justify-center transition-colors font-extrabold text-lg cursor-pointer"
+                      aria-label="Increase quantity"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => !isProductOutOfStock(activeProduct.id) && handleAddRetail(activeProduct)}
+                    disabled={isProductOutOfStock(activeProduct.id)}
+                    className={`group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 ${
+                      isProductOutOfStock(activeProduct.id)
+                        ? 'bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed'
+                        : 'bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 shadow-[0_6px_24px_rgba(212,163,115,0.35)] hover:shadow-[0_8px_32px_rgba(212,163,115,0.55)] transform hover:-translate-y-0.5 cursor-pointer'
+                    }`}
+                  >
+                    <span>{isProductOutOfStock(activeProduct.id) ? 'OUT OF STOCK' : `ADD TO CART (${getQty(activeProduct.id)} BOTTLE${getQty(activeProduct.id) > 1 ? 'S' : ''} • ₹${(activeProduct.retailPrice || 299) * getQty(activeProduct.id)})`}</span>
+                    {!isProductOutOfStock(activeProduct.id) && <ArrowRight className="w-4 h-4 text-neutral-950 group-hover:translate-x-1 transition-transform" />}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => !isProductOutOfStock(activeProduct.id) && handleShopNow(activeProduct)}
+                  disabled={isProductOutOfStock(activeProduct.id)}
+                  className={`group relative inline-flex items-center justify-center gap-3 px-9 py-4 rounded-full font-extrabold text-xs sm:text-sm lg:text-base uppercase tracking-wider transition-all duration-300 ${
+                    isProductOutOfStock(activeProduct.id)
+                      ? 'bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed'
+                      : 'bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 shadow-[0_6px_24px_rgba(212,163,115,0.35)] hover:shadow-[0_8px_32px_rgba(212,163,115,0.55)] transform hover:-translate-y-0.5 cursor-pointer'
+                  }`}
+                >
+                  <span>{isProductOutOfStock(activeProduct.id) ? 'OUT OF STOCK' : 'REQUEST BULK QUOTE'}</span>
+                  {!isProductOutOfStock(activeProduct.id) && <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-neutral-950 group-hover:translate-x-1 transition-transform" />}
+                </button>
+              )}
             </div>
           </div>
         </div>

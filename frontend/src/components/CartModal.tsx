@@ -5,7 +5,7 @@ import { X, Trash2, ShoppingBag, Plus, Minus, ArrowRight, ShieldCheck } from 'lu
 import { useApp } from '../context/AppContext';
 
 export const CartModal: React.FC = () => {
-  const { isCartOpen, closeCart, cartItems, updateQuantity, removeFromCart, clearCart, openAuth, user, token, setPortal } = useApp();
+  const { isCartOpen, closeCart, cartItems, updateQuantity, removeFromCart, clearCart, openAuth, user, token, setPortal, openRetailCheckout, retailCartTotalCount, cartTotalCount } = useApp();
   const [expectedPrices, setExpectedPrices] = useState<Record<string, string>>({});
   const [qtyInputs, setQtyInputs] = useState<Record<string, string>>({});
 
@@ -103,6 +103,23 @@ export const CartModal: React.FC = () => {
                 aria-label="Close cart"
               >
                 <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Cart Switcher Tabs */}
+            <div className="flex items-center p-1 bg-neutral-900 border-b border-neutral-800 text-xs font-bold shrink-0">
+              <button
+                type="button"
+                onClick={() => { closeCart(); openRetailCheckout(); }}
+                className="flex-1 py-2.5 rounded-lg text-neutral-400 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>50ml Retail Cart ({retailCartTotalCount})</span>
+              </button>
+              <button
+                type="button"
+                className="flex-1 py-2.5 rounded-lg bg-blue-500 text-white font-extrabold shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>B2B Quote Cart ({cartTotalCount})</span>
               </button>
             </div>
 
