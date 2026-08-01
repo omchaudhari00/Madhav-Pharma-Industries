@@ -169,7 +169,7 @@ export const AuthModal: React.FC = () => {
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-md bg-neutral-950 border border-neutral-800 rounded-3xl p-6 sm:p-8 text-white shadow-2xl z-10 overflow-hidden">
+      <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-neutral-950 border border-neutral-800 rounded-3xl p-6 sm:p-8 text-white shadow-2xl z-10">
         {/* Top Header & Close Button */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2">

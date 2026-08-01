@@ -20,33 +20,33 @@ export const HeroSection: React.FC = () => {
         <div className="max-w-2xl relative">
 
           {/* Headline with exact geometric bold display font style */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight text-white mb-8 font-display">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.15] sm:leading-[1.1] tracking-tight text-white mb-6 sm:mb-8 font-display">
             <span>Pure Cumin Seed Oil &</span>
             <br />
             <span className="text-neutral-100">Natural Essential Oils</span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-neutral-300 text-sm sm:text-base md:text-lg leading-relaxed font-normal mb-12 max-w-xl font-sans-custom">
+          <p className="text-neutral-300 text-xs sm:text-base md:text-lg leading-relaxed font-normal mb-8 sm:mb-12 max-w-xl font-sans-custom">
             Leading manufacturer of 100% steam distilled essential oils with high purity and strong aroma. Trusted by pharmaceutical and food industries worldwide.
           </p>
 
           {/* Action Buttons: Request Quote & Explore Products */}
-          <div className="flex flex-wrap items-center gap-4 sm:gap-6 font-display">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6 font-display">
             <button
               onClick={openCart}
-              className="group relative inline-flex items-center justify-center p-[3px] rounded-full border border-white/60 hover:border-white transition-all duration-300 focus:outline-none"
+              className="group relative inline-flex items-center justify-center p-[3px] rounded-full border border-white/60 hover:border-white transition-all duration-300 focus:outline-none w-full sm:w-auto"
             >
-              <span className="relative flex items-center justify-center px-8 py-3 rounded-full border border-white/80 group-hover:border-white text-white font-display text-sm font-bold uppercase tracking-wider transition-colors">
+              <span className="relative flex items-center justify-center px-6 sm:px-8 py-3 rounded-full border border-white/80 group-hover:border-white text-white font-display text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors w-full sm:w-auto">
                 Request Quote
               </span>
             </button>
 
             <a
-              href="#about"
-              className="group relative inline-flex items-center justify-center p-[3px] rounded-full border border-white/60 hover:border-white transition-all duration-300 focus:outline-none"
+              href="#products"
+              className="group relative inline-flex items-center justify-center p-[3px] rounded-full border border-white/60 hover:border-white transition-all duration-300 focus:outline-none w-full sm:w-auto text-center"
             >
-              <span className="relative flex items-center justify-center px-8 py-3 rounded-full border border-white/80 group-hover:border-white text-white font-display text-sm font-bold uppercase tracking-wider transition-colors">
+              <span className="relative flex items-center justify-center px-6 sm:px-8 py-3 rounded-full border border-white/80 group-hover:border-white text-white font-display text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors w-full sm:w-auto">
                 Explore Products
               </span>
             </a>

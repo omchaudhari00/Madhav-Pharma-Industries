@@ -16,7 +16,8 @@ export const ContactUsSection: React.FC = () => {
   };
 
   return (
-    <section id="contact" className="w-full bg-transparent text-white pt-16 mt-16 border-t border-neutral-900 font-display">
+    <>
+      <section id="contact" className="w-full max-w-7xl mx-auto bg-transparent text-white pt-16 mt-16 border-t border-neutral-900 px-4 sm:px-8 lg:px-12 font-display">
       {/* Top Header Banner - Pure Solid Black, No background visuals */}
       <div className="text-center mb-16 sm:mb-20">
         <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white mb-3 font-display">
@@ -176,32 +177,40 @@ export const ContactUsSection: React.FC = () => {
           </button>
         </div>
       </div>
+      </section>
 
-      {/* Footer Section */}
-      <footer className="pt-12 pb-8 border-t border-neutral-900 text-left">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 mb-12">
-          {/* Col 1: Brand & Description & Social */}
+      {/* Premium Full-Page Glassmorphism Footer Section */}
+      <footer className="relative w-full pt-16 pb-8 px-6 sm:px-12 lg:px-16 mt-20 mb-0 bg-neutral-900/30 backdrop-blur-2xl border-t border-white/15 shadow-[0_-16px_48px_0_rgba(0,0,0,0.6)] text-left font-display overflow-hidden rounded-none">
+        {/* Top glossy glass edge highlight line */}
+        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/50 to-transparent pointer-events-none" />
+        
+        {/* Ambient background glass light orbs */}
+        <div className="absolute -top-20 -right-20 w-80 h-80 bg-[#d4a373]/20 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 mb-12">
+          {/* Col 1: Brand & Description & Glass Social Buttons */}
           <div>
             <div className="flex items-center space-x-2.5 font-bold text-lg tracking-wider text-white font-display mb-5">
-              <div className="w-8 h-8 bg-white rounded flex items-center justify-center text-black">
+              <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center text-black shadow-[0_0_15px_rgba(255,255,255,0.4)]">
                 <Activity className="w-5 h-5 text-black" />
               </div>
-              <span className="font-brand text-lg text-white font-bold">Madhav Pharma</span>
+              <span className="font-brand text-xl text-white font-bold tracking-tight">Madhav Pharma</span>
             </div>
-            <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed font-sans-custom max-w-sm mb-6">
+            <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-sans-custom max-w-sm mb-6">
               Leading manufacturer of Cumin Seed Oil and natural essential oils, produced through 100% steam distillation with high purity and strong aroma.
             </p>
             <div className="flex items-center space-x-3">
-              <a href="#facebook" aria-label="Facebook" className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white hover:border-neutral-600 transition-colors">
+              <a href="#facebook" aria-label="Facebook" className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-md flex items-center justify-center text-neutral-300 hover:text-white hover:border-emerald-400/50 hover:bg-white/[0.08] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all duration-300">
                 <Facebook className="w-4 h-4" />
               </a>
-              <a href="#linkedin" aria-label="LinkedIn" className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white hover:border-neutral-600 transition-colors">
+              <a href="#linkedin" aria-label="LinkedIn" className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-md flex items-center justify-center text-neutral-300 hover:text-white hover:border-emerald-400/50 hover:bg-white/[0.08] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all duration-300">
                 <Linkedin className="w-4 h-4" />
               </a>
-              <a href="#instagram" aria-label="Instagram" className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white hover:border-neutral-600 transition-colors">
+              <a href="#instagram" aria-label="Instagram" className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-md flex items-center justify-center text-neutral-300 hover:text-white hover:border-emerald-400/50 hover:bg-white/[0.08] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all duration-300">
                 <Instagram className="w-4 h-4" />
               </a>
-              <a href="#whatsapp" aria-label="WhatsApp" className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white hover:border-neutral-600 transition-colors">
+              <a href="#whatsapp" aria-label="WhatsApp" className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-md flex items-center justify-center text-neutral-300 hover:text-white hover:border-emerald-400/50 hover:bg-white/[0.08] hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all duration-300">
                 <MessageCircle className="w-4 h-4" />
               </a>
             </div>
@@ -209,70 +218,74 @@ export const ContactUsSection: React.FC = () => {
 
           {/* Col 2: Quick Links */}
           <div>
-            <h4 className="font-bold text-base text-white font-display mb-4">Quick Links</h4>
-            <ul className="space-y-2.5 text-xs sm:text-sm text-neutral-400 font-sans-custom">
-              <li><a href="#about-us" className="hover:text-white transition-colors">About Us</a></li>
-              <li><a href="#about" className="hover:text-white transition-colors">Products</a></li>
-              <li><a href="#about-us" className="hover:text-white transition-colors">Manufacturing</a></li>
-              <li><a href="#about" className="hover:text-white transition-colors">Quality &amp; Certifications</a></li>
-              <li><a href="#about" className="hover:text-white transition-colors">Applications</a></li>
-              <li><a href="#contact" className="hover:text-white transition-colors">Contact Us</a></li>
+            <h4 className="font-bold text-base text-white font-display mb-4">
+              Quick Links
+            </h4>
+            <ul className="space-y-2.5 text-xs sm:text-sm text-neutral-300 font-sans-custom">
+              <li><a href="#about-us" className="hover:text-emerald-400 transition-colors">About Us</a></li>
+              <li><a href="#products" className="hover:text-emerald-400 transition-colors">Our Products</a></li>
+              <li><a href="#manufacturing" className="hover:text-emerald-400 transition-colors">100% Steam Process</a></li>
+              <li><a href="#certifications" className="hover:text-emerald-400 transition-colors">Why Choose Us</a></li>
+              <li><a href="#contact" className="hover:text-emerald-400 transition-colors">Contact Us</a></li>
             </ul>
           </div>
 
           {/* Col 3: Our Products */}
           <div>
-            <h4 className="font-bold text-base text-white font-display mb-4">Our Products</h4>
-            <ul className="space-y-2.5 text-xs sm:text-sm text-neutral-400 font-sans-custom">
-              <li><a href="#about" className="hover:text-white transition-colors">Cumin Seed Oil</a></li>
-              <li><a href="#about" className="hover:text-white transition-colors">Fennel Oil</a></li>
-              <li><a href="#about" className="hover:text-white transition-colors">Ajwain Oil</a></li>
-              <li><a href="#about" className="hover:text-white transition-colors">All Essential Oils</a></li>
-              <li><a href="#about" className="hover:text-white transition-colors">Downloads</a></li>
+            <h4 className="font-bold text-base text-white font-display mb-4">
+              Our Products
+            </h4>
+            <ul className="space-y-2.5 text-xs sm:text-sm text-neutral-300 font-sans-custom">
+              <li><a href="#products" className="hover:text-emerald-400 transition-colors">Pure Cumin Seed Oil (Jeera Oil)</a></li>
+              <li><a href="#products" className="hover:text-emerald-400 transition-colors">Natural Fennel Seed Oil</a></li>
+              <li><a href="#products" className="hover:text-emerald-400 transition-colors">Pure Ajwain Seed Oil</a></li>
+              <li><a href="#products" className="hover:text-emerald-400 transition-colors">Pharma Grade Essential Oils</a></li>
             </ul>
           </div>
 
-          {/* Col 4: Contact Us */}
+          {/* Col 4: Direct Contact */}
           <div>
-            <h4 className="font-bold text-base text-white font-display mb-4">Contact Us</h4>
-            <ul className="space-y-3.5 text-xs sm:text-sm text-neutral-400 font-sans-custom mb-6">
+            <h4 className="font-bold text-base text-white font-display mb-4">
+              Direct Contact
+            </h4>
+            <ul className="space-y-3.5 text-xs sm:text-sm text-neutral-300 font-sans-custom mb-6">
               <li className="flex items-start space-x-3">
-                <User className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                <User className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-white">Alpesh</div>
+                  <div className="font-bold text-white text-sm">Alpesh</div>
                   <div className="text-xs text-neutral-400">Contact Person</div>
                 </div>
               </li>
               <li className="flex items-center space-x-3">
-                <Phone className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                <a href="tel:9023385917" className="hover:text-white transition-colors">9023385917</a>
+                <Phone className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <a href="tel:9023385917" className="hover:text-white transition-colors font-medium">9023385917</a>
               </li>
               <li className="flex items-center space-x-3">
-                <Mail className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                <a href="mailto:madhavpharmaindustries@gmail.com" className="hover:text-white transition-colors break-all">madhavpharmaindustries@gmail.com</a>
+                <Mail className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <a href="mailto:madhavpharmaindustries@gmail.com" className="hover:text-white transition-colors break-all font-medium">madhavpharmaindustries@gmail.com</a>
               </li>
             </ul>
             <a
               href="#contact"
-              className="inline-flex items-center justify-center space-x-2 px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition-colors duration-200 font-display"
+              className="inline-flex items-center justify-center space-x-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider hover:opacity-90 transition-all shadow-[0_0_25px_rgba(212,163,115,0.4)] font-display"
             >
-              <Send className="w-4 h-4" />
-              <span>Get Your Quote</span>
+              <Send className="w-3.5 h-3.5" />
+              <span>Get Instant Quote</span>
             </a>
           </div>
         </div>
 
         {/* Copyright notice & Links */}
-        <div className="pt-8 border-t border-neutral-900 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 font-sans-custom gap-4">
+        <div className="relative z-10 max-w-7xl mx-auto pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-400 font-sans-custom gap-4">
           <div>
             © 2026 Madhav Pharma Industries. All rights reserved.
           </div>
           <div className="flex items-center space-x-6">
-            <a href="#privacy" className="hover:text-neutral-300 transition-colors">Privacy Policy</a>
-            <a href="#terms" className="hover:text-neutral-300 transition-colors">Terms of Service</a>
+            <a href="#privacy" className="hover:text-white transition-colors">Privacy Policy</a>
+            <a href="#terms" className="hover:text-white transition-colors">Terms of Service</a>
           </div>
         </div>
       </footer>
-    </section>
+    </>
   );
 };

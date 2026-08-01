@@ -148,7 +148,7 @@ export const CustomerDashboard: React.FC = () => {
       <div className="relative z-10">
         {/* Customer Header */}
       <div className="border-b border-white/10 bg-neutral-900/60 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[5rem] py-3 flex-wrap sm:flex-nowrap gap-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setPortal('storefront')}

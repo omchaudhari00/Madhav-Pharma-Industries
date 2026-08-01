@@ -2,7 +2,7 @@ import React from 'react';
 
 export const AboutUsSection: React.FC = () => {
   return (
-    <section id="about-us" className="relative w-full bg-transparent text-white py-16 sm:py-20 px-6 lg:px-12 max-w-7xl mx-auto font-display">
+    <section id="about-us" className="relative w-full bg-transparent text-white pt-16 mt-16 border-t border-neutral-900 px-6 lg:px-12 max-w-7xl mx-auto font-display">
 
       {/* Top Header Banner */}
       <div className="text-center mb-16 sm:mb-20">
@@ -33,13 +33,14 @@ export const AboutUsSection: React.FC = () => {
 
           {/* Contact Us Button */}
           <div>
-            <button
+            <a
+              href="#contact"
               className="group relative inline-flex items-center justify-center p-[3px] rounded-full border border-white/60 hover:border-white transition-all duration-300 focus:outline-none"
             >
               <span className="relative flex items-center justify-center px-8 py-3 rounded-full border border-white/80 group-hover:border-white text-white font-display text-sm font-bold uppercase tracking-wider transition-colors">
                 Contact Us
               </span>
-            </button>
+            </a>
           </div>
         </div>
       </div>

@@ -135,7 +135,7 @@ export const ProductShowcase: React.FC = () => {
           })}
         </div>
 
-        <div className="lg:col-span-8 xl:col-span-9 relative group rounded-3xl p-8 sm:p-10 lg:p-14 bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] hover:border-white/25 hover:bg-neutral-900/50 transition-all duration-500 flex flex-col md:flex-row items-center justify-between overflow-hidden min-h-[500px] lg:min-h-[540px]">
+        <div className="lg:col-span-8 xl:col-span-9 relative group rounded-3xl p-5 sm:p-8 lg:p-14 bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] hover:border-white/25 hover:bg-neutral-900/50 transition-all duration-500 flex flex-col md:flex-row items-center justify-between overflow-hidden min-h-[460px] sm:min-h-[500px] lg:min-h-[540px]">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none z-20" />
           <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/5 rounded-full blur-2xl pointer-events-none group-hover:bg-white/10 transition-colors duration-500 z-0" />
           <div className="absolute right-10 top-1/2 -translate-y-1/2 w-80 h-80 bg-[#d4a373]/15 rounded-full blur-3xl pointer-events-none z-0" />
@@ -167,7 +167,7 @@ export const ProductShowcase: React.FC = () => {
                 </div>
               )}
 
-              <h3 className="text-4xl sm:text-6xl lg:text-7xl font-serif text-white tracking-tight leading-[1.05] mb-5">
+              <h3 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-serif text-white tracking-tight leading-[1.05] mb-5">
                 {activeProduct.titleWhite}
                 <span className="block text-[#d4a373] font-serif font-medium mt-1.5">
                   {activeProduct.titleGold}
@@ -180,7 +180,7 @@ export const ProductShowcase: React.FC = () => {
                 ))}
               </div>
 
-              <div className="flex items-center gap-6 sm:gap-8 mb-10">
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 sm:gap-8 mb-8">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border border-[#d4a373]/60 bg-[#d4a373]/15 flex items-center justify-center text-[#d4a373] mb-2 shadow-inner backdrop-blur-md">
                     <Leaf className="w-6 h-6" />

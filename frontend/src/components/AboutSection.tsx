@@ -7,169 +7,171 @@ export const AboutSection: React.FC = () => {
   const { openCart } = useApp();
 
   return (
-    <section id="about" className="relative w-full bg-transparent text-white py-20 px-4 sm:px-8 lg:px-12 xl:px-16 max-w-full font-display">
+    <>
+      <section id="products" className="relative w-full bg-transparent text-white pt-16 mt-16 border-t border-neutral-900 px-4 sm:px-8 lg:px-12 xl:px-16 max-w-7xl mx-auto font-display">
+        <div id="about" />
 
-      {/* Top Header Banner */}
-      <div className="text-center mb-16 sm:mb-24">
-        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white font-display">
-          Our Products
-        </h2>
-      </div>
-
-      {/* Products Heading & Description Section (Above the 4 glassmorphism boxes) */}
-      <div className="mb-12 max-w-2xl text-left">
-        <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight font-display">
-          We Always Make The Best
-        </h3>
-        <p className="text-neutral-300 text-sm sm:text-base leading-relaxed mb-8 font-sans-custom">
-          Our company is committed to quality, purity, and customer satisfaction by delivering reliable natural products for pharmaceutical, herbal, and wellness industries.
-        </p>
-
-        {/* All Products Pill Button */}
-        <div>
-          <button
-            onClick={openCart}
-            className="group relative inline-flex items-center justify-center p-[3px] rounded-full border border-white/60 hover:border-white transition-all duration-300 focus:outline-none"
-          >
-            <span className="relative flex items-center justify-center px-8 py-2.5 rounded-full border border-white/80 group-hover:border-white text-white font-display text-sm font-bold uppercase tracking-wider transition-colors">
-              All Products
-            </span>
-          </button>
+        {/* Top Header Banner */}
+        <div className="text-center mb-16 sm:mb-24">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white font-display">
+            Our Products
+          </h2>
         </div>
-      </div>
 
-      {/* Product Showcase matching reference design (3 stacked cards + main featured card) */}
-      <div className="my-12 lg:my-16 py-2">
-        <ProductShowcase />
-      </div>
-
-      {/* Bottom Section: Our Process & 4 Glassmorphism Cards */}
-      <div className="pt-12 border-t border-neutral-900">
-        <div className="mb-10 text-center flex flex-col items-center">
-          <h3 className="text-sm sm:text-base uppercase tracking-widest text-emerald-500 font-bold mb-2 font-display">
-            OUR PROCESS
+        {/* Products Heading & Description Section (Centered) */}
+        <div className="mb-12 max-w-3xl mx-auto text-center flex flex-col items-center">
+          <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight font-display">
+            We Always Make The Best
           </h3>
-          <h4 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-4 font-display">
-            100% Steam Distillation
-          </h4>
-          <p className="text-neutral-300 text-sm sm:text-base leading-relaxed max-w-2xl font-sans-custom mx-auto">
-            Our advanced steam distillation process preserves the natural properties of each botanical, ensuring maximum purity and potency in every batch.
+          <p className="text-neutral-300 text-sm sm:text-base leading-relaxed mb-8 font-sans-custom max-w-2xl">
+            Our company is committed to quality, purity, and customer satisfaction by delivering reliable natural products for pharmaceutical, herbal, and wellness industries.
           </p>
+
+          {/* All Products Pill Button */}
+          <div>
+            <button
+              onClick={openCart}
+              className="group relative inline-flex items-center justify-center p-[3px] rounded-full border border-white/60 hover:border-white transition-all duration-300 focus:outline-none"
+            >
+              <span className="relative flex items-center justify-center px-8 py-2.5 rounded-full border border-white/80 group-hover:border-white text-white font-display text-sm font-bold uppercase tracking-wider transition-colors">
+                All Products
+              </span>
+            </button>
+          </div>
         </div>
 
-        {/* Four Glassmorphism Cards arranged side by side */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 font-display relative items-stretch">
-          {[
-            {
-              step: 1,
-              title: "Sourcing",
-              desc: "Premium quality seeds sourced from trusted farms for high-grade raw materials.",
-              icon: (
-                <svg className="w-10 h-10 text-emerald-400 stroke-[1.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.4 19 2c1 2 2 4.1 2 7 0 4.4-3.6 8-8 8h-2z" />
-                  <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-                </svg>
-              ),
-            },
-            {
-              step: 2,
-              title: "Preparation",
-              desc: "Seeds are carefully cleaned, sorted, and prepared for distillation.",
-              icon: (
-                <svg className="w-10 h-10 text-emerald-400 stroke-[1.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 11h16a1 1 0 0 1 1 1c0 5-4.03 9-9 9s-9-4-9-9a1 1 0 0 1 1-1z" />
-                  <circle cx="7.5" cy="14" r="0.75" fill="currentColor" />
-                  <circle cx="10" cy="14" r="0.75" fill="currentColor" />
-                  <circle cx="12.5" cy="14" r="0.75" fill="currentColor" />
-                  <circle cx="15" cy="14" r="0.75" fill="currentColor" />
-                  <circle cx="16.5" cy="14" r="0.75" fill="currentColor" />
-                  <circle cx="9" cy="16" r="0.75" fill="currentColor" />
-                  <circle cx="11.5" cy="16" r="0.75" fill="currentColor" />
-                  <circle cx="14" cy="16" r="0.75" fill="currentColor" />
-                  <path d="M12 11V6" />
-                  <path d="M12 6c0-2 2-3 4-3 0 2-1.5 4-4 4z" />
-                  <path d="M12 8c0-1.5-1.5-2.5-3-2.5 0 1.5 1 2.5 3 2.5z" />
-                </svg>
-              ),
-            },
-            {
-              step: 3,
-              title: "Steam Distillation",
-              desc: "100% steam distillation at controlled temperatures for pure essential oils.",
-              icon: (
-                <svg className="w-10 h-10 text-emerald-400 stroke-[1.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M8 3c0 1 1 1.5 1 2.5S8 7 8 8" />
-                  <path d="M12 3c0 1 1 1.5 1 2.5S12 7 12 8" />
-                  <path d="M16 3c0 1 1 1.5 1 2.5S16 7 16 8" />
-                  <rect x="5" y="9" width="14" height="11" rx="2" />
-                  <path d="M4 9h16" />
-                  <path d="M8 9V8a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v1" />
-                  <path d="M12 14c-1 1-1 2 0 3 1-1 1-2 0-3z" fill="currentColor" fillOpacity="0.3" />
-                </svg>
-              ),
-            },
-            {
-              step: 4,
-              title: "Quality Testing",
-              desc: "Each batch undergoes rigorous GC testing to verify purity and potency.",
-              icon: (
-                <svg className="w-10 h-10 text-emerald-400 stroke-[1.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10 2h4" />
-                  <path d="M11 2v5.3L4.3 17.6A2 2 0 0 0 6 20h12a2 2 0 0 0 1.7-2.4L13 7.3V2" />
-                  <path d="M7 14h10" />
-                  <path d="M10.5 16.5l1.5 1.5 3-3" strokeWidth="2" />
-                </svg>
-              ),
-            },
-          ].map((card, index, array) => (
-            <div key={card.step} className="relative flex flex-col items-center h-full w-full">
-              <div
-                className="w-full h-full relative group rounded-3xl p-6 sm:p-7 bg-neutral-900/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] hover:border-emerald-500/30 hover:bg-neutral-900/60 transition-all duration-500 flex flex-col items-center text-center justify-between overflow-hidden"
-              >
-                {/* Top glossy glass edge highlight */}
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
-                {/* Subtle glass reflection highlight */}
-                <div className="absolute -top-16 -right-16 w-36 h-36 bg-white/5 rounded-full blur-2xl pointer-events-none group-hover:bg-emerald-500/10 transition-colors duration-500" />
+        {/* Product Showcase matching reference design (3 stacked cards + main featured card) */}
+        <div className="my-12 lg:my-16 py-2">
+          <ProductShowcase />
+        </div>
 
-                {/* Icon Container */}
-                <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] group-hover:border-emerald-500/50 group-hover:shadow-[0_0_25px_rgba(16,185,129,0.3)] transition-all duration-300 mb-3">
-                  {card.icon}
-                </div>
+        {/* Bottom Section: Our Process & 4 Glassmorphism Cards */}
+        <div id="manufacturing" className="pt-16 mt-16 border-t border-neutral-900">
+          <div className="mb-10 text-center flex flex-col items-center">
+            <h3 className="text-sm sm:text-base uppercase tracking-widest text-emerald-500 font-bold mb-2 font-display">
+              OUR PROCESS
+            </h3>
+            <h4 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-4 font-display">
+              100% Steam Distillation
+            </h4>
+            <p className="text-neutral-300 text-sm sm:text-base leading-relaxed max-w-2xl font-sans-custom mx-auto">
+              Our advanced steam distillation process preserves the natural properties of each botanical, ensuring maximum purity and potency in every batch.
+            </p>
+          </div>
 
-                {/* Step Number Badge */}
-                <div className="w-7 h-7 rounded-full bg-[#d4a373] text-neutral-950 font-bold text-xs flex items-center justify-center mb-3 shadow-md">
-                  {card.step}
-                </div>
-
-                {/* Title */}
-                <h5 className="text-lg sm:text-xl font-bold text-white mb-2">
-                  {card.title}
-                </h5>
-
-                {/* Small Accent Line */}
-                <div className="w-6 h-0.5 bg-[#d4a373] rounded mb-3" />
-
-                {/* Description */}
-                <p className="text-neutral-300 text-xs sm:text-sm leading-relaxed font-sans-custom">
-                  {card.desc}
-                </p>
-              </div>
-
-              {/* Connecting Arrow between cards for large screens */}
-              {index < array.length - 1 && (
-                <div className="hidden lg:flex absolute -right-5 top-1/2 -translate-y-1/2 z-20 items-center justify-center pointer-events-none">
-                  <svg className="w-5 h-5 text-[#d4a373]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          {/* Four Glassmorphism Cards arranged side by side */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 font-display relative items-stretch">
+            {[
+              {
+                step: 1,
+                title: "Sourcing",
+                desc: "Premium quality seeds sourced from trusted farms for high-grade raw materials.",
+                icon: (
+                  <svg className="w-10 h-10 text-emerald-400 stroke-[1.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.4 19 2c1 2 2 4.1 2 7 0 4.4-3.6 8-8 8h-2z" />
+                    <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
                   </svg>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+                ),
+              },
+              {
+                step: 2,
+                title: "Preparation",
+                desc: "Seeds are carefully cleaned, sorted, and prepared for distillation.",
+                icon: (
+                  <svg className="w-10 h-10 text-emerald-400 stroke-[1.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 11h16a1 1 0 0 1 1 1c0 5-4.03 9-9 9s-9-4-9-9a1 1 0 0 1 1-1z" />
+                    <circle cx="7.5" cy="14" r="0.75" fill="currentColor" />
+                    <circle cx="10" cy="14" r="0.75" fill="currentColor" />
+                    <circle cx="12.5" cy="14" r="0.75" fill="currentColor" />
+                    <circle cx="15" cy="14" r="0.75" fill="currentColor" />
+                    <circle cx="16.5" cy="14" r="0.75" fill="currentColor" />
+                    <circle cx="9" cy="16" r="0.75" fill="currentColor" />
+                    <circle cx="11.5" cy="16" r="0.75" fill="currentColor" />
+                    <circle cx="14" cy="16" r="0.75" fill="currentColor" />
+                    <path d="M12 11V6" />
+                    <path d="M12 6c0-2 2-3 4-3 0 2-1.5 4-4 4z" />
+                    <path d="M12 8c0-1.5-1.5-2.5-3-2.5 0 1.5 1 2.5 3 2.5z" />
+                  </svg>
+                ),
+              },
+              {
+                step: 3,
+                title: "Steam Distillation",
+                desc: "100% steam distillation at controlled temperatures for pure essential oils.",
+                icon: (
+                  <svg className="w-10 h-10 text-emerald-400 stroke-[1.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M8 3c0 1 1 1.5 1 2.5S8 7 8 8" />
+                    <path d="M12 3c0 1 1 1.5 1 2.5S12 7 12 8" />
+                    <path d="M16 3c0 1 1 1.5 1 2.5S16 7 16 8" />
+                    <rect x="5" y="9" width="14" height="11" rx="2" />
+                    <path d="M4 9h16" />
+                    <path d="M8 9V8a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v1" />
+                    <path d="M12 14c-1 1-1 2 0 3 1-1 1-2 0-3z" fill="currentColor" fillOpacity="0.3" />
+                  </svg>
+                ),
+              },
+              {
+                step: 4,
+                title: "Quality Testing",
+                desc: "Each batch undergoes rigorous GC testing to verify purity and potency.",
+                icon: (
+                  <svg className="w-10 h-10 text-emerald-400 stroke-[1.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 2h4" />
+                    <path d="M11 2v5.3L4.3 17.6A2 2 0 0 0 6 20h12a2 2 0 0 0 1.7-2.4L13 7.3V2" />
+                    <path d="M7 14h10" />
+                    <path d="M10.5 16.5l1.5 1.5 3-3" strokeWidth="2" />
+                  </svg>
+                ),
+              },
+            ].map((card, index, array) => (
+              <div key={card.step} className="relative flex flex-col items-center h-full w-full">
+                <div
+                  className="w-full h-full relative group rounded-3xl p-6 sm:p-7 bg-neutral-900/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] hover:border-emerald-500/30 hover:bg-neutral-900/60 transition-all duration-500 flex flex-col items-center text-center justify-between overflow-hidden"
+                >
+                  {/* Top glossy glass edge highlight */}
+                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
+                  {/* Subtle glass reflection highlight */}
+                  <div className="absolute -top-16 -right-16 w-36 h-36 bg-white/5 rounded-full blur-2xl pointer-events-none group-hover:bg-emerald-500/10 transition-colors duration-500" />
 
-      {/* New Section: Why Choose Us & 4 Glassmorphism Cards */}
-      <div className="pt-16 mt-16 border-t border-neutral-900">
+                  {/* Icon Container */}
+                  <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] group-hover:border-emerald-500/50 group-hover:shadow-[0_0_25px_rgba(16,185,129,0.3)] transition-all duration-300 mb-3">
+                    {card.icon}
+                  </div>
+
+                  {/* Step Number Badge */}
+                  <div className="w-7 h-7 rounded-full bg-[#d4a373] text-neutral-950 font-bold text-xs flex items-center justify-center mb-3 shadow-md">
+                    {card.step}
+                  </div>
+
+                  {/* Title */}
+                  <h5 className="text-lg sm:text-xl font-bold text-white mb-2">
+                    {card.title}
+                  </h5>
+
+                  {/* Small Accent Line */}
+                  <div className="w-6 h-0.5 bg-[#d4a373] rounded mb-3" />
+
+                  {/* Description */}
+                  <p className="text-neutral-300 text-xs sm:text-sm leading-relaxed font-sans-custom">
+                    {card.desc}
+                  </p>
+                </div>
+
+                {/* Connecting Arrow between cards for large screens */}
+                {index < array.length - 1 && (
+                  <div className="hidden lg:flex absolute -right-5 top-1/2 -translate-y-1/2 z-20 items-center justify-center pointer-events-none">
+                    <svg className="w-5 h-5 text-[#d4a373]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* New Section: Why Choose Us & 4 Glassmorphism Cards */}
+        <div id="certifications" className="pt-16 mt-16 border-t border-neutral-900">
         <div className="mb-10 text-center">
           <h3 className="text-2xl sm:text-3xl font-bold text-white font-display">
             Why Choose Us
@@ -233,9 +235,10 @@ export const AboutSection: React.FC = () => {
           ))}
         </div>
       </div>
+      </section>
 
-      {/* Contact Us Section matching requested design */}
+      {/* Contact Us Section & Full-Page Glassmorphic Footer */}
       <ContactUsSection />
-    </section>
+    </>
   );
 };
