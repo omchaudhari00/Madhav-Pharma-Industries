@@ -82,12 +82,13 @@ const PRODUCTS: ProductShowcaseItem[] = [
 ];
 
 export const ProductShowcase: React.FC = () => {
-  const { addToCart, addToRetailCart, isProductOutOfStock } = useApp();
+  const { addToCart, addToRetailCart, isProductOutOfStock, isRetailOutOfStock, isB2BOutOfStock, isDiscontinued } = useApp();
   const [activeProductId, setActiveProductId] = useState<string>('cumin-seed-oil');
   const [retailQty, setRetailQty] = useState<Record<string, number>>({});
   const [cardMode, setCardMode] = useState<Record<string, 'retail' | 'bulk'>>({});
 
-  const activeProduct = PRODUCTS.find((p) => p.id === activeProductId) || PRODUCTS[0];
+  const visibleProducts = PRODUCTS.filter(p => !isDiscontinued(p.id));
+  const activeProduct = visibleProducts.find((p) => p.id === activeProductId) || visibleProducts[0] || PRODUCTS[0];
 
   const getMode = (id: string) => cardMode[id] || 'retail';
   const setMode = (id: string, mode: 'retail' | 'bulk') => {
@@ -126,7 +127,7 @@ export const ProductShowcase: React.FC = () => {
     <div className="w-full max-w-full my-8">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-stretch font-display">
         <div className="lg:col-span-4 xl:col-span-3 flex flex-col gap-4 sm:gap-5 justify-between">
-          {PRODUCTS.map((prod) => {
+          {visibleProducts.map((prod) => {
             const isActive = activeProductId === prod.id;
             return (
               <div
@@ -158,7 +159,8 @@ export const ProductShowcase: React.FC = () => {
                   <div>
                     <span className="text-xs font-semibold text-[#d4a373] tracking-widest uppercase block mb-1">
                       {prod.categoryTitle} <span className="text-neutral-400 font-normal">{prod.categorySubtitle}</span>
-                      {isProductOutOfStock(prod.id) && <span className="ml-2 text-[10px] text-red-400 font-bold">(OUT OF STOCK)</span>}
+                      {isRetailOutOfStock(prod.id) && <span className="ml-2 text-[10px] text-red-400 font-bold">(OOS - RETAIL)</span>}
+                      {isB2BOutOfStock(prod.id) && <span className="ml-2 text-[10px] text-amber-400 font-bold">(OOS - B2B)</span>}
                     </span>
                     <h4 className="text-lg sm:text-xl font-serif text-white font-bold leading-tight">
                       {prod.name}
@@ -326,30 +328,30 @@ export const ProductShowcase: React.FC = () => {
                   </div>
 
                   <button
-                    onClick={() => !isProductOutOfStock(activeProduct.id) && handleAddRetail(activeProduct)}
-                    disabled={isProductOutOfStock(activeProduct.id)}
+                    onClick={() => !isRetailOutOfStock(activeProduct.id) && handleAddRetail(activeProduct)}
+                    disabled={isRetailOutOfStock(activeProduct.id)}
                     className={`group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 ${
-                      isProductOutOfStock(activeProduct.id)
+                      isRetailOutOfStock(activeProduct.id)
                         ? 'bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed'
                         : 'bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 shadow-[0_6px_24px_rgba(212,163,115,0.35)] hover:shadow-[0_8px_32px_rgba(212,163,115,0.55)] transform hover:-translate-y-0.5 cursor-pointer'
                     }`}
                   >
-                    <span>{isProductOutOfStock(activeProduct.id) ? 'OUT OF STOCK' : `ADD TO CART (${getQty(activeProduct.id)} BOTTLE${getQty(activeProduct.id) > 1 ? 'S' : ''} • ₹${(activeProduct.retailPrice || 299) * getQty(activeProduct.id)})`}</span>
-                    {!isProductOutOfStock(activeProduct.id) && <ArrowRight className="w-4 h-4 text-neutral-950 group-hover:translate-x-1 transition-transform" />}
+                    <span>{isRetailOutOfStock(activeProduct.id) ? 'OUT OF STOCK (RETAIL)' : `ADD TO CART (${getQty(activeProduct.id)} BOTTLE${getQty(activeProduct.id) > 1 ? 'S' : ''} • ₹${(activeProduct.retailPrice || 299) * getQty(activeProduct.id)})`}</span>
+                    {!isRetailOutOfStock(activeProduct.id) && <ArrowRight className="w-4 h-4 text-neutral-950 group-hover:translate-x-1 transition-transform" />}
                   </button>
                 </div>
               ) : (
                 <button
-                  onClick={() => !isProductOutOfStock(activeProduct.id) && handleShopNow(activeProduct)}
-                  disabled={isProductOutOfStock(activeProduct.id)}
+                  onClick={() => !isB2BOutOfStock(activeProduct.id) && handleShopNow(activeProduct)}
+                  disabled={isB2BOutOfStock(activeProduct.id)}
                   className={`group relative inline-flex items-center justify-center gap-3 px-9 py-4 rounded-full font-extrabold text-xs sm:text-sm lg:text-base uppercase tracking-wider transition-all duration-300 ${
-                    isProductOutOfStock(activeProduct.id)
+                    isB2BOutOfStock(activeProduct.id)
                       ? 'bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed'
                       : 'bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 shadow-[0_6px_24px_rgba(212,163,115,0.35)] hover:shadow-[0_8px_32px_rgba(212,163,115,0.55)] transform hover:-translate-y-0.5 cursor-pointer'
                   }`}
                 >
-                  <span>{isProductOutOfStock(activeProduct.id) ? 'OUT OF STOCK' : 'REQUEST BULK QUOTE'}</span>
-                  {!isProductOutOfStock(activeProduct.id) && <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-neutral-950 group-hover:translate-x-1 transition-transform" />}
+                  <span>{isB2BOutOfStock(activeProduct.id) ? 'OUT OF STOCK (B2B BULK)' : 'REQUEST BULK QUOTE'}</span>
+                  {!isB2BOutOfStock(activeProduct.id) && <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-neutral-950 group-hover:translate-x-1 transition-transform" />}
                 </button>
               )}
             </div>

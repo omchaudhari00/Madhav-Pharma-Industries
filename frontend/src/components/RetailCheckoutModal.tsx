@@ -102,6 +102,34 @@ export const RetailCheckoutModal: React.FC = () => {
     setOrderId(generatedId);
     setStep('processing');
 
+    const newOrder = {
+      id: generatedId,
+      date: new Date().toISOString().split('T')[0],
+      customerName: name,
+      phone: phone,
+      email: email,
+      deliveryAddress: address,
+      paymentMethod: paymentMethod === 'UPI' ? 'UPI (GPay Verified)' : 'Credit Card (Visa)',
+      paymentStatus: 'PAID',
+      deliveryStatus: 'Preparing in Stock',
+      totalAmount: `₹${totalINR.toLocaleString()}.00`,
+      items: retailCartItems.map(i => ({
+        name: i.name,
+        sizeLabel: i.sizeLabel || '50ml Bottle',
+        quantity: i.quantity,
+        unitPrice: i.unitPrice
+      }))
+    };
+
+    try {
+      const stored = localStorage.getItem('madhav_retail_orders_list');
+      const existing = stored ? JSON.parse(stored) : [];
+      const updated = [newOrder, ...existing];
+      localStorage.setItem('madhav_retail_orders_list', JSON.stringify(updated));
+    } catch (err) {
+      console.error('Failed to save retail order:', err);
+    }
+
     setTimeout(() => {
       setStep('paid');
     }, 1500);

@@ -66,6 +66,13 @@ interface AppContextType {
   outOfStockProducts: Record<string, boolean>;
   toggleProductStock: (productId: string) => void;
   isProductOutOfStock: (productId: string) => boolean;
+  productStatusMap: Record<string, { retailOos?: boolean; b2bOos?: boolean; discontinued?: boolean }>;
+  toggleRetailStock: (productId: string) => void;
+  toggleB2BStock: (productId: string) => void;
+  toggleDiscontinued: (productId: string) => void;
+  isRetailOutOfStock: (productId: string) => boolean;
+  isB2BOutOfStock: (productId: string) => boolean;
+  isDiscontinued: (productId: string) => boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -104,6 +111,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const [outOfStockProducts, setOutOfStockProducts] = useState<Record<string, boolean>>({});
+  const [productStatusMap, setProductStatusMap] = useState<Record<string, { retailOos?: boolean; b2bOos?: boolean; discontinued?: boolean }>>({});
 
   useEffect(() => {
     // Load stored auth on mount
@@ -131,6 +139,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const storedOos = localStorage.getItem('madhav_out_of_stock');
       if (storedOos) {
         setOutOfStockProducts(JSON.parse(storedOos));
+      }
+      const storedStatusMap = localStorage.getItem('madhav_product_status_map');
+      if (storedStatusMap) {
+        setProductStatusMap(JSON.parse(storedStatusMap));
       }
     } catch (e) {
       console.error('Error loading stored state', e);
@@ -286,6 +298,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return !!outOfStockProducts[productId];
   };
 
+  const toggleRetailStock = (productId: string) => {
+    setProductStatusMap(prev => {
+      const current = prev[productId] || {};
+      const updated = { ...prev, [productId]: { ...current, retailOos: !current.retailOos } };
+      localStorage.setItem('madhav_product_status_map', JSON.stringify(updated));
+      return updated;
+    });
+    toggleProductStock(productId); // keep legacy synced
+  };
+
+  const toggleB2BStock = (productId: string) => {
+    setProductStatusMap(prev => {
+      const current = prev[productId] || {};
+      const updated = { ...prev, [productId]: { ...current, b2bOos: !current.b2bOos } };
+      localStorage.setItem('madhav_product_status_map', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const toggleDiscontinued = (productId: string) => {
+    setProductStatusMap(prev => {
+      const current = prev[productId] || {};
+      const updated = { ...prev, [productId]: { ...current, discontinued: !current.discontinued } };
+      localStorage.setItem('madhav_product_status_map', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const isRetailOutOfStock = (productId: string) => {
+    return !!(productStatusMap[productId]?.retailOos || outOfStockProducts[productId]);
+  };
+
+  const isB2BOutOfStock = (productId: string) => {
+    return !!productStatusMap[productId]?.b2bOos;
+  };
+
+  const isDiscontinued = (productId: string) => {
+    return !!productStatusMap[productId]?.discontinued;
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -312,6 +364,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         outOfStockProducts,
         toggleProductStock,
         isProductOutOfStock,
+        productStatusMap,
+        toggleRetailStock,
+        toggleB2BStock,
+        toggleDiscontinued,
+        isRetailOutOfStock,
+        isB2BOutOfStock,
+        isDiscontinued,
         shopMode,
         setShopMode: handleSetShopMode,
         retailCartItems,

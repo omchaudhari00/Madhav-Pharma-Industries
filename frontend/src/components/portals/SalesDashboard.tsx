@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Briefcase, FileText, Users, ShoppingBag, Bell, 
   PhoneCall, DollarSign, Send, ArrowLeft, MessageSquare,
-  CheckCircle2, Clock, AlertCircle, TrendingUp
+  CheckCircle2, Clock, AlertCircle, TrendingUp,
+  Truck, MapPin, PackageCheck, User, CheckCircle, ExternalLink
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -40,10 +41,72 @@ const getIndividualItems = (q: any) => {
 
 export const SalesDashboard: React.FC = () => {
   const { user, setPortal } = useApp();
-  const [activeTab, setActiveTab] = useState<'quotes' | 'customers' | 'orders' | 'notifications'>('quotes');
+  const [activeTab, setActiveTab] = useState<'quotes' | 'retail_orders' | 'customers' | 'orders' | 'notifications'>('quotes');
   const [selectedQuote, setSelectedQuote] = useState<any | null>(null);
 
   const [myQuotes, setMyQuotes] = useState<any[]>([]);
+  const [retailOrders, setRetailOrders] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadRetailOrders = () => {
+      try {
+        const stored = localStorage.getItem('madhav_retail_orders_list');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setRetailOrders(parsed);
+            return;
+          }
+        }
+        const demoOrders = [
+          {
+            id: 'MP-RET-58192',
+            date: '2026-08-03',
+            customerName: 'Ananya Sharma',
+            phone: '+91 98765 43210',
+            email: 'ananya.sharma@example.com',
+            deliveryAddress: '402, Sunset Heights, MG Road, Mumbai, Maharashtra - 400001',
+            paymentMethod: 'UPI (GPay Verified)',
+            paymentStatus: 'PAID',
+            deliveryStatus: 'Preparing in Stock',
+            totalAmount: '₹837.00',
+            items: [
+              { name: '100% Pure Cumin Seed Essential Oil (Jeera Oil)', sizeLabel: '50ml Bottle', quantity: 2, unitPrice: 299 },
+              { name: 'Ajwain Seed Essential Oil', sizeLabel: '50ml Bottle', quantity: 1, unitPrice: 239 }
+            ]
+          },
+          {
+            id: 'MP-RET-40291',
+            date: '2026-08-02',
+            customerName: 'Vikramaditya Rao',
+            phone: '+91 94221 88900',
+            email: 'v.rao@wellnessclinic.in',
+            deliveryAddress: '12/B, Green Valley Enclave, Koramangala 4th Block, Bengaluru, Karnataka - 560034',
+            paymentMethod: 'Credit Card (Visa)',
+            paymentStatus: 'PAID',
+            deliveryStatus: 'Ready to Dispatch',
+            totalAmount: '₹1,047.00',
+            items: [
+              { name: 'Pure Black Seed Oil (Kalonji Oil)', sizeLabel: '50ml Bottle', quantity: 3, unitPrice: 349 }
+            ]
+          }
+        ];
+        setRetailOrders(demoOrders);
+        localStorage.setItem('madhav_retail_orders_list', JSON.stringify(demoOrders));
+      } catch (e) {
+        console.error('Error loading retail orders:', e);
+      }
+    };
+    loadRetailOrders();
+  }, []);
+
+  const handleUpdateDeliveryStatus = (orderId: string, newStatus: string) => {
+    setRetailOrders(prev => {
+      const updated = prev.map(o => o.id === orderId ? { ...o, deliveryStatus: newStatus } : o);
+      localStorage.setItem('madhav_retail_orders_list', JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   useEffect(() => {
     const loadQuotes = async () => {
@@ -195,8 +258,9 @@ export const SalesDashboard: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-4 mb-8">
           {[
             { id: 'quotes', label: 'My Quotes & Negotiations', icon: FileText, badge: myQuotes.length },
+            { id: 'retail_orders', label: 'Retail B2C Orders & Fulfillment', icon: Truck, badge: retailOrders.length },
             { id: 'customers', label: 'Assigned Customers & Leads', icon: Users, badge: assignedCustomers.length },
-            { id: 'orders', label: 'Track Orders', icon: ShoppingBag },
+            { id: 'orders', label: 'B2B Bulk Orders', icon: ShoppingBag },
             { id: 'notifications', label: 'Send Reminders', icon: Bell },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -406,7 +470,140 @@ export const SalesDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Tab 2: ASSIGNED CUSTOMERS & LEADS */}
+        {/* Tab 2: RETAIL B2C ORDERS & FULFILLMENT DESK */}
+        {activeTab === 'retail_orders' && (
+          <div className="p-8 rounded-3xl bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-xl space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+              <div>
+                <h3 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
+                  <Truck className="w-7 h-7 text-[#d4a373]" />
+                  <span>Retail B2C Orders &amp; Fulfillment Desk</span>
+                </h3>
+                <p className="text-sm text-neutral-400 mt-1">
+                  Manage Express Courier dispatches, verify customer delivery addresses, and update live tracking status for 50ml retail bottle orders.
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold uppercase tracking-wider">
+                  {retailOrders.length} Active Dispatches
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              {retailOrders.length === 0 ? (
+                <div className="text-center py-12 text-neutral-500">
+                  No retail orders found. Orders placed via checkout will appear here.
+                </div>
+              ) : (
+                retailOrders.map((ord) => (
+                  <div key={ord.id} className="p-6 sm:p-8 rounded-3xl bg-neutral-900/60 border border-white/10 hover:border-white/20 transition-all shadow-xl space-y-6">
+                    {/* Top Row: Invoice ID, Date, Payment Badge */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10">
+                      <div className="flex items-center gap-3">
+                        <span className="px-3 py-1 rounded-xl bg-[#d4a373]/15 text-[#d4a373] border border-[#d4a373]/30 text-xs font-bold font-mono">
+                          Invoice: {ord.id}
+                        </span>
+                        <span className="text-xs text-neutral-400">Date: {ord.date}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-extrabold flex items-center gap-1.5">
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          <span>{ord.paymentStatus} • {ord.paymentMethod}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Middle Section: Who to Send & Where to Send & What to Send */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                      {/* Customer Contact & Delivery Address Box */}
+                      <div className="lg:col-span-5 space-y-3">
+                        <div className="p-5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+                          <div className="flex items-center gap-2 text-xs font-bold text-[#d4a373] uppercase tracking-wider">
+                            <User className="w-3.5 h-3.5" />
+                            <span>Who to send to</span>
+                          </div>
+                          <div className="text-sm font-bold text-white">{ord.customerName || 'Valued Customer'}</div>
+                          <div className="text-xs text-neutral-300">{ord.phone || '+91 98765 43210'}</div>
+                          <div className="text-xs text-neutral-400">{ord.email || 'customer@example.com'}</div>
+
+                          <div className="pt-3 border-t border-white/10 mt-2">
+                            <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">
+                              <MapPin className="w-3.5 h-3.5" />
+                              <span>Delivery Address ("Where to send")</span>
+                            </div>
+                            <p className="text-xs text-white font-medium leading-relaxed">
+                              {ord.deliveryAddress || '402, Sunset Heights, MG Road, Mumbai, Maharashtra - 400001'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* What to Send (Items List) */}
+                      <div className="lg:col-span-7 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h5 className="text-xs font-bold text-[#d4a373] uppercase tracking-wider flex items-center gap-2">
+                            <PackageCheck className="w-3.5 h-3.5" />
+                            <span>What to send on delivery (Items to pack)</span>
+                          </h5>
+                          <span className="text-sm font-extrabold text-white">Total: {ord.totalAmount || '₹837.00'}</span>
+                        </div>
+
+                        <div className="space-y-2">
+                          {(ord.items || []).map((item: any, idx: number) => (
+                            <div key={idx} className="p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-lg bg-black/50 flex items-center justify-center text-[#d4a373] font-bold">
+                                  50ml
+                                </div>
+                                <div>
+                                  <span className="font-bold text-white block">{item.name}</span>
+                                  <span className="text-neutral-400">{item.sizeLabel || '50ml Bottle'} • Pharma Grade</span>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <span className="font-mono text-white font-bold">Qty: {item.quantity}</span>
+                                <span className="block text-neutral-400">₹{(item.unitPrice || 299) * item.quantity}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Row: Logistics Delivery Status Selector */}
+                    <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
+                          Update Logistics Status:
+                        </span>
+                        <select
+                          value={ord.deliveryStatus || 'Preparing in Stock'}
+                          onChange={(e) => handleUpdateDeliveryStatus(ord.id, e.target.value)}
+                          className="px-4 py-2.5 rounded-xl bg-neutral-800 border border-white/20 text-white font-bold text-xs focus:outline-none focus:border-[#d4a373] cursor-pointer"
+                        >
+                          <option value="Preparing in Stock">Preparing in Stock</option>
+                          <option value="Packed & Purity Verified">Packed &amp; Purity Verified</option>
+                          <option value="Ready to Dispatch">Ready to Dispatch</option>
+                          <option value="Out for Express Delivery">Out for Express Delivery</option>
+                          <option value="Delivered to Doorstep">Delivered to Doorstep</option>
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="px-4 py-2 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-bold">
+                          Current: {ord.deliveryStatus || 'Preparing in Stock'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: ASSIGNED CUSTOMERS & LEADS */}
         {activeTab === 'customers' && (
           <div className="p-8 rounded-3xl bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-xl space-y-6">
             <div>

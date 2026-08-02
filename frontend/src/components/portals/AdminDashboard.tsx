@@ -34,7 +34,18 @@ const renderStatusBadge = (status: string) => {
 };
 
 export const AdminDashboard: React.FC = () => {
-  const { user, setPortal, toggleProductStock, isProductOutOfStock } = useApp();
+  const {
+    user,
+    setPortal,
+    toggleProductStock,
+    isProductOutOfStock,
+    toggleRetailStock,
+    toggleB2BStock,
+    toggleDiscontinued,
+    isRetailOutOfStock,
+    isB2BOutOfStock,
+    isDiscontinued,
+  } = useApp();
   const [activeTab, setActiveTab] = useState<
     'overview' | 'quotes' | 'customers' | 'products' | 'sales' | 'orders' | 'settings'
   >('overview');
@@ -493,43 +504,88 @@ export const AdminDashboard: React.FC = () => {
                     <th className="py-3 px-4">Product Name</th>
                     <th className="py-3 px-4">MOQ</th>
                     <th className="py-3 px-4">Unit Price</th>
-                    <th className="py-3 px-4">Availability</th>
-                    <th className="py-3 px-4">Certificates</th>
-                    <th className="py-3 px-4">Actions</th>
+                    <th className="py-3 px-4">Retail Stock</th>
+                    <th className="py-3 px-4">B2B Bulk Stock</th>
+                    <th className="py-3 px-4">Display Status</th>
+                    <th className="py-3 px-4">Granular Inventory Controls</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 text-sm">
-                  {products.map((p) => (
-                    <tr key={p.id} className="hover:bg-white/5 transition-colors">
-                      <td className="py-4 px-4 font-mono text-neutral-400">#{p.id}</td>
-                      <td className="py-4 px-4 font-bold text-white">{p.name}</td>
-                      <td className="py-4 px-4 font-mono text-amber-200">{p.moq}</td>
-                      <td className="py-4 px-4 font-mono text-white">{p.price}</td>
-                      <td className="py-4 px-4">
-                        <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${
-                          p.availability === 'In Stock'
-                            ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                            : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                        }`}>
-                          {p.availability}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className="text-xs text-neutral-300 underline cursor-pointer hover:text-white">COA & MSDS Attached</span>
-                      </td>
-                      <td className="py-4 px-4 flex items-center gap-2">
-                        <button 
-                          onClick={() => handleToggleProductStatus(p.id)}
-                          className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold"
-                        >
-                          Toggle Stock
-                        </button>
-                        <button className="p-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300" title="Edit Product">
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {products.map((p) => {
+                    const retailOos = isRetailOutOfStock(p.codeId);
+                    const b2bOos = isB2BOutOfStock(p.codeId);
+                    const discontinued = isDiscontinued(p.codeId);
+
+                    return (
+                      <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                        <td className="py-4 px-4 font-mono text-neutral-400">#{p.id}</td>
+                        <td className="py-4 px-4 font-bold text-white">{p.name}</td>
+                        <td className="py-4 px-4 font-mono text-amber-200">{p.moq}</td>
+                        <td className="py-4 px-4 font-mono text-white">{p.price}</td>
+                        <td className="py-4 px-4">
+                          <span className={`inline-flex items-center justify-center px-3 py-1 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${
+                            retailOos
+                              ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                              : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                          }`}>
+                            {retailOos ? 'Out of Stock (Retail)' : 'In Stock (50ml)'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className={`inline-flex items-center justify-center px-3 py-1 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${
+                            b2bOos
+                              ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                              : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                          }`}>
+                            {b2bOos ? 'Out of Stock (B2B)' : 'In Stock (Bulk)'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className={`inline-flex items-center justify-center px-3 py-1 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${
+                            discontinued
+                              ? 'bg-neutral-800 text-neutral-400 border-neutral-600'
+                              : 'bg-blue-500/15 text-blue-300 border-blue-500/30'
+                          }`}>
+                            {discontinued ? 'Discontinued (Hidden)' : 'Active (Visible)'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              onClick={() => toggleRetailStock(p.codeId)}
+                              className={`px-3 py-1.5 rounded-xl border text-xs font-extrabold transition-all cursor-pointer ${
+                                retailOos
+                                  ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500 hover:text-black'
+                                  : 'bg-neutral-800 text-neutral-300 border-white/10 hover:bg-white/20 hover:text-white'
+                              }`}
+                            >
+                              {retailOos ? 'Restore Retail' : 'OOS Retail'}
+                            </button>
+                            <button
+                              onClick={() => toggleB2BStock(p.codeId)}
+                              className={`px-3 py-1.5 rounded-xl border text-xs font-extrabold transition-all cursor-pointer ${
+                                b2bOos
+                                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500 hover:text-black'
+                                  : 'bg-neutral-800 text-neutral-300 border-white/10 hover:bg-white/20 hover:text-white'
+                              }`}
+                            >
+                              {b2bOos ? 'Restore B2B' : 'OOS B2B'}
+                            </button>
+                            <button
+                              onClick={() => toggleDiscontinued(p.codeId)}
+                              className={`px-3 py-1.5 rounded-xl border text-xs font-extrabold transition-all cursor-pointer ${
+                                discontinued
+                                  ? 'bg-blue-500/20 text-blue-300 border-blue-500/40 hover:bg-blue-500 hover:text-black'
+                                  : 'bg-neutral-800 text-neutral-400 border-white/10 hover:bg-neutral-700 hover:text-white'
+                              }`}
+                            >
+                              {discontinued ? 'Restore Display' : 'Discontinue'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
