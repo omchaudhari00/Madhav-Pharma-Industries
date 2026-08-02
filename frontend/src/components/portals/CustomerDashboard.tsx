@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   FileText, ShoppingBag, User, Package, ArrowLeft, 
   CheckCircle, XCircle, RefreshCw, Award, Clock, 
-  ExternalLink, Download, ShieldCheck, Sparkles, AlertCircle
+  ExternalLink, Download, ShieldCheck, Sparkles, AlertCircle,
+  CreditCard, Smartphone, Lock, X, MapPin
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -47,6 +48,9 @@ export const CustomerDashboard: React.FC = () => {
 
   const [myQuotes, setMyQuotes] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
+  const [selectedQuoteForPayment, setSelectedQuoteForPayment] = useState<any | null>(null);
+  const [b2bPaymentMethod, setB2bPaymentMethod] = useState<'UPI' | 'Card'>('UPI');
+  const [isB2bProcessing, setIsB2bProcessing] = useState(false);
 
   useEffect(() => {
     const loadQuotes = async () => {
@@ -123,19 +127,31 @@ export const CustomerDashboard: React.FC = () => {
   };
 
   const handlePayAndGenerateInvoice = (quote: any) => {
-    const newOrder = {
-      id: `INV-${Math.floor(1000 + Math.random() * 9000)}`,
-      product: quote.products || quote.product || 'Bulk API Order',
-      amount: `₹${quote.finalPrice || quote.targetPrice || '5,00,000'}`,
-      status: 'Paid & Processing',
-      date: new Date().toISOString().split('T')[0],
-      invoiceUrl: '#'
-    };
-    setOrders(prev => [newOrder, ...prev]);
-    setMyQuotes(prev => prev.map(item => item.id === quote.id ? { ...item, status: 'Paid / Invoice Generated' } : item));
-    updateQuoteStatusInStorage(quote.id, 'Paid / Invoice Generated');
-    setActiveTab('orders');
-    alert(`Payment successful! Invoice ${newOrder.id} has been generated and shared with Sales & Admin teams.`);
+    setSelectedQuoteForPayment(quote);
+    setB2bPaymentMethod('UPI');
+    setIsB2bProcessing(false);
+  };
+
+  const confirmB2BPayment = () => {
+    if (!selectedQuoteForPayment) return;
+    setIsB2bProcessing(true);
+    setTimeout(() => {
+      const newOrder = {
+        id: `INV-${Math.floor(1000 + Math.random() * 9000)}`,
+        product: selectedQuoteForPayment.products || selectedQuoteForPayment.product || 'Bulk API Order',
+        amount: `${selectedQuoteForPayment.offeredPrice || selectedQuoteForPayment.requestedPrice || '₹5,00,000'}`,
+        status: `Paid via ${b2bPaymentMethod} • Processing`,
+        date: new Date().toISOString().split('T')[0],
+        invoiceUrl: '#'
+      };
+      setOrders(prev => [newOrder, ...prev]);
+      setMyQuotes(prev => prev.map(item => item.id === selectedQuoteForPayment.id ? { ...item, status: 'Paid / Invoice Generated' } : item));
+      updateQuoteStatusInStorage(selectedQuoteForPayment.id, 'Paid / Invoice Generated');
+      setIsB2bProcessing(false);
+      setSelectedQuoteForPayment(null);
+      setActiveTab('orders');
+      alert(`B2B Deal payment successful via ${b2bPaymentMethod}! Invoice ${newOrder.id} has been generated and shared with Sales & Admin teams.`);
+    }, 1200);
   };
 
   return (
@@ -535,7 +551,7 @@ export const CustomerDashboard: React.FC = () => {
               <div className="p-6 rounded-2xl bg-neutral-900/50 border border-white/10 space-y-4">
                 <h4 className="text-lg font-bold text-white">Billing & Shipping Address</h4>
                 <p className="text-xs text-neutral-400">
-                  Primary Delivery: Phase II, Industrial Park, Mumbai, Maharashtra 400013
+                  Primary Delivery: {user?.address || 'Phase II, Industrial Park, Mumbai, Maharashtra 400013'}
                 </p>
                 <button className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white">
                   Edit Delivery Address
@@ -546,6 +562,133 @@ export const CustomerDashboard: React.FC = () => {
         )}
       </div>
       </div>
+
+      {/* B2B Quotation Payment Modal */}
+      {selectedQuoteForPayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md font-display">
+          <div className="relative w-full max-w-lg bg-neutral-950 border border-neutral-800 rounded-3xl p-6 sm:p-8 text-white shadow-2xl space-y-6">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 text-neutral-950 shadow-md">
+                  <Lock className="w-5 h-5 font-bold" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white font-serif">Secure B2B Deal Payment</h3>
+                  <p className="text-xs text-[#d4a373]">Quotation Ref: {selectedQuoteForPayment.id}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedQuoteForPayment(null)}
+                className="p-2 rounded-full hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {isB2bProcessing ? (
+              <div className="py-12 text-center space-y-4">
+                <div className="w-12 h-12 border-4 border-[#d4a373] border-t-transparent rounded-full animate-spin mx-auto" />
+                <h4 className="text-lg font-bold text-white">Processing Enterprise Payment...</h4>
+                <p className="text-xs text-neutral-400">
+                  Securing bulk deal payment via {b2bPaymentMethod} and issuing GST Invoice.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* 1. Address Summary */}
+                <div className="p-4 rounded-2xl bg-neutral-900/60 border border-white/10 space-y-2 text-xs">
+                  <div className="flex items-center gap-2 text-[#d4a373] font-bold uppercase tracking-wider mb-1">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>Enterprise Billing &amp; Delivery</span>
+                  </div>
+                  <div className="text-neutral-300">
+                    <span className="text-neutral-500">Customer: </span>
+                    <strong className="text-white">{user?.first_name || 'Valued'} {user?.last_name || 'Partner'}</strong> ({user?.mobile_number || '9876543210'})
+                  </div>
+                  <div className="text-neutral-300">
+                    <span className="text-neutral-500">Delivery Address: </span>
+                    <span className="text-white font-medium">{user?.address || 'Phase II, Industrial Park, Mumbai, Maharashtra 400013'}</span>
+                  </div>
+                </div>
+
+                {/* 2. Payment Method Selector */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold text-[#d4a373] uppercase tracking-wider flex items-center gap-2">
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>Select Payment Method (Card or UPI)</span>
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div
+                      onClick={() => setB2bPaymentMethod('UPI')}
+                      className={`p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                        b2bPaymentMethod === 'UPI'
+                          ? 'bg-[#d4a373]/15 border-[#d4a373] ring-1 ring-[#d4a373]/30'
+                          : 'bg-neutral-900 border-neutral-800 hover:border-neutral-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Smartphone className="w-5 h-5 text-[#d4a373]" />
+                        <div>
+                          <span className="text-xs font-bold text-white block">UPI Payment</span>
+                          <span className="text-[10px] text-neutral-400">GPay / PhonePe</span>
+                        </div>
+                      </div>
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        b2bPaymentMethod === 'UPI' ? 'border-[#d4a373] bg-[#d4a373]' : 'border-neutral-700'
+                      }`}>
+                        {b2bPaymentMethod === 'UPI' && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
+                      </div>
+                    </div>
+
+                    <div
+                      onClick={() => setB2bPaymentMethod('Card')}
+                      className={`p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                        b2bPaymentMethod === 'Card'
+                          ? 'bg-[#d4a373]/15 border-[#d4a373] ring-1 ring-[#d4a373]/30'
+                          : 'bg-neutral-900 border-neutral-800 hover:border-neutral-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <CreditCard className="w-5 h-5 text-[#d4a373]" />
+                        <div>
+                          <span className="text-xs font-bold text-white block">Credit / Debit Card</span>
+                          <span className="text-[10px] text-neutral-400">Visa / RuPay / Amex</span>
+                        </div>
+                      </div>
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        b2bPaymentMethod === 'Card' ? 'border-[#d4a373] bg-[#d4a373]' : 'border-neutral-700'
+                      }`}>
+                        {b2bPaymentMethod === 'Card' && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Deal Summary */}
+                <div className="p-4 rounded-2xl bg-neutral-900/40 border border-white/10 space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-neutral-300">
+                    <span>Products / Deal:</span>
+                    <strong className="text-white">{selectedQuoteForPayment.products || selectedQuoteForPayment.product || 'Bulk API Order'}</strong>
+                  </div>
+                  <div className="flex items-center justify-between text-neutral-300 border-t border-neutral-800 pt-2">
+                    <span className="font-bold">Total Deal Amount:</span>
+                    <span className="text-lg font-bold text-emerald-400">
+                      {selectedQuoteForPayment.offeredPrice || selectedQuoteForPayment.requestedPrice || '₹5,00,000'}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={confirmB2BPayment}
+                  className="w-full py-4 rounded-full bg-gradient-to-r from-[#d4a373] via-[#e6bc92] to-[#c29161] hover:opacity-95 text-black font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg cursor-pointer"
+                >
+                  CONFIRM BULK PAYMENT &amp; GENERATE INVOICE
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -55,7 +55,8 @@ export const AuthModal: React.FC = () => {
           first_name: isAdmin ? 'Om' : isSales ? 'Vatsal' : (data.user?.first_name || emailTrim.split('@')[0] || 'Valued'),
           last_name: isAdmin ? 'Chaudhari' : isSales ? 'Devani' : (data.user?.last_name || 'Customer'),
           role: userRole,
-          customer_stage: data.user?.customer_stage || 'Customer'
+          customer_stage: data.user?.customer_stage || 'Customer',
+          address: data.user?.address || ''
         };
 
         login(userObj, data.tokens?.access || 'demo-token');
@@ -148,6 +149,7 @@ export const AuthModal: React.FC = () => {
           mobile_number: mobileNumber,
           first_name: firstName,
           last_name: lastName,
+          address: address,
         }, data.tokens?.access);
         closeAuth();
       } else {

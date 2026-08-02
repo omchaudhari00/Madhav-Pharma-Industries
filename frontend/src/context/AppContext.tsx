@@ -10,6 +10,7 @@ export interface UserProfile {
   last_name?: string;
   role?: string;
   customer_stage?: 'Lead' | 'Customer';
+  address?: string;
 }
 
 export interface CartItem {
