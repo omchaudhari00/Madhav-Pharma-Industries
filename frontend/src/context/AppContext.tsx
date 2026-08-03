@@ -149,6 +149,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, []);
 
+  // Lock background website scrolling whenever ANY modal or cart drawer is open
+  useEffect(() => {
+    const anyModalOpen = isAuthModalOpen || isCartOpen || isRetailCheckoutOpen;
+    if (anyModalOpen) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [isAuthModalOpen, isCartOpen, isRetailCheckoutOpen]);
+
   const login = (userData: UserProfile, tokenStr?: string) => {
     setUser(userData);
     localStorage.setItem('madhav_user', JSON.stringify(userData));

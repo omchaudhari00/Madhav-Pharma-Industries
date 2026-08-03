@@ -68,6 +68,13 @@ input[type="number"] {
   appearance: textfield;
 }
 
+/* Prevent 2-finger trackpad/touchpad scrolling from bubbling to background */
+.overflow-y-auto, .overflow-auto {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
 /* =====================================================================
    PREMIUM CUSTOM GRAY ANIMATED SCROLLBARS (REMOVES ALL WHITE LINES)
    ===================================================================== */

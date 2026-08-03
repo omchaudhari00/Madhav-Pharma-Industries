@@ -228,7 +228,7 @@ export const RetailCheckoutModal: React.FC = () => {
           )}
 
           {/* Body Content */}
-          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+          <div className="flex-1 overflow-y-auto overscroll-contain min-h-0 p-5 sm:p-6 space-y-6">
             {step === 'processing' ? (
               /* Step: Processing Payment */
               <div className="h-full flex flex-col items-center justify-center text-center py-20">

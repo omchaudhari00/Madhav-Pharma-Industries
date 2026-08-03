@@ -84,9 +84,9 @@ export const CartModal: React.FC = () => {
 
       <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
         {/* Drawer Panel */}
-        <div className="w-screen max-w-md bg-neutral-950 border-l border-neutral-800 text-white shadow-2xl flex flex-col justify-between">
+        <div className="w-screen max-w-md bg-neutral-950 border-l border-neutral-800 text-white shadow-2xl flex flex-col justify-between h-full">
           {/* Top Header */}
-          <div>
+          <div className="shrink-0">
             <div className="p-6 border-b border-neutral-800 flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="p-2.5 bg-neutral-900 border border-neutral-800 rounded-xl">
@@ -122,9 +122,10 @@ export const CartModal: React.FC = () => {
                 <span>B2B Quote Cart ({cartTotalCount})</span>
               </button>
             </div>
+          </div>
 
-            {/* Cart Items List */}
-            <div className="p-6 space-y-4 max-h-[calc(100vh-280px)] overflow-y-auto">
+          {/* Cart Items List */}
+          <div className="flex-1 overflow-y-auto overscroll-contain p-6 space-y-4 min-h-0">
               {cartItems.length === 0 ? (
                 <div className="text-center py-16">
                   <ShoppingBag className="w-12 h-12 text-neutral-600 mx-auto mb-4 stroke-1" />
@@ -238,7 +239,6 @@ export const CartModal: React.FC = () => {
                 ))
               )}
             </div>
-          </div>
 
           {/* Bottom Quotation Checkout Panel */}
           {cartItems.length > 0 && (
