@@ -20,12 +20,14 @@
 
   :root {
     font-family: 'Plus Jakarta Sans', 'Syne', -apple-system, BlinkMacSystemFont, sans-serif;
+    color-scheme: dark;
   }
 
   body {
     font-family: 'Plus Jakarta Sans', 'Syne', -apple-system, BlinkMacSystemFont, sans-serif;
     background-color: #000000;
     color: #ffffff;
+    color-scheme: dark;
   }
 }
 
@@ -66,3 +68,42 @@ input[type="number"] {
   appearance: textfield;
 }
 
+/* =====================================================================
+   PREMIUM CUSTOM GRAY ANIMATED SCROLLBARS (REMOVES ALL WHITE LINES)
+   ===================================================================== */
+
+/* Global standard scrollbar for Firefox & modern browsers */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #454545 #0a0a0a;
+}
+
+/* WebKit (Chrome, Edge, Safari, Opera) - Remove white scrollbar background everywhere */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3f3f3f;
+  border-radius: 9999px;
+  border: 1.5px solid #0a0a0a;
+  transition: background-color 0.25s ease-in-out, transform 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #606060;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: #858585;
+}
+
+::-webkit-scrollbar-corner {
+  background: #0a0a0a;
+}
