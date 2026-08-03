@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, Mail, MessageSquare, MapPin, Play, Facebook, Twitter, Instagram, Handshake, Linkedin, MessageCircle, User, Send, Activity } from 'lucide-react';
+import { Phone, Mail, MessageSquare, MapPin, Play, Facebook, Twitter, Instagram, Handshake, Linkedin, MessageCircle, User, Send, Activity, Heart } from 'lucide-react';
 
 export const ContactUsSection: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -275,10 +275,15 @@ export const ContactUsSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Copyright notice & Links */}
+        {/* Copyright notice, Elite Webworks credit & Links */}
         <div className="relative z-10 max-w-7xl mx-auto pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-400 font-sans-custom gap-4">
           <div>
             © 2026 Madhav Pharma Industries. All rights reserved.
+          </div>
+          <div className="flex items-center justify-center text-center">
+            <span>made with </span>
+            <Heart className="w-3.5 h-3.5 inline-block text-neutral-500 fill-neutral-500 mx-1.5" />
+            <span> by elite webworks</span>
           </div>
           <div className="flex items-center space-x-6">
             <a href="#privacy" className="hover:text-white transition-colors">Privacy Policy</a>
