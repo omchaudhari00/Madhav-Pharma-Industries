@@ -777,6 +777,9 @@ export const RetailCheckoutModal: React.FC = () => {
         onClose={() => setIsGatewayOpen(false)}
         amountINR={totalINR}
         orderReference={orderId || 'Retail Order'}
+        customerName={name}
+        customerPhone={phone}
+        customerEmail={email}
         onPaymentSuccess={handlePaymentSuccess}
       />
     </div>
