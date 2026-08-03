@@ -27,6 +27,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { UpiCardPaymentModal, PaymentSuccessDetails } from './UpiCardPaymentModal';
 
 export const RetailCheckoutModal: React.FC = () => {
   const {
@@ -52,6 +53,8 @@ export const RetailCheckoutModal: React.FC = () => {
   const [address, setAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'Card'>('UPI');
   const [orderId, setOrderId] = useState('');
+  const [isGatewayOpen, setIsGatewayOpen] = useState(false);
+  const [verifiedPayment, setVerifiedPayment] = useState<PaymentSuccessDetails | null>(null);
 
   // Sync user profile data whenever modal opens or user logs in
   useEffect(() => {
@@ -100,17 +103,23 @@ export const RetailCheckoutModal: React.FC = () => {
 
     const generatedId = `MP-RET-${Math.floor(10000 + Math.random() * 90000)}`;
     setOrderId(generatedId);
+    setIsGatewayOpen(true);
+  };
+
+  const handlePaymentSuccess = (details: PaymentSuccessDetails) => {
+    setIsGatewayOpen(false);
+    setVerifiedPayment(details);
     setStep('processing');
 
     const newOrder = {
-      id: generatedId,
+      id: orderId || `MP-RET-${Math.floor(10000 + Math.random() * 90000)}`,
       date: new Date().toISOString().split('T')[0],
       customerName: name,
       phone: phone,
       email: email,
       deliveryAddress: address,
-      paymentMethod: paymentMethod === 'UPI' ? 'UPI (GPay Verified)' : 'Credit Card (Visa)',
-      paymentStatus: 'PAID',
+      paymentMethod: details.method,
+      paymentStatus: `PAID (${details.referenceId})`,
       deliveryStatus: 'Preparing in Stock',
       totalAmount: `₹${totalINR.toLocaleString()}.00`,
       items: retailCartItems.map(i => ({
@@ -132,7 +141,7 @@ export const RetailCheckoutModal: React.FC = () => {
 
     setTimeout(() => {
       setStep('paid');
-    }, 1500);
+    }, 1200);
   };
 
   const handleClose = () => {
@@ -253,7 +262,12 @@ export const RetailCheckoutModal: React.FC = () => {
                   </h3>
                   <p className="text-xs sm:text-sm text-emerald-300 font-medium">
                     Your invoice of <span className="font-bold">₹{totalINR}.00</span> has been paid via{' '}
-                    <span className="font-bold uppercase">{paymentMethod}</span>.
+                    <span className="font-bold uppercase">{verifiedPayment?.method || paymentMethod}</span>.
+                    {verifiedPayment?.referenceId && (
+                      <span className="block mt-1 text-[11px] text-emerald-400 font-mono">
+                        Ref / UTR: <strong>{verifiedPayment.referenceId}</strong>
+                      </span>
+                    )}
                   </p>
                 </div>
 
@@ -756,6 +770,15 @@ export const RetailCheckoutModal: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* 100% Secure UPI & Card Gateway Modal */}
+      <UpiCardPaymentModal
+        isOpen={isGatewayOpen}
+        onClose={() => setIsGatewayOpen(false)}
+        amountINR={totalINR}
+        orderReference={orderId || 'Retail Order'}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };
