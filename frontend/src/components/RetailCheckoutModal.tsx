@@ -14,7 +14,6 @@ import {
   Package,
   MapPin,
   CreditCard,
-  Smartphone,
   User,
   Mail,
   Phone,
@@ -51,7 +50,7 @@ export const RetailCheckoutModal: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'Card'>('UPI');
+  const [paymentMethod] = useState<'Card'>('Card');
   const [orderId, setOrderId] = useState('');
   const [isGatewayOpen, setIsGatewayOpen] = useState(false);
   const [verifiedPayment, setVerifiedPayment] = useState<PaymentSuccessDetails | null>(null);
@@ -157,7 +156,7 @@ export const RetailCheckoutModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden font-display">
+    <div className="fixed inset-0 z-50 overflow-hidden font-display" data-lenis-prevent="true">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/85 backdrop-blur-md transition-opacity"
@@ -166,7 +165,10 @@ export const RetailCheckoutModal: React.FC = () => {
 
       <div className="absolute inset-y-0 right-0 max-w-full flex pl-4 sm:pl-10">
         {/* Modal Drawer */}
-        <div className="w-screen max-w-2xl bg-neutral-950 border-l border-neutral-800 text-white shadow-2xl flex flex-col justify-between h-full">
+        <div 
+          className="w-screen max-w-2xl bg-neutral-950 border-l border-neutral-800 text-white shadow-2xl flex flex-col h-full max-h-screen overflow-hidden"
+          data-lenis-prevent="true"
+        >
           {/* Top Header */}
           <div className="p-5 sm:p-6 border-b border-neutral-800 flex items-center justify-between bg-neutral-900/60 backdrop-blur-sm">
             <div className="flex items-center space-x-3">
@@ -237,7 +239,7 @@ export const RetailCheckoutModal: React.FC = () => {
           )}
 
           {/* Body Content */}
-          <div className="flex-1 overflow-y-auto overscroll-contain min-h-0 p-5 sm:p-6 space-y-6">
+          <div className="flex-1 overflow-y-auto overscroll-contain min-h-0 p-5 sm:p-6 space-y-6" data-lenis-prevent="true">
             {step === 'processing' ? (
               /* Step: Processing Payment */
               <div className="h-full flex flex-col items-center justify-center text-center py-20">
@@ -500,50 +502,10 @@ export const RetailCheckoutModal: React.FC = () => {
                     <span>2. Select Payment Method</span>
                   </h3>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* UPI Option */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2">
+                    {/* Card Option - Only Option */}
                     <div
-                      onClick={() => setPaymentMethod('UPI')}
-                      className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                        paymentMethod === 'UPI'
-                          ? 'bg-[#d4a373]/15 border-[#d4a373] ring-1 ring-[#d4a373]/30 shadow-lg'
-                          : 'bg-neutral-950 border-neutral-800 hover:border-neutral-700'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3.5">
-                        <div className="p-2.5 rounded-xl bg-neutral-900 border border-neutral-800">
-                          <Smartphone className="w-5 h-5 text-[#d4a373]" />
-                        </div>
-                        <div>
-                          <span className="text-sm font-bold text-white block">
-                            UPI Payment
-                          </span>
-                          <span className="text-[11px] text-neutral-400">
-                            GPay, PhonePe, Paytm, BHIM
-                          </span>
-                        </div>
-                      </div>
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          paymentMethod === 'UPI'
-                            ? 'border-[#d4a373] bg-[#d4a373]'
-                            : 'border-neutral-700'
-                        }`}
-                      >
-                        {paymentMethod === 'UPI' && (
-                          <div className="w-2 h-2 rounded-full bg-neutral-950" />
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Card Option */}
-                    <div
-                      onClick={() => setPaymentMethod('Card')}
-                      className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                        paymentMethod === 'Card'
-                          ? 'bg-[#d4a373]/15 border-[#d4a373] ring-1 ring-[#d4a373]/30 shadow-lg'
-                          : 'bg-neutral-950 border-neutral-800 hover:border-neutral-700'
-                      }`}
+                      className={`col-span-2 p-4 rounded-2xl border bg-[#d4a373]/15 border-[#d4a373] ring-1 ring-[#d4a373]/30 shadow-lg flex items-center justify-between`}
                     >
                       <div className="flex items-center space-x-3.5">
                         <div className="p-2.5 rounded-xl bg-neutral-900 border border-neutral-800">
@@ -551,23 +513,15 @@ export const RetailCheckoutModal: React.FC = () => {
                         </div>
                         <div>
                           <span className="text-sm font-bold text-white block">
-                            Credit / Debit Card
+                            Razorpay & Airtm Secure Checkout
                           </span>
                           <span className="text-[11px] text-neutral-400">
-                            Visa, MasterCard, RuPay, Amex
+                            Cards, UPI, NetBanking, Airtm & USD Escrow
                           </span>
                         </div>
                       </div>
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          paymentMethod === 'Card'
-                            ? 'border-[#d4a373] bg-[#d4a373]'
-                            : 'border-neutral-700'
-                        }`}
-                      >
-                        {paymentMethod === 'Card' && (
-                          <div className="w-2 h-2 rounded-full bg-neutral-950" />
-                        )}
+                      <div className="w-5 h-5 rounded-full border-2 border-[#d4a373] bg-[#d4a373] flex items-center justify-center">
+                        <div className="w-2 h-2 rounded-full bg-neutral-950" />
                       </div>
                     </div>
                   </div>

@@ -8,11 +8,15 @@ class Payment(models.Model):
         ('Pending', 'Pending'),
         ('Completed', 'Completed'),
         ('Failed', 'Failed'),
+        ('Pending Verification', 'Pending Verification'),
     )
     payment_id = models.CharField(max_length=50, unique=True, blank=True)
     quotation = models.OneToOneField(Quotation, on_delete=models.CASCADE, related_name='payment')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='Pending')
+    payment_method = models.CharField(max_length=50, default='Razorpay', blank=True, null=True)
+    currency = models.CharField(max_length=10, default='INR', blank=True, null=True)
+    signature_verified = models.BooleanField(default=False)
     transaction_reference = models.CharField(max_length=100, blank=True, null=True)
     payment_date = models.DateTimeField(null=True, blank=True)
 

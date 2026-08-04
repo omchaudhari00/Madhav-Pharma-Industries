@@ -132,6 +132,7 @@ class RequestOTPView(APIView):
             # Send OTP email using Django Gmail SMTP
             subject = "Madhav Pharma Industries - Your Verification OTP"
             message = f"Hello,\n\nYour 6-digit verification code is: {otp}\n\nThis OTP is valid for 10 minutes. Do not share this code with anyone.\n\nRegards,\nMadhav Pharma Industries"
+            email_sent = True
             try:
                 if email:
                     send_mail(
@@ -142,13 +143,71 @@ class RequestOTPView(APIView):
                         fail_silently=False,
                     )
             except Exception as e:
+                email_sent = False
                 print(f"[Email Error] Failed to send OTP email to {email}: {e}")
-                # Fallback print for local debugging
                 print(f"MOCK OTP for {email}/{mobile_number}: {otp}")
             
-            return Response({"message": "OTP sent successfully to your email. Please verify."})
+            dev_otp = otp if (settings.DEBUG or not email_sent or not getattr(settings, 'EMAIL_HOST_PASSWORD', '')) else None
+            return Response({
+                "message": "OTP sent successfully to your email. Please verify.",
+                "dev_otp": dev_otp
+            })
         first_error = next(iter(serializer.errors.values()))[0] if serializer.errors else "Invalid registration details."
         return Response({"error": str(first_error), "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+class ResendOTPView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email', '').strip().lower()
+        mobile_number = request.data.get('mobile_number', '').strip()
+
+        if not email and not mobile_number:
+            return Response({"error": "Email or mobile number is required to resend OTP."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if email and User.objects.filter(email__iexact=email).exists():
+            return Response({"error": "An account with this email address already exists. Please sign in instead."}, status=status.HTTP_400_BAD_REQUEST)
+        if mobile_number and User.objects.filter(mobile_number=mobile_number).exists():
+            return Response({"error": "An account with this phone number already exists. Please use a different phone number or sign in."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Invalidate previous unused OTP records for this email/mobile
+        OTPRecord.objects.filter(
+            email=email,
+            mobile_number=mobile_number,
+            is_used=False
+        ).update(is_used=True)
+
+        # Generate fresh OTP
+        otp = str(random.randint(100000, 999999))
+        OTPRecord.objects.create(
+            email=email,
+            mobile_number=mobile_number,
+            otp=otp,
+            expires_at=timezone.now() + timedelta(minutes=10)
+        )
+
+        subject = "Madhav Pharma Industries - Your Verification OTP (Resend)"
+        message = f"Hello,\n\nYour new 6-digit verification code is: {otp}\n\nThis OTP is valid for 10 minutes. Do not share this code with anyone.\n\nRegards,\nMadhav Pharma Industries"
+        email_sent = True
+        try:
+            if email:
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[email],
+                    fail_silently=False,
+                )
+        except Exception as e:
+            email_sent = False
+            print(f"[Email Error] Failed to resend OTP email to {email}: {e}")
+            print(f"MOCK OTP for {email}/{mobile_number}: {otp}")
+
+        dev_otp = otp if (settings.DEBUG or not email_sent or not getattr(settings, 'EMAIL_HOST_PASSWORD', '')) else None
+        return Response({
+            "message": "A new OTP has been sent to your email.",
+            "dev_otp": dev_otp
+        })
 
 class VerifyOTPAndRegisterView(APIView):
     permission_classes = [AllowAny]

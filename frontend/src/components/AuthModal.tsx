@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, Phone, User, CheckCircle2, ArrowRight, ShieldCheck, KeyRound, AlertCircle, MapPin } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
@@ -24,6 +24,19 @@ export const AuthModal: React.FC = () => {
   const [otp, setOtp] = useState('');
   const [signUpError, setSignUpError] = useState('');
   const [signUpLoading, setSignUpLoading] = useState(false);
+
+  // Resend & Dev OTP State
+  const [resendTimer, setResendTimer] = useState(0);
+  const [resendSuccess, setResendSuccess] = useState('');
+  const [devOtpHint, setDevOtpHint] = useState('');
+
+  useEffect(() => {
+    let timer: any;
+    if (resendTimer > 0) {
+      timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [resendTimer]);
 
   if (!isAuthModalOpen) return null;
 
@@ -51,7 +64,8 @@ export const AuthModal: React.FC = () => {
       if (res.ok || isAdmin || isSales) {
         const userRole = isAdmin ? 'Admin' : isSales ? 'Sales' : (data.user?.role || 'Customer');
         const userObj = {
-          email: emailTrim,
+          email: isAdmin ? 'theom.chaudhari@gmail.com' : isSales ? 'vatsaldevani2005@gmail.com' : (data.user?.email || (emailTrim.includes('@') ? emailTrim : '')),
+          mobile_number: isAdmin ? '9999999999' : isSales ? '8888888888' : (data.user?.mobile_number || (!emailTrim.includes('@') ? emailTrim : '')),
           first_name: isAdmin ? 'Om' : isSales ? 'Vatsal' : (data.user?.first_name || emailTrim.split('@')[0] || 'Valued'),
           last_name: isAdmin ? 'Chaudhari' : isSales ? 'Devani' : (data.user?.last_name || 'Customer'),
           role: userRole,
@@ -73,7 +87,8 @@ export const AuthModal: React.FC = () => {
       if (isAdmin || isSales) {
         const userRole = isAdmin ? 'Admin' : 'Sales';
         login({
-          email: emailTrim,
+          email: isAdmin ? 'theom.chaudhari@gmail.com' : (emailTrim.includes('@') ? emailTrim : ''),
+          mobile_number: isAdmin ? '9999999999' : (!emailTrim.includes('@') ? emailTrim : ''),
           first_name: isAdmin ? 'Om' : 'Vatsal',
           last_name: isAdmin ? 'Chaudhari' : 'Devani',
           role: userRole,
@@ -111,11 +126,45 @@ export const AuthModal: React.FC = () => {
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setSignUpStep('otp');
+        if (data.dev_otp) setDevOtpHint(data.dev_otp);
+        setResendTimer(30);
+        setResendSuccess('');
       } else {
         setSignUpError(data.error || 'Failed to send OTP. Please check your details.');
       }
     } catch (err) {
       setSignUpError('Network error. Could not connect to authentication server.');
+    } finally {
+      setSignUpLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    if (resendTimer > 0) return;
+    setSignUpError('');
+    setResendSuccess('');
+    setSignUpLoading(true);
+
+    try {
+      const res = await fetch('/api/accounts/register/resend-otp/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          mobile_number: mobileNumber,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setResendSuccess('A new verification code has been sent to your email.');
+        if (data.dev_otp) setDevOtpHint(data.dev_otp);
+        setResendTimer(30);
+      } else {
+        setSignUpError(data.error || 'Failed to resend verification code.');
+      }
+    } catch (err) {
+      setSignUpError('Network error. Could not connect to server.');
     } finally {
       setSignUpLoading(false);
     }
@@ -416,10 +465,38 @@ export const AuthModal: React.FC = () => {
               <CheckCircle2 className="w-4 h-4" />
             </button>
 
+            {/* Resend OTP Section */}
+            <div className="pt-3 border-t border-neutral-800/80 space-y-2">
+              <p className="text-xs text-neutral-400">
+                Didn't receive the code or code expired?
+              </p>
+              <button
+                type="button"
+                onClick={handleResendOTP}
+                disabled={resendTimer > 0 || signUpLoading}
+                className="text-xs font-bold text-emerald-400 hover:text-emerald-300 disabled:text-neutral-500 transition-colors cursor-pointer"
+              >
+                {resendTimer > 0 ? `Resend Code in ${resendTimer}s` : 'Resend Verification Code'}
+              </button>
+              {resendSuccess && (
+                <p className="text-xs text-emerald-400 font-medium">{resendSuccess}</p>
+              )}
+              {devOtpHint && (
+                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 font-mono">
+                  [DEV MODE] Local OTP Code: <strong>{devOtpHint}</strong>
+                </div>
+              )}
+            </div>
+
             <button
               type="button"
-              onClick={() => setSignUpStep('form')}
-              className="text-xs text-neutral-400 hover:text-white transition-colors"
+              onClick={() => {
+                setSignUpStep('form');
+                setSignUpError('');
+                setResendSuccess('');
+                setDevOtpHint('');
+              }}
+              className="text-xs text-neutral-400 hover:text-white transition-colors block mx-auto pt-1"
             >
               ← Back to Registration Details
             </button>

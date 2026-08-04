@@ -85,10 +85,10 @@ class QuotationViewSet(viewsets.ModelViewSet):
                 if not product and product_name:
                     product = Product.objects.create(
                         name=product_name,
-                        grade=item.get('grade', 'Standard'),
-                        price_per_kg=item.get('unitPrice', 100),
-                        moq_kg=5,
-                        stock_status='In Stock'
+                        specifications=item.get('grade', 'Standard'),
+                        price=item.get('unitPrice', 100),
+                        minimum_order_quantity=5,
+                        availability_status='In Stock'
                     )
                 if product:
                     QuotationItem.objects.create(

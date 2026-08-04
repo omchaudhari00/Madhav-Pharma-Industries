@@ -75,7 +75,7 @@ export const CartModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden font-display">
+    <div className="fixed inset-0 z-50 overflow-hidden font-display" data-lenis-prevent="true">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
@@ -84,7 +84,10 @@ export const CartModal: React.FC = () => {
 
       <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
         {/* Drawer Panel */}
-        <div className="w-screen max-w-md bg-neutral-950 border-l border-neutral-800 text-white shadow-2xl flex flex-col justify-between h-full">
+        <div 
+          className="w-screen max-w-md bg-neutral-950 border-l border-neutral-800 text-white shadow-2xl flex flex-col h-full max-h-screen overflow-hidden"
+          data-lenis-prevent="true"
+        >
           {/* Top Header */}
           <div className="shrink-0">
             <div className="p-6 border-b border-neutral-800 flex items-center justify-between">
@@ -125,7 +128,7 @@ export const CartModal: React.FC = () => {
           </div>
 
           {/* Cart Items List */}
-          <div className="flex-1 overflow-y-auto overscroll-contain p-6 space-y-4 min-h-0">
+          <div className="flex-1 overflow-y-auto overscroll-contain p-6 space-y-4 min-h-0" data-lenis-prevent="true">
               {cartItems.length === 0 ? (
                 <div className="text-center py-16">
                   <ShoppingBag className="w-12 h-12 text-neutral-600 mx-auto mb-4 stroke-1" />
@@ -210,7 +213,7 @@ export const CartModal: React.FC = () => {
                           </div>
                           {(!item.quantityKg || item.quantityKg <= 0) && (
                             <span className="text-[10px] text-red-400 font-bold mt-1">
-                              ⚠️ Increase quantity (&gt; 0 kg)
+                              [!] Increase quantity (&gt; 0 kg)
                             </span>
                           )}
                         </div>

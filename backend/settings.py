@@ -163,3 +163,8 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', f'Madhav Pharma Industries <{EMAIL_HOST_USER}>')
+
+# Payment Gateway Configuration (Razorpay)
+RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', 'rzp_test_YOUR_KEY_ID_HERE')
+RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', 'YOUR_KEY_SECRET_HERE')
+RAZORPAY_COMPANY_NAME = os.getenv('RAZORPAY_COMPANY_NAME', 'Madhav Pharma Industries')
