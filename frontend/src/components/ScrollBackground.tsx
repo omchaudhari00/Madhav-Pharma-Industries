@@ -1,11 +1,15 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export default function ScrollBackground() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isAnimationReady, setIsAnimationReady] = useState(false);
+  const [useFallback, setUseFallback] = useState(false);
 
   useEffect(() => {
+    if (useFallback) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -17,6 +21,16 @@ export default function ScrollBackground() {
     let targetFrameIndex = 0;
     let currentFrameIndex = 0;
     let animationFrameId: number;
+    let isAborted = false;
+    let ready = false;
+
+    // 1-minute timeout to fallback to default image if animation is too slow to load
+    const timeoutId = setTimeout(() => {
+      if (!ready) {
+        isAborted = true;
+        setUseFallback(true);
+      }
+    }, 60000);
 
     function isPhoneOrPortrait(): boolean {
       if (typeof window === 'undefined') return false;
@@ -36,7 +50,8 @@ export default function ScrollBackground() {
     }
 
     function drawFrame(index: number, force = false) {
-      if (!ctx) return;
+      if (!ctx || isAborted) return;
+      
       const isPhone = isPhoneOrPortrait();
       const actualIndex = isPhone ? frameCount - 1 : index;
 
@@ -78,8 +93,11 @@ export default function ScrollBackground() {
       lastDrawnFrame = actualIndex;
     }
 
-    // Preload helper function
+    let framesLoaded = 0;
+    const requiredFrames = 5; // Start animation after 5 frames are loaded
+
     function loadFrame(i: number) {
+      if (isAborted) return;
       if (i < 1 || i > frameCount) return;
       const idx = i - 1;
       if (images[idx]) return;
@@ -91,10 +109,26 @@ export default function ScrollBackground() {
       images[idx] = img;
 
       img.onload = () => {
+        if (isAborted) return;
+        framesLoaded++;
+        if (framesLoaded >= requiredFrames && !ready) {
+          ready = true;
+          setIsAnimationReady(true);
+          clearTimeout(timeoutId);
+        }
+
         const isPhone = isPhoneOrPortrait();
         const targetDrawIndex = isPhone ? frameCount - 1 : Math.round(currentFrameIndex);
         if (idx === targetDrawIndex || (isPhone && idx === frameCount - 1)) {
           drawFrame(targetDrawIndex, true);
+        }
+      };
+
+      img.onerror = () => {
+        if (!ready) {
+          isAborted = true;
+          setUseFallback(true);
+          clearTimeout(timeoutId);
         }
       };
     }
@@ -109,6 +143,8 @@ export default function ScrollBackground() {
     }
 
     function updateTargetFrame() {
+      if (isAborted) return;
+      
       if (isPhoneOrPortrait()) {
         targetFrameIndex = frameCount - 1;
         currentFrameIndex = frameCount - 1;
@@ -128,6 +164,8 @@ export default function ScrollBackground() {
     }
 
     function animate() {
+      if (isAborted) return;
+      
       if (isPhoneOrPortrait()) {
         if (lastDrawnFrame !== frameCount - 1) {
           currentFrameIndex = frameCount - 1;
@@ -157,25 +195,52 @@ export default function ScrollBackground() {
     animationFrameId = requestAnimationFrame(animate);
 
     return () => {
+      isAborted = true;
+      clearTimeout(timeoutId);
       window.removeEventListener('resize', resizeCanvas);
       window.removeEventListener('scroll', updateTargetFrame);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [useFallback]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        pointerEvents: 'none',
-        zIndex: 0,
-        opacity: 0.5,
-      }}
-    />
+    <>
+      {/* Default Fallback Background (Last Frame) */}
+      <div 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: 'url(/scroll-frames/ezgif-frame-300.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          zIndex: 0,
+          // Fade out the fallback once the canvas animation is ready
+          opacity: isAnimationReady ? 0 : 0.5,
+          transition: 'opacity 1.5s ease-in-out',
+          pointerEvents: 'none'
+        }}
+      />
+      
+      {/* Canvas Animation */}
+      {!useFallback && (
+        <canvas
+          ref={canvasRef}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            zIndex: 1, // Place canvas on top of fallback
+            opacity: isAnimationReady ? 0.5 : 0,
+            transition: 'opacity 1.5s ease-in-out'
+          }}
+        />
+      )}
+    </>
   );
 }

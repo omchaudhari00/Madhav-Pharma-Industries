@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 from rest_framework.permissions import BasePermission
 
 class IsAdminUser(BasePermission):

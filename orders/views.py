@@ -133,3 +133,34 @@ class OrderViewSet(viewsets.ModelViewSet):
         if user.role == 'Admin':
             return Order.objects.all()
         return Order.objects.filter(customer=user)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny], url_path='confirm-payment')
+    def confirm_payment(self, request):
+        """
+        Endpoint to receive successful payment notification from frontend,
+        and trigger WhatsApp message to the customer.
+        """
+        order_data = request.data
+        customer_phone = order_data.get('phone', '')
+        customer_name = order_data.get('customerName', 'Customer')
+        order_id = order_data.get('id', 'Unknown')
+        total_amount = order_data.get('totalAmount', '0')
+
+        # Generic WhatsApp Integration Mock
+        # In a real scenario, you would use Twilio or Meta WhatsApp API here.
+        whatsapp_message = (
+            f"Hello {customer_name}, your order {order_id} for {total_amount} "
+            f"has been successfully paid and confirmed by Madhav Pharma Industries! "
+            f"Your invoice will be available for download in your dashboard."
+        )
+
+        # Logging to simulate sending the WhatsApp message
+        print("========================================")
+        print(f"SENDING WHATSAPP MESSAGE TO: {customer_phone}")
+        print(f"MESSAGE CONTENT:\n{whatsapp_message}")
+        print("========================================")
+
+        return Response({
+            'success': True, 
+            'message': 'WhatsApp confirmation triggered successfully.'
+        }, status=status.HTTP_200_OK)

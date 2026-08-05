@@ -1,4 +1,6 @@
+# pyrefly: ignore [missing-import]
 from rest_framework import viewsets
+# pyrefly: ignore [missing-import]
 from rest_framework.permissions import AllowAny, IsAdminUser, SAFE_METHODS
 from .models import Category, Product
 from .serializers import CategorySerializer, ProductSerializer

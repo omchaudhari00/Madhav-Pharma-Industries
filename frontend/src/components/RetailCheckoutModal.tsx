@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { UpiCardPaymentModal, PaymentSuccessDetails } from './UpiCardPaymentModal';
+import { generateInvoicePDF } from '../utils/InvoiceGenerator';
 
 export const RetailCheckoutModal: React.FC = () => {
   const {
@@ -138,6 +139,15 @@ export const RetailCheckoutModal: React.FC = () => {
       console.error('Failed to save retail order:', err);
     }
 
+    // Call Backend to Send WhatsApp Confirmation
+    fetch('http://127.0.0.1:8000/api/orders/confirm-payment/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(newOrder)
+    }).catch(e => console.error("Failed to trigger WhatsApp confirmation:", e));
+
     setTimeout(() => {
       setStep('paid');
     }, 1200);
@@ -152,7 +162,15 @@ export const RetailCheckoutModal: React.FC = () => {
   };
 
   const handleDownloadInvoice = () => {
-    alert(`Downloading Tax Invoice (${orderId})... All B2C GST & COA details attached!`);
+    const orderDetails = {
+      id: orderId,
+      date: new Date().toISOString().split('T')[0],
+      customerName: name,
+      phone: phone,
+      deliveryAddress: address,
+      items: retailCartItems
+    };
+    generateInvoicePDF(orderDetails);
   };
 
   return (

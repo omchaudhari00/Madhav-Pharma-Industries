@@ -217,6 +217,23 @@ export const UpiCardPaymentModal: React.FC<UpiCardPaymentModalProps> = ({
               )}
             </button>
 
+            {/* Temporary Bypass Payment Button for Testing */}
+            <button
+              type="button"
+              onClick={() => {
+                const simulatedPaymentId = `pay_Bypass_${Math.floor(10000000 + Math.random() * 90000000)}`;
+                onPaymentSuccess({
+                  method: 'Bypass (Test Mode)',
+                  status: 'Paid',
+                  referenceId: simulatedPaymentId,
+                  amountINR
+                });
+              }}
+              className="w-full py-3 px-6 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 cursor-pointer"
+            >
+              <span>TEMPORARY BYPASS (SKIP PAYMENT)</span>
+            </button>
+
             {!isRazorpayConfigured && (
               <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-left">
                 <p className="text-[11px] text-amber-300 font-medium">
