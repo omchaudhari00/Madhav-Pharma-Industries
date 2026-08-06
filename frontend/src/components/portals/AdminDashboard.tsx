@@ -50,13 +50,8 @@ export const AdminDashboard: React.FC = () => {
     'overview' | 'quotes' | 'customers' | 'products' | 'sales' | 'orders' | 'settings'
   >('overview');
 
-  // Mock State for interactivity
-  const [customers, setCustomers] = useState([
-    { id: 101, name: 'Apex Remedies Ltd', email: 'procurement@apexremedies.com', phone: '+91 98234 11220', stage: 'Customer', ordersCount: 14, totalSpent: '₹14,50,000', status: 'Active' },
-    { id: 102, name: 'Vedic Herbs Bio', email: 'sourcing@vedicherbs.in', phone: '+91 94220 55667', stage: 'Lead', ordersCount: 0, totalSpent: '₹0', status: 'Active' },
-    { id: 103, name: 'CureAll Formulations', email: 'contact@cureall.co.in', phone: '+91 98980 12345', stage: 'Customer', ordersCount: 6, totalSpent: '₹6,80,000', status: 'Active' },
-    { id: 104, name: 'Sanjivani Naturals', email: 'info@sanjivaninatural.com', phone: '+91 97112 33445', stage: 'Lead', ordersCount: 0, totalSpent: '₹0', status: 'Active' },
-  ]);
+  // Empty arrays for real data
+  const [customers, setCustomers] = useState<any[]>([]);
 
   const [quotes, setQuotes] = useState<any[]>([]);
 
@@ -105,10 +100,7 @@ export const AdminDashboard: React.FC = () => {
     { id: 4, codeId: 'coriander-oil', name: 'Organic Coriander Essential Oil', moq: '5 KG', price: '₹110/KG', availability: 'In Stock', active: true },
   ]);
 
-  const [salesUsers, setSalesUsers] = useState([
-    { id: 201, name: 'Vikram Sharma', email: 'sales@madhavpharma.com', phone: '+91 98100 44556', activeQuotes: 12, closedDeals: 38 },
-    { id: 202, name: 'Pooja Verma', email: 'pooja.v@madhavpharma.com', phone: '+91 98111 22334', activeQuotes: 7, closedDeals: 24 },
-  ]);
+  const [salesUsers, setSalesUsers] = useState<any[]>([]);
 
   const [orders, setOrders] = useState<any[]>([]);
 
@@ -162,10 +154,10 @@ export const AdminDashboard: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-base sm:text-lg font-extrabold text-white leading-none">
-                  Madhav Pharma <span className="text-[#d4a373] font-normal font-serif">Enterprise Admin</span>
+                  Madhav Pharma <span className="text-[#d4a373] font-normal font-serif">Admin Portal</span>
                 </h1>
                 <p className="text-xs text-neutral-400 mt-0.5">
-                  Administrator • Full Management Control
+                  Administrator Dashboard
                 </p>
               </div>
             </div>
@@ -230,10 +222,10 @@ export const AdminDashboard: React.FC = () => {
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-6 mb-6">
                 <div>
                   <h3 className="text-xl font-serif font-bold text-white flex items-center gap-2">
-                    <span>Enterprise System Status</span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-sans font-bold">LIVE TELEMETRY</span>
+                    <span>System Status</span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-sans font-bold">LIVE</span>
                   </h3>
-                  <p className="text-xs text-neutral-400 mt-1">Real-time operational overview and metrics across Madhav Pharma divisions</p>
+                  <p className="text-xs text-neutral-400 mt-1">Real-time overview of orders and revenue</p>
                 </div>
                 <div className="text-right text-xs text-neutral-400">
                   <span className="block font-mono text-neutral-300">System Status: Optimal</span>
@@ -292,7 +284,7 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Quick Activity Table */}
             <div className="p-8 rounded-3xl bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-xl">
-              <h3 className="text-xl font-serif font-bold text-white mb-6">Recent Quotation Requests & Leads</h3>
+              <h3 className="text-xl font-serif font-bold text-white mb-6">Recent Price Requests & New Customers</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -318,7 +310,7 @@ export const AdminDashboard: React.FC = () => {
                               ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
                               : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
                           }`}>
-                            {q.customer === 'Vedic Herbs Bio' || q.customer === 'Sanjivani Naturals' ? 'Lead' : 'Customer'}
+                            {q.customer === 'Vedic Herbs Bio' || q.customer === 'Sanjivani Naturals' ? 'New Customer' : 'Customer'}
                           </div>
                         </td>
                         <td className="py-4 px-4 text-neutral-300">{q.product} ({q.quantity})</td>
@@ -349,8 +341,8 @@ export const AdminDashboard: React.FC = () => {
           <div className="p-8 rounded-3xl bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-xl space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-2xl font-serif font-bold text-white">All Quotations (Admin Control)</h3>
-                <p className="text-sm text-neutral-400 mt-1">Assign quotes to sales agents, approve target prices, or expire quotations.</p>
+                <h3 className="text-2xl font-serif font-bold text-white">All Price Requests</h3>
+                <p className="text-sm text-neutral-400 mt-1">Assign requests to sales team, approve target prices, or manage offers.</p>
               </div>
             </div>
 
@@ -358,8 +350,8 @@ export const AdminDashboard: React.FC = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-white/10 text-neutral-400 text-xs uppercase tracking-wider font-semibold">
-                    <th className="py-3 px-4">Quote Number</th>
-                    <th className="py-3 px-4">Customer / Lead</th>
+                    <th className="py-3 px-4">Request Number</th>
+                    <th className="py-3 px-4">Customer</th>
                     <th className="py-3 px-4">Product & Volume</th>
                     <th className="py-3 px-4">Requested Price</th>
                     <th className="py-3 px-4">Sales Agent</th>
@@ -415,9 +407,9 @@ export const AdminDashboard: React.FC = () => {
           <div className="p-8 rounded-3xl bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-xl space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h3 className="text-2xl font-serif font-bold text-white">Customer & Lead Directory</h3>
+                <h3 className="text-2xl font-serif font-bold text-white">Customer Directory</h3>
                 <p className="text-sm text-neutral-400 mt-1">
-                  New users start as <span className="text-amber-300 font-bold">LEAD</span> and automatically upgrade to <span className="text-emerald-400 font-bold">CUSTOMER</span> after their first completed order.
+                  New users start as <span className="text-amber-300 font-bold">NEW CUSTOMER</span> and automatically upgrade to <span className="text-emerald-400 font-bold">VERIFIED CUSTOMER</span> after their first completed order.
                 </p>
               </div>
             </div>
@@ -451,7 +443,7 @@ export const AdminDashboard: React.FC = () => {
                             ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
                             : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40'
                         }`}>
-                          {c.stage}
+                          {c.stage === 'Lead' ? 'New Customer' : 'Customer'}
                         </div>
                       </td>
                       <td className="py-4 px-4 font-mono text-white">{c.ordersCount} orders</td>
@@ -692,7 +684,21 @@ export const AdminDashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="p-6 rounded-2xl bg-neutral-900/50 border border-white/10 space-y-4">
-                <h4 className="text-lg font-bold text-white">Company & Bank Details</h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-bold text-white">Company & Bank Details</h4>
+                  <button 
+                    onClick={() => {
+                      if (window.confirm('This will delete all test orders and price requests from local storage. Continue?')) {
+                        localStorage.removeItem('madhav_retail_orders_list');
+                        localStorage.removeItem('madhav_quotes');
+                        window.location.reload();
+                      }
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/30 text-xs font-bold uppercase transition-all flex items-center gap-2"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Wipe Test Orders
+                  </button>
+                </div>
                 <div className="space-y-3 text-xs text-neutral-300">
                   <div><span className="text-neutral-500 block">Legal Entity Name:</span> Madhav Pharma Industries Private Limited</div>
                   <div><span className="text-neutral-500 block">GSTIN Number:</span> 24AABCM1234F1Z9</div>

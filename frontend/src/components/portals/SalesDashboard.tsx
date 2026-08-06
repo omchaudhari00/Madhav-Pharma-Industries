@@ -44,6 +44,11 @@ export const SalesDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'quotes' | 'retail_orders' | 'customers' | 'orders' | 'notifications'>('quotes');
   const [selectedQuote, setSelectedQuote] = useState<any | null>(null);
 
+  const [retailFilter, setRetailFilter] = useState('Preparing in Stock');
+  const [b2bFilter, setB2bFilter] = useState('Processing');
+  const [retailSearch, setRetailSearch] = useState('');
+  const [b2bSearch, setB2bSearch] = useState('');
+
   const [myQuotes, setMyQuotes] = useState<any[]>([]);
   const [retailOrders, setRetailOrders] = useState<any[]>([]);
 
@@ -473,7 +478,7 @@ export const SalesDashboard: React.FC = () => {
         {/* Tab 2: RETAIL B2C ORDERS & FULFILLMENT DESK */}
         {activeTab === 'retail_orders' && (
           <div className="p-8 rounded-3xl bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-xl space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 border-b border-white/10 pb-6">
               <div>
                 <h3 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
                   <Truck className="w-7 h-7 text-[#d4a373]" />
@@ -483,20 +488,65 @@ export const SalesDashboard: React.FC = () => {
                   Manage Express Courier dispatches, verify customer delivery addresses, and update live tracking status for 50ml retail bottle orders.
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold uppercase tracking-wider">
+              <div className="flex flex-col xl:flex-row xl:items-center gap-3 w-full sm:w-auto">
+                <input
+                  type="text"
+                  placeholder="Search ID, Name, Phone, Email..."
+                  value={retailSearch}
+                  onChange={(e) => setRetailSearch(e.target.value)}
+                  className="px-4 py-2.5 rounded-xl bg-neutral-900/50 border border-white/10 text-white text-xs focus:outline-none focus:border-[#d4a373] w-full xl:w-64 shadow-inner"
+                />
+                <div className="flex items-center gap-2 w-full xl:w-auto">
+                  <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider shrink-0">Filter:</span>
+                  <select
+                    value={retailFilter}
+                    onChange={(e) => setRetailFilter(e.target.value)}
+                    className="flex-1 xl:flex-none px-4 py-2.5 rounded-xl bg-neutral-900/50 border border-white/10 text-white font-bold text-xs focus:outline-none focus:border-[#d4a373] cursor-pointer shadow-inner appearance-none"
+                  >
+                    <option value="All">All Orders</option>
+                    <option value="Preparing in Stock">Just Received (Preparing)</option>
+                    <option value="Packed & Purity Verified">Packed & Purity Verified</option>
+                    <option value="Ready to Dispatch">Ready to Dispatch</option>
+                    <option value="Out for Express Delivery">Out for Express Delivery</option>
+                    <option value="Delivered to Doorstep">Delivered to Doorstep</option>
+                  </select>
+                </div>
+                {/* 
+                <span className="px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold uppercase tracking-wider shrink-0 w-fit">
                   {retailOrders.length} Active Dispatches
-                </span>
+                </span> 
+                */}
               </div>
             </div>
 
             <div className="space-y-6">
-              {retailOrders.length === 0 ? (
+              {retailOrders
+                .filter(o => {
+                  const matchFilter = retailFilter === 'All' ? true : (o.deliveryStatus || 'Preparing in Stock') === retailFilter;
+                  const search = retailSearch.toLowerCase();
+                  const matchSearch = search === '' || 
+                    (o.id && o.id.toLowerCase().includes(search)) ||
+                    (o.customerName && o.customerName.toLowerCase().includes(search)) ||
+                    (o.phone && o.phone.toLowerCase().includes(search)) ||
+                    (o.email && o.email.toLowerCase().includes(search));
+                  return matchFilter && matchSearch;
+                }).length === 0 ? (
                 <div className="text-center py-12 text-neutral-500">
                   No retail orders found. Orders placed via checkout will appear here.
                 </div>
               ) : (
-                retailOrders.map((ord) => (
+                retailOrders
+                  .filter(o => {
+                    const matchFilter = retailFilter === 'All' ? true : (o.deliveryStatus || 'Preparing in Stock') === retailFilter;
+                    const search = retailSearch.toLowerCase();
+                    const matchSearch = search === '' || 
+                      (o.id && o.id.toLowerCase().includes(search)) ||
+                      (o.customerName && o.customerName.toLowerCase().includes(search)) ||
+                      (o.phone && o.phone.toLowerCase().includes(search)) ||
+                      (o.email && o.email.toLowerCase().includes(search));
+                    return matchFilter && matchSearch;
+                  })
+                  .map((ord) => (
                   <div key={ord.id} className="p-6 sm:p-8 rounded-3xl bg-neutral-900/60 border border-white/10 hover:border-white/20 transition-all shadow-xl space-y-6">
                     {/* Top Row: Invoice ID, Date, Payment Badge */}
                     <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10">
@@ -648,9 +698,33 @@ export const SalesDashboard: React.FC = () => {
         {/* Tab 3: ORDERS TRACKING */}
         {activeTab === 'orders' && (
           <div className="p-8 rounded-3xl bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-xl space-y-6">
-            <div>
-              <h3 className="text-2xl font-serif font-bold text-white">Track Orders & Payments</h3>
-              <p className="text-sm text-neutral-400 mt-1">View active orders generated from your quotes (Sales agents cannot cancel or delete orders).</p>
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 border-b border-white/10 pb-6">
+              <div>
+                <h3 className="text-2xl font-serif font-bold text-white">Track Orders & Payments</h3>
+                <p className="text-sm text-neutral-400 mt-1">View active orders generated from your quotes (Sales agents cannot cancel or delete orders).</p>
+              </div>
+              <div className="flex flex-col xl:flex-row xl:items-center gap-3 w-full sm:w-auto">
+                <input
+                  type="text"
+                  placeholder="Search ID, Name, Phone..."
+                  value={b2bSearch}
+                  onChange={(e) => setB2bSearch(e.target.value)}
+                  className="px-4 py-2.5 rounded-xl bg-neutral-900/50 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-400 w-full xl:w-64 shadow-inner"
+                />
+                <div className="flex items-center gap-2 w-full xl:w-auto">
+                  <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider shrink-0">Filter:</span>
+                  <select
+                    value={b2bFilter}
+                    onChange={(e) => setB2bFilter(e.target.value)}
+                    className="flex-1 xl:flex-none px-4 py-2.5 rounded-xl bg-neutral-900/50 border border-white/10 text-white font-bold text-xs focus:outline-none focus:border-blue-400 cursor-pointer shadow-inner appearance-none"
+                  >
+                    <option value="All">All Orders</option>
+                    <option value="Processing">New (Processing)</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Delivered">Delivered</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div className="overflow-x-auto">
@@ -666,7 +740,18 @@ export const SalesDashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 text-sm">
-                  {salesOrders.map((ord) => (
+                  {salesOrders
+                    .filter(o => {
+                      const matchFilter = b2bFilter === 'All' ? true : (o.status || 'Processing') === b2bFilter;
+                      const search = b2bSearch.toLowerCase();
+                      const matchSearch = search === '' || 
+                        (o.id && o.id.toLowerCase().includes(search)) ||
+                        (o.customer && o.customer.toLowerCase().includes(search)) ||
+                        (o.phone && o.phone.toLowerCase().includes(search)) ||
+                        (o.email && o.email.toLowerCase().includes(search));
+                      return matchFilter && matchSearch;
+                    })
+                    .map((ord) => (
                     <tr key={ord.id} className="hover:bg-white/5 transition-colors">
                       <td className="py-4 px-4 font-bold text-blue-400">{ord.id}</td>
                       <td className="py-4 px-4 font-bold text-white">{ord.customer}</td>

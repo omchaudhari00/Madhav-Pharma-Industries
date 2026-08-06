@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 export const generateInvoicePDF = (orderDetails: any) => {
   const doc = new jsPDF();
@@ -68,8 +68,7 @@ export const generateInvoicePDF = (orderDetails: any) => {
     tableRows.push(row);
   });
 
-  // @ts-ignore
-  doc.autoTable({
+  autoTable(doc, {
     startY: 85,
     head: [tableColumn],
     body: tableRows,
@@ -79,7 +78,7 @@ export const generateInvoicePDF = (orderDetails: any) => {
   });
 
   // @ts-ignore
-  const finalY = doc.lastAutoTable.finalY || 150;
+  const finalY = (doc as any).lastAutoTable?.finalY || 150;
   
   // Summary
   doc.setFontSize(10);

@@ -3,9 +3,10 @@ import {
   FileText, ShoppingBag, User, Package, ArrowLeft, 
   CheckCircle, XCircle, RefreshCw, Award, Clock, 
   ExternalLink, Download, ShieldCheck, Sparkles, AlertCircle,
-  CreditCard, Smartphone, Lock, X, MapPin
+  CreditCard, Smartphone, Lock, X, MapPin, Truck, Check, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { generateInvoicePDF } from '../../utils/InvoiceGenerator';
 
 const getIndividualItems = (q: any) => {
   if (q.items && Array.isArray(q.items) && q.items.length > 0) {
@@ -42,6 +43,7 @@ const getIndividualItems = (q: any) => {
 export const CustomerDashboard: React.FC = () => {
   const { user, setPortal, openCart, token } = useApp();
   const [activeTab, setActiveTab] = useState<'quotes' | 'orders' | 'products' | 'profile'>('quotes');
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
   const stage = user?.customer_stage || 'Lead';
   const isCustomer = stage === 'Customer';
@@ -102,7 +104,20 @@ export const CustomerDashboard: React.FC = () => {
       setMyQuotes(combined);
     };
 
+    const loadOrders = () => {
+      const retailOrders = JSON.parse(localStorage.getItem('madhav_retail_orders_list') || '[]');
+      const formattedRetailOrders = retailOrders.map((ro: any) => ({
+        ...ro,
+        product: ro.items?.map((i: any) => `${i.quantity}x ${i.name}`).join(', ') || 'Retail Products',
+        amount: ro.totalAmount,
+        status: ro.deliveryStatus || 'Processing',
+        isRetail: true
+      }));
+      setOrders(formattedRetailOrders);
+    };
+
     loadQuotes();
+    loadOrders();
   }, [token, activeTab]);
 
   const updateQuoteStatusInStorage = (id: string, newStatus: string) => {
@@ -182,7 +197,7 @@ export const CustomerDashboard: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-base sm:text-lg font-extrabold text-white leading-none">
-                  Madhav Pharma <span className="text-[#d4a373] font-normal font-serif">Buyer Portal</span>
+                  Madhav Pharma <span className="text-[#d4a373] font-normal font-serif">Customer Portal</span>
                 </h1>
                 <p className="text-xs text-neutral-400 mt-0.5">
                   Welcome, {user?.first_name || 'Valued Buyer'} • {user?.email}
@@ -199,7 +214,7 @@ export const CustomerDashboard: React.FC = () => {
                 : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
             }`}>
               <Sparkles className="w-3.5 h-3.5" />
-              <span>{isCustomer ? 'VERIFIED ENTERPRISE CUSTOMER' : 'LEAD PROSPECT'}</span>
+              <span>{isCustomer ? 'VERIFIED CUSTOMER' : 'NEW CUSTOMER'}</span>
             </span>
           </div>
         </div>
@@ -212,7 +227,7 @@ export const CustomerDashboard: React.FC = () => {
             <div className="flex items-center gap-2.5 text-amber-200">
               <AlertCircle className="w-4 h-4 shrink-0 text-[#d4a373]" />
               <span>
-                <strong>Your Account Status is LEAD:</strong> Once your first order is confirmed and delivered, your profile automatically promotes to <strong>VERIFIED CUSTOMER</strong> with VIP contract pricing.
+                <strong>Your Account Status is NEW CUSTOMER:</strong> Once your first order is confirmed and delivered, your profile automatically promotes to <strong>VERIFIED CUSTOMER</strong> with special pricing.
               </span>
             </div>
             <button 
@@ -230,9 +245,9 @@ export const CustomerDashboard: React.FC = () => {
         {/* Navigation Tabs */}
         <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-4 mb-8">
           {[
-            { id: 'quotes', label: 'My Quotation Requests', icon: FileText, badge: myQuotes.length },
+            { id: 'quotes', label: 'My Price Requests', icon: FileText, badge: myQuotes.length },
             { id: 'orders', label: 'My Orders & Invoices', icon: ShoppingBag, badge: orders.length },
-            { id: 'products', label: 'Pharma Products & MOQ', icon: Package },
+            { id: 'products', label: 'Products & Minimum Orders', icon: Package },
             { id: 'profile', label: 'Company Profile & Address', icon: User },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -266,8 +281,8 @@ export const CustomerDashboard: React.FC = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-2xl font-serif font-bold text-white">Quotation Requests & Negotiation Desk</h3>
-                <p className="text-sm text-neutral-400 mt-1">Review target prices from your dedicated sales rep. Accept to proceed to order invoice.</p>
+                <h3 className="text-2xl font-serif font-bold text-white">Price Requests & Offers</h3>
+                <p className="text-sm text-neutral-400 mt-1">Review target prices from our sales team. Accept to proceed to order invoice.</p>
               </div>
             </div>
 
@@ -275,9 +290,9 @@ export const CustomerDashboard: React.FC = () => {
               {myQuotes.length === 0 ? (
                 <div className="p-12 text-center border border-dashed border-white/10 rounded-3xl bg-neutral-900/30">
                   <FileText className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
-                  <h4 className="text-lg font-bold text-white">No Quotation Requests Found</h4>
+                  <h4 className="text-lg font-bold text-white">No Price Requests Found</h4>
                   <p className="text-xs text-neutral-400 mt-1 max-w-md mx-auto">
-                    You haven't submitted any bulk quote requests yet. Go to Products, add items to your floating cart, and click "Request Bulk Quotation" to send your request to Sales!
+                    You haven't submitted any bulk price requests yet. Go to Products, add items to your floating cart, and click "Request Bulk Quote" to send your request to Sales!
                   </p>
                   <button
                     onClick={() => setActiveTab('products')}
@@ -340,7 +355,7 @@ export const CustomerDashboard: React.FC = () => {
 
                   {q.notes && (
                     <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-neutral-300">
-                      <span className="text-neutral-500 font-bold uppercase mr-1">Sales Rep Note ({q.salesAgent}):</span>
+                      <span className="text-neutral-500 font-bold uppercase mr-1">Sales Team Note ({q.salesAgent}):</span>
                       <span>"{q.notes}"</span>
                     </div>
                   )}
@@ -437,8 +452,8 @@ export const CustomerDashboard: React.FC = () => {
               <h3 className="text-2xl font-serif font-bold text-white">My Order History & Invoices</h3>
               <p className="text-sm text-neutral-400 mt-1">
                 {isCustomer 
-                  ? 'View your active pharma shipments and download GST-compliant tax invoices.'
-                  : 'You have 0 completed orders. Accept a quotation and place your first order to unlock Verified Customer perks!'}
+                  ? 'View your active shipments and download GST-compliant tax invoices.'
+                  : 'You have 0 completed orders. Accept a price offer and place your first order to unlock Verified Customer perks!'}
               </p>
             </div>
 
@@ -457,26 +472,111 @@ export const CustomerDashboard: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-white/5 text-sm">
                     {orders.map((ord) => (
-                      <tr key={ord.id} className="hover:bg-white/5 transition-colors">
-                        <td className="py-4 px-4 font-bold text-[#d4a373]">{ord.id}</td>
-                        <td className="py-4 px-4 font-semibold text-white">{ord.product}</td>
-                        <td className="py-4 px-4 font-mono text-white">{ord.amount}</td>
-                        <td className="py-4 px-4">
-                          <div className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl border bg-emerald-500/15 text-emerald-300 border-emerald-500/30 text-xs font-bold whitespace-nowrap shadow-sm">
-                            {ord.status}
-                          </div>
-                        </td>
-                        <td className="py-4 px-4 text-neutral-400">{ord.date}</td>
-                        <td className="py-4 px-4">
-                          <button 
-                            onClick={() => alert(`Downloading GST Invoice ${ord.id}...`)}
-                            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1.5"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>Download PDF</span>
-                          </button>
-                        </td>
-                      </tr>
+                      <React.Fragment key={ord.id}>
+                        <tr 
+                          onClick={() => setExpandedOrderId(expandedOrderId === ord.id ? null : ord.id)}
+                          className="hover:bg-white/5 transition-colors cursor-pointer"
+                        >
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-2">
+                              {expandedOrderId === ord.id ? <ChevronUp className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
+                              <span className="font-bold text-[#d4a373]">{ord.id}</span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4 font-semibold text-white">{ord.product}</td>
+                          <td className="py-4 px-4 font-mono text-white">{ord.amount}</td>
+                          <td className="py-4 px-4">
+                            <div className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl border bg-emerald-500/15 text-emerald-300 border-emerald-500/30 text-xs font-bold whitespace-nowrap shadow-sm">
+                              {ord.status}
+                            </div>
+                          </td>
+                          <td className="py-4 px-4 text-neutral-400">{ord.date}</td>
+                          <td className="py-4 px-4" onClick={(e) => e.stopPropagation()}>
+                            <button 
+                              onClick={() => {
+                                if (ord.isRetail) {
+                                  generateInvoicePDF(ord);
+                                } else {
+                                  alert(`Downloading GST Invoice ${ord.id}...`);
+                                }
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1.5"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>Download PDF</span>
+                            </button>
+                          </td>
+                        </tr>
+                        {expandedOrderId === ord.id && (
+                          <tr>
+                            <td colSpan={6} className="p-0 border-b border-white/5 bg-neutral-900/40">
+                              <div className="p-6">
+                                <div className="p-6 rounded-3xl bg-neutral-950/80 border border-white/10 space-y-6">
+                                  <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+                                    <span className="text-xs uppercase tracking-widest text-[#d4a373] font-bold">
+                                      Live Delivery Status
+                                    </span>
+                                    <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
+                                      <Clock className="w-3.5 h-3.5" /> Express Dispatch
+                                    </span>
+                                  </div>
+
+                                  <div className="flex flex-col sm:flex-row justify-between gap-6 relative">
+                                    {/* Progress Line (hidden on mobile, visible on sm and up) */}
+                                    <div className="hidden sm:block absolute top-5 left-8 right-8 h-0.5 bg-neutral-800 z-0">
+                                      <div className="h-full bg-emerald-500 w-[50%] transition-all duration-1000" />
+                                    </div>
+
+                                    {/* Step 1 */}
+                                    <div className="relative z-10 flex flex-col items-center text-center space-y-2 flex-1">
+                                      <div className="w-10 h-10 rounded-full bg-emerald-500 text-black flex items-center justify-center font-bold shadow-md">
+                                        <Check className="w-5 h-5 stroke-[3]" />
+                                      </div>
+                                      <div>
+                                        <h4 className="text-xs sm:text-sm font-bold text-white">Order Confirmed</h4>
+                                        <p className="text-[10px] sm:text-xs text-neutral-400">Payment received</p>
+                                      </div>
+                                    </div>
+
+                                    {/* Step 2 */}
+                                    <div className="relative z-10 flex flex-col items-center text-center space-y-2 flex-1">
+                                      <div className="w-10 h-10 rounded-full bg-emerald-500 text-black flex items-center justify-center font-bold shadow-md">
+                                        <Check className="w-5 h-5 stroke-[3]" />
+                                      </div>
+                                      <div>
+                                        <h4 className="text-xs sm:text-sm font-bold text-white">Bottling & QC</h4>
+                                        <p className="text-[10px] sm:text-xs text-neutral-400">Purity seal inspection</p>
+                                      </div>
+                                    </div>
+
+                                    {/* Step 3 */}
+                                    <div className="relative z-10 flex flex-col items-center text-center space-y-2 flex-1">
+                                      <div className="w-10 h-10 rounded-full bg-[#d4a373]/20 border-2 border-[#d4a373] text-[#d4a373] flex items-center justify-center font-bold">
+                                        <Package className="w-5 h-5" />
+                                      </div>
+                                      <div>
+                                        <h4 className="text-xs sm:text-sm font-bold text-white">Out for Delivery</h4>
+                                        <p className="text-[10px] sm:text-xs text-neutral-400">In transit with courier</p>
+                                      </div>
+                                    </div>
+
+                                    {/* Step 4 */}
+                                    <div className="relative z-10 flex flex-col items-center text-center space-y-2 flex-1 opacity-50">
+                                      <div className="w-10 h-10 rounded-full bg-neutral-800 border-2 border-neutral-700 text-neutral-500 flex items-center justify-center font-bold">
+                                        <MapPin className="w-5 h-5" />
+                                      </div>
+                                      <div>
+                                        <h4 className="text-xs sm:text-sm font-bold text-neutral-400">Delivered</h4>
+                                        <p className="text-[10px] sm:text-xs text-neutral-500">To registered address</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>
@@ -486,7 +586,7 @@ export const CustomerDashboard: React.FC = () => {
                 <Package className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
                 <h4 className="text-lg font-bold text-white">No Orders Placed Yet</h4>
                 <p className="text-xs text-neutral-400 mt-1 max-w-md mx-auto">
-                  As a Lead Prospect, accept one of your approved quotations from the Negotiation Desk to create your first order.
+                  As a New Customer, accept one of your approved price offers to create your first order.
                 </p>
               </div>
             )}
@@ -497,7 +597,7 @@ export const CustomerDashboard: React.FC = () => {
         {activeTab === 'products' && (
           <div className="p-8 rounded-3xl bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-xl space-y-6">
             <div>
-              <h3 className="text-2xl font-serif font-bold text-white">Madhav Pharma Products & MOQ Reference</h3>
+              <h3 className="text-2xl font-serif font-bold text-white">Madhav Pharma Products & Minimum Orders</h3>
               <p className="text-sm text-neutral-400 mt-1">100% steam distilled natural essential oils with GC-MS and COA certification.</p>
             </div>
 
@@ -573,8 +673,8 @@ export const CustomerDashboard: React.FC = () => {
                   <Lock className="w-5 h-5 font-bold" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white font-serif">Secure B2B Deal Payment</h3>
-                  <p className="text-xs text-[#d4a373]">Quotation Ref: {selectedQuoteForPayment.id}</p>
+                  <h3 className="text-lg font-bold text-white font-serif">Secure Bulk Payment</h3>
+                  <p className="text-xs text-[#d4a373]">Quote Ref: {selectedQuoteForPayment.id}</p>
                 </div>
               </div>
               <button
@@ -588,9 +688,9 @@ export const CustomerDashboard: React.FC = () => {
             {isB2bProcessing ? (
               <div className="py-12 text-center space-y-4">
                 <div className="w-12 h-12 border-4 border-[#d4a373] border-t-transparent rounded-full animate-spin mx-auto" />
-                <h4 className="text-lg font-bold text-white">Processing Enterprise Payment...</h4>
+                <h4 className="text-lg font-bold text-white">Processing Payment...</h4>
                 <p className="text-xs text-neutral-400">
-                  Securing bulk deal payment via {b2bPaymentMethod} and issuing GST Invoice.
+                  Securing payment via {b2bPaymentMethod} and issuing GST Invoice.
                 </p>
               </div>
             ) : (
