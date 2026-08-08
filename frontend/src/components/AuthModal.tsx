@@ -25,10 +25,9 @@ export const AuthModal: React.FC = () => {
   const [signUpError, setSignUpError] = useState('');
   const [signUpLoading, setSignUpLoading] = useState(false);
 
-  // Resend & Dev OTP State
+  // Resend State
   const [resendTimer, setResendTimer] = useState(0);
   const [resendSuccess, setResendSuccess] = useState('');
-  const [devOtpHint, setDevOtpHint] = useState('');
 
   useEffect(() => {
     let timer: any;
@@ -126,7 +125,6 @@ export const AuthModal: React.FC = () => {
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setSignUpStep('otp');
-        if (data.dev_otp) setDevOtpHint(data.dev_otp);
         setResendTimer(30);
         setResendSuccess('');
       } else {
@@ -158,7 +156,6 @@ export const AuthModal: React.FC = () => {
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setResendSuccess('A new verification code has been sent to your email.');
-        if (data.dev_otp) setDevOtpHint(data.dev_otp);
         setResendTimer(30);
       } else {
         setSignUpError(data.error || 'Failed to resend verification code.');
@@ -481,11 +478,6 @@ export const AuthModal: React.FC = () => {
               {resendSuccess && (
                 <p className="text-xs text-emerald-400 font-medium">{resendSuccess}</p>
               )}
-              {devOtpHint && (
-                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 font-mono">
-                  [DEV MODE] Local OTP Code: <strong>{devOtpHint}</strong>
-                </div>
-              )}
             </div>
 
             <button
@@ -494,7 +486,6 @@ export const AuthModal: React.FC = () => {
                 setSignUpStep('form');
                 setSignUpError('');
                 setResendSuccess('');
-                setDevOtpHint('');
               }}
               className="text-xs text-neutral-400 hover:text-white transition-colors block mx-auto pt-1"
             >

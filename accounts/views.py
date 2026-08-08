@@ -143,14 +143,11 @@ class RequestOTPView(APIView):
                         fail_silently=False,
                     )
             except Exception as e:
-                email_sent = False
                 print(f"[Email Error] Failed to send OTP email to {email}: {e}")
-                print(f"MOCK OTP for {email}/{mobile_number}: {otp}")
+                return Response({"error": "Failed to send OTP to your email. Please ensure the server email configuration (App Password) is correct."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            dev_otp = otp if (settings.DEBUG or not email_sent or not getattr(settings, 'EMAIL_HOST_PASSWORD', '')) else None
             return Response({
-                "message": "OTP sent successfully to your email. Please verify.",
-                "dev_otp": dev_otp
+                "message": "OTP sent successfully to your email. Please verify."
             })
         first_error = next(iter(serializer.errors.values()))[0] if serializer.errors else "Invalid registration details."
         return Response({"error": str(first_error), "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -199,14 +196,11 @@ class ResendOTPView(APIView):
                     fail_silently=False,
                 )
         except Exception as e:
-            email_sent = False
             print(f"[Email Error] Failed to resend OTP email to {email}: {e}")
-            print(f"MOCK OTP for {email}/{mobile_number}: {otp}")
+            return Response({"error": "Failed to send OTP to your email. Please ensure the server email configuration is correct."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        dev_otp = otp if (settings.DEBUG or not email_sent or not getattr(settings, 'EMAIL_HOST_PASSWORD', '')) else None
         return Response({
-            "message": "A new OTP has been sent to your email.",
-            "dev_otp": dev_otp
+            "message": "A new OTP has been sent to your email."
         })
 
 class VerifyOTPAndRegisterView(APIView):
