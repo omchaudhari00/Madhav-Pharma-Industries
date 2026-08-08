@@ -299,6 +299,36 @@ export const ProductShowcase: React.FC = () => {
                   </span>
                 </div>
               </div>
+
+              {getMode(activeProduct.id) === 'retail' && (
+                <div className="mb-8 pt-6 border-t border-white/10">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center gap-0.5 text-[#d4a373]">
+                      {[1, 2, 3, 4, 5].map(i => <Star key={i} className={`w-4 h-4 ${i === 5 ? 'opacity-50' : 'fill-current'}`} />)}
+                    </div>
+                    <span className="text-sm font-bold text-white">4.8/5 <span className="text-neutral-400 font-normal">(128 Retail Reviews)</span></span>
+                  </div>
+                  
+                  <div className="bg-black/40 backdrop-blur-md rounded-2xl p-4 border border-white/10 relative overflow-hidden group-hover:border-white/20 transition-colors">
+                    <div className="absolute top-0 right-0 -mt-2 -mr-2 opacity-5 pointer-events-none">
+                      <Star className="w-24 h-24 text-white fill-current" />
+                    </div>
+                    <p className="text-sm text-neutral-300 italic mb-3 relative z-10 font-sans-custom leading-relaxed">
+                      "Absolutely exceptional purity. You only need one drop to experience the full aroma. It arrived perfectly packed in a premium glass bottle. Highly recommended for daily wellness!"
+                    </p>
+                    <div className="flex flex-wrap items-center justify-between gap-2 relative z-10">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-[#d4a373]/20 text-[#d4a373] border border-[#d4a373]/30 flex items-center justify-center text-[10px] font-extrabold">
+                          AS
+                        </div>
+                        <span className="text-xs font-bold text-white tracking-wide">Aarti Sharma</span>
+                        <span className="text-[9px] text-emerald-400 font-bold px-1.5 py-0.5 bg-emerald-500/15 border border-emerald-500/20 rounded uppercase tracking-wider">Verified Buyer</span>
+                      </div>
+                      <span className="text-[10px] text-neutral-500 font-medium">2 days ago</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>

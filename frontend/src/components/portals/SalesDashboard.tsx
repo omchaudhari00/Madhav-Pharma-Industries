@@ -263,7 +263,12 @@ export const SalesDashboard: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-4 mb-8">
           {[
             { id: 'quotes', label: 'My Quotes & Negotiations', icon: FileText, badge: myQuotes.length },
-            { id: 'retail_orders', label: 'Retail B2C Orders & Fulfillment', icon: Truck, badge: retailOrders.length },
+            { 
+              id: 'retail_orders', 
+              label: 'Retail B2C Orders & Fulfillment', 
+              icon: Truck, 
+              badge: retailOrders.filter(o => !['Out for Express Delivery', 'Delivered to Doorstep'].includes(o.deliveryStatus || '')).length 
+            },
             { id: 'customers', label: 'Assigned Customers & Leads', icon: Users, badge: assignedCustomers.length },
             { id: 'orders', label: 'B2B Bulk Orders', icon: ShoppingBag },
             { id: 'notifications', label: 'Send Reminders', icon: Bell },
