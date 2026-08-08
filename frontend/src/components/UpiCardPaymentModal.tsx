@@ -111,6 +111,7 @@ export const UpiCardPaymentModal: React.FC<UpiCardPaymentModalProps> = ({
         rzp.open();
         return;
       }
+    }
     // Fail gracefully if not configured or script fails to load
     console.error("Razorpay is not configured or failed to load. Payment cannot proceed.");
     setIsLaunchingRazorpay(false);
