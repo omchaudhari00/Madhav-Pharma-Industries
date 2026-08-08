@@ -13,7 +13,7 @@ class Payment(models.Model):
     payment_id = models.CharField(max_length=50, unique=True, blank=True)
     quotation = models.OneToOneField(Quotation, on_delete=models.CASCADE, related_name='payment')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='Pending')
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='Pending', db_index=True)
     payment_method = models.CharField(max_length=50, default='Razorpay', blank=True, null=True)
     currency = models.CharField(max_length=10, default='INR', blank=True, null=True)
     signature_verified = models.BooleanField(default=False)
@@ -55,12 +55,12 @@ class Order(models.Model):
     )
     
     order_number = models.CharField(max_length=50, unique=True, blank=True)
-    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders', db_index=True)
     quotation = models.OneToOneField(Quotation, on_delete=models.CASCADE, related_name='order')
     payment = models.OneToOneField(Payment, on_delete=models.CASCADE, related_name='order')
     invoice = models.OneToOneField(Invoice, on_delete=models.CASCADE, related_name='order')
     shipping_address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, related_name='orders_shipped')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending', db_index=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
