@@ -117,7 +117,7 @@ export const SalesDashboard: React.FC = () => {
     const loadQuotes = async () => {
       let backendQuotes: any[] = [];
       try {
-        const res = await fetch('/api/quotations/quotations/');
+        const res = await fetch('https://madhav-pharma-industries.onrender.com/api/quotations/quotations/');
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data)) {
@@ -834,3 +834,4 @@ export const SalesDashboard: React.FC = () => {
     </div>
   );
 };
+
