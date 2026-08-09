@@ -20,6 +20,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env file
 load_dotenv(BASE_DIR / '.env')
 
+# FIX: Force IPv4 for outbound connections to prevent Render IPv6 "Network is unreachable" errors
+import socket
+orig_getaddrinfo = socket.getaddrinfo
+def getaddrinfo_ipv4_only(*args, **kwargs):
+    responses = orig_getaddrinfo(*args, **kwargs)
+    return [res for res in responses if res[0] == socket.AF_INET]
+socket.getaddrinfo = getaddrinfo_ipv4_only
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
