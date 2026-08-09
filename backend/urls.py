@@ -16,6 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import get_user_model
+from django.http import HttpResponse
+
+def clear_test_user(request):
+    get_user_model().objects.filter(email='madhavpharmaindustries@gmail.com').delete()
+    return HttpResponse("Database cleared for madhavpharmaindustries@gmail.com!")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,4 +30,5 @@ urlpatterns = [
     path('api/quotations/', include('quotations.urls')),
     path('api/orders/', include('orders.urls')),
     path('api/interactions/', include('interactions.urls')),
+    path('api/clear-db/', clear_test_user),
 ]
