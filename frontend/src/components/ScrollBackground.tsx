@@ -220,7 +220,8 @@ export default function ScrollBackground() {
           // Fade out the fallback once the canvas animation is ready
           opacity: isAnimationReady ? 0 : 0.5,
           transition: 'opacity 1.5s ease-in-out',
-          pointerEvents: 'none'
+          pointerEvents: 'none',
+          transform: 'scaleX(-1)'
         }}
       />
       
@@ -237,7 +238,8 @@ export default function ScrollBackground() {
             pointerEvents: 'none',
             zIndex: 1, // Place canvas on top of fallback
             opacity: isAnimationReady ? 0.5 : 0,
-            transition: 'opacity 1.5s ease-in-out'
+            transition: 'opacity 1.5s ease-in-out',
+            transform: 'scaleX(-1)'
           }}
         />
       )}

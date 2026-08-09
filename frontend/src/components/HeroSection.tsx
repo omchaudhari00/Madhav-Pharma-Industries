@@ -16,7 +16,7 @@ export const HeroSection: React.FC = () => {
       </div>
 
       {/* Main Center Content */}
-      <div className="my-auto pt-8 pb-16 lg:py-16 relative z-10 flex flex-col justify-center">
+      <div className="my-auto pt-8 pb-16 lg:py-16 relative z-10 flex flex-col justify-center items-end text-right ml-auto">
         <div className="max-w-2xl relative">
 
           {/* Headline with exact geometric bold display font style */}
@@ -32,7 +32,7 @@ export const HeroSection: React.FC = () => {
           </p>
 
           {/* Action Buttons: Request Quote & Explore Products */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6 font-display">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:gap-6 font-display">
             <button
               onClick={openCart}
               className="group relative inline-flex items-center justify-center p-[3px] rounded-full border border-white/60 hover:border-white transition-all duration-300 focus:outline-none w-full sm:w-auto"
