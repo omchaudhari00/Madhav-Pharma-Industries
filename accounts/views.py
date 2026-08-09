@@ -144,7 +144,7 @@ class RequestOTPView(APIView):
                     )
             except Exception as e:
                 print(f"[Email Error] Failed to send OTP email to {email}: {e}")
-                return Response({"error": "Failed to send OTP to your email. Please ensure the server email configuration (App Password) is correct."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"error": f"Server Email Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
             return Response({
                 "message": "OTP sent successfully to your email. Please verify."
