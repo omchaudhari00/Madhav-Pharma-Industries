@@ -45,6 +45,7 @@ export const AdminDashboard: React.FC = () => {
     isRetailOutOfStock,
     isB2BOutOfStock,
     isDiscontinued,
+    token,
   } = useApp();
   const [activeTab, setActiveTab] = useState<
     'overview' | 'quotes' | 'customers' | 'products' | 'sales' | 'orders' | 'settings'
@@ -93,13 +94,66 @@ export const AdminDashboard: React.FC = () => {
     loadQuotes();
   }, [activeTab]);
 
-  const [products, setProducts] = useState([
-    { id: 1, codeId: 'cumin-seed-oil', name: 'Pure Cumin Seed Oil (Jeera Oil)', moq: '5 KG', price: '₹120/KG', availability: 'In Stock', active: true },
-    { id: 2, codeId: 'fennel-seed-oil', name: 'Natural Fennel Seed Oil', moq: '10 KG', price: '₹85/KG', availability: 'In Stock', active: true },
-    { id: 3, codeId: 'ajwain-seed-oil', name: 'Pure Ajwain Seed Oil', moq: '5 KG', price: '₹95/KG', availability: 'In Stock', active: true },
-    { id: 4, codeId: 'coriander-oil', name: 'Organic Coriander Essential Oil', moq: '5 KG', price: '₹110/KG', availability: 'In Stock', active: true },
-  ]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [isAddingProduct, setIsAddingProduct] = useState(false);
+  const [productLoading, setProductLoading] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    description: '',
+    price: '',
+    minimum_order_quantity: 5,
+    availability_status: 'In Stock'
+  });
 
+  const loadProducts = async () => {
+    try {
+      const res = await fetch('/api/catalog/products/', {
+        headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProducts(data.map((p: any) => ({
+          ...p,
+          codeId: p.id.toString(),
+          moq: `${p.minimum_order_quantity} KG`,
+          price: `₹${p.price}`,
+          availability: p.availability_status,
+          active: p.is_active
+        })));
+      }
+    } catch (e) {
+      console.error('Failed to load products', e);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'products') {
+      loadProducts();
+    }
+  }, [activeTab, token]);
+
+  const handleSaveProduct = async () => {
+    if (!token) return;
+    setProductLoading(true);
+    try {
+      const res = await fetch('/api/catalog/products/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newProduct)
+      });
+      if (res.ok) {
+        setIsAddingProduct(false);
+        setNewProduct({ name: '', description: '', price: '', minimum_order_quantity: 5, availability_status: 'In Stock' });
+        loadProducts();
+      }
+    } catch (e) {
+      console.error('Failed to add product', e);
+    }
+    setProductLoading(false);
+  };
   const [salesUsers, setSalesUsers] = useState<any[]>([]);
 
   const [orders, setOrders] = useState<any[]>([]);
@@ -482,11 +536,37 @@ export const AdminDashboard: React.FC = () => {
                 <h3 className="text-2xl font-serif font-bold text-white">Product Catalog & MOQ Management</h3>
                 <p className="text-sm text-neutral-400 mt-1">Admin has full control to add/edit products, MOQ, upload certificates, and toggle availability.</p>
               </div>
-              <button className="px-4 py-2.5 rounded-xl bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg">
+              <button onClick={() => setIsAddingProduct(true)} className="px-4 py-2.5 rounded-xl bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg">
                 <Plus className="w-4 h-4" />
                 <span>Add Product</span>
               </button>
             </div>
+
+            {isAddingProduct && (
+              <div className="p-6 rounded-2xl bg-neutral-900/60 border border-[#d4a373]/30 space-y-4 mb-6">
+                <div className="flex justify-between items-center">
+                  <h4 className="text-lg font-bold text-white">Add New Product</h4>
+                  <button onClick={() => setIsAddingProduct(false)} className="text-neutral-400 hover:text-white"><X className="w-5 h-5" /></button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input type="text" placeholder="Product Name" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                  <input type="number" placeholder="Price (₹)" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                  <input type="number" placeholder="MOQ (KG)" value={newProduct.minimum_order_quantity} onChange={e => setNewProduct({...newProduct, minimum_order_quantity: parseInt(e.target.value)})} className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                  <select value={newProduct.availability_status} onChange={e => setNewProduct({...newProduct, availability_status: e.target.value})} className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373] text-white">
+                    <option value="In Stock">In Stock</option>
+                    <option value="Out of Stock">Out of Stock</option>
+                    <option value="Made to Order">Made to Order</option>
+                  </select>
+                  <textarea placeholder="Description" value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373] md:col-span-2 h-24"></textarea>
+                </div>
+                <div className="flex justify-end gap-3 pt-2">
+                  <button onClick={() => setIsAddingProduct(false)} className="px-6 py-2.5 rounded-xl border border-white/10 hover:bg-white/5 text-xs font-bold uppercase text-white">Cancel</button>
+                  <button onClick={handleSaveProduct} disabled={productLoading} className="px-6 py-2.5 rounded-xl bg-[#d4a373] hover:bg-[#c29161] text-black text-xs font-bold uppercase">
+                    {productLoading ? 'Saving...' : 'Save Product'}
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">

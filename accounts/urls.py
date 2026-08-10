@@ -1,9 +1,13 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from .views import (
     CheckUserView, LoginView, RequestOTPView, ResendOTPView, VerifyOTPAndRegisterView,
-    AdminDashboardStatsView, UserListView, ManageSalesUserView
+    AdminDashboardStatsView, UserListView, ManageSalesUserView, AddressViewSet
 )
 from rest_framework_simplejwt.views import TokenRefreshView
+
+router = DefaultRouter()
+router.register(r'addresses', AddressViewSet, basename='address')
 
 urlpatterns = [
     path('check-user/', CheckUserView.as_view(), name='check_user'),
@@ -15,5 +19,6 @@ urlpatterns = [
     path('admin/stats/', AdminDashboardStatsView.as_view(), name='admin_stats'),
     path('users/', UserListView.as_view(), name='user_list'),
     path('sales-users/', ManageSalesUserView.as_view(), name='manage_sales_user'),
+    path('', include(router.urls)),
 ]
 
