@@ -54,6 +54,14 @@ export const CustomerDashboard: React.FC = () => {
   const [b2bPaymentMethod, setB2bPaymentMethod] = useState<'UPI' | 'Card'>('UPI');
   const [isB2bProcessing, setIsB2bProcessing] = useState(false);
 
+  // Address State
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [addressId, setAddressId] = useState<number | null>(null);
+  const [addressData, setAddressData] = useState({
+    address_line_1: '', city: '', state: '', postal_code: '', country: 'India', is_default: true
+  });
+  const [addressLoading, setAddressLoading] = useState(false);
+
   useEffect(() => {
     const loadQuotes = async () => {
       let backendQuotes: any[] = [];
@@ -119,6 +127,61 @@ export const CustomerDashboard: React.FC = () => {
     loadQuotes();
     loadOrders();
   }, [token, activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 'profile' && token) {
+      const loadAddress = async () => {
+        try {
+          const res = await fetch('/api/accounts/addresses/', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.length > 0) {
+              const defaultAddr = data.find((a: any) => a.is_default) || data[0];
+              setAddressId(defaultAddr.id);
+              setAddressData({
+                address_line_1: defaultAddr.address_line_1 || '',
+                city: defaultAddr.city || '',
+                state: defaultAddr.state || '',
+                postal_code: defaultAddr.postal_code || '',
+                country: defaultAddr.country || 'India',
+                is_default: defaultAddr.is_default
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Failed to load address', e);
+        }
+      };
+      loadAddress();
+    }
+  }, [activeTab, token]);
+
+  const handleSaveAddress = async () => {
+    if (!token) return;
+    setAddressLoading(true);
+    try {
+      const url = addressId ? `/api/accounts/addresses/${addressId}/` : '/api/accounts/addresses/';
+      const method = addressId ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(addressData)
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setAddressId(saved.id);
+        setIsEditingAddress(false);
+      }
+    } catch (e) {
+      console.error('Failed to save address', e);
+    }
+    setAddressLoading(false);
+  };
 
   const updateQuoteStatusInStorage = (id: string, newStatus: string) => {
     const existing = JSON.parse(localStorage.getItem('madhav_quotes') || '[]');
@@ -649,13 +712,48 @@ export const CustomerDashboard: React.FC = () => {
               </div>
 
               <div className="p-6 rounded-2xl bg-neutral-900/50 border border-white/10 space-y-4">
-                <h4 className="text-lg font-bold text-white">Billing & Shipping Address</h4>
-                <p className="text-xs text-neutral-400">
-                  Primary Delivery: {user?.address || 'Phase II, Industrial Park, Mumbai, Maharashtra 400013'}
-                </p>
-                <button className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white">
-                  Edit Delivery Address
-                </button>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-bold text-white">Billing & Shipping Address</h4>
+                  {!isEditingAddress && (
+                    <button onClick={() => setIsEditingAddress(true)} className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition-colors">
+                      Edit
+                    </button>
+                  )}
+                </div>
+                
+                {isEditingAddress ? (
+                  <div className="space-y-4 pt-2">
+                    <input type="text" value={addressData.address_line_1} onChange={e => setAddressData({...addressData, address_line_1: e.target.value})} placeholder="Address Line 1" className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <input type="text" value={addressData.city} onChange={e => setAddressData({...addressData, city: e.target.value})} placeholder="City" className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                      <input type="text" value={addressData.state} onChange={e => setAddressData({...addressData, state: e.target.value})} placeholder="State" className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <input type="text" value={addressData.postal_code} onChange={e => setAddressData({...addressData, postal_code: e.target.value})} placeholder="PIN Code" className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                      <input type="text" value={addressData.country} onChange={e => setAddressData({...addressData, country: e.target.value})} placeholder="Country" className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                    </div>
+                    <div className="flex gap-3 pt-2">
+                      <button onClick={handleSaveAddress} disabled={addressLoading} className="flex-1 py-2.5 rounded-xl bg-[#d4a373] text-black font-bold text-xs uppercase hover:opacity-90">
+                        {addressLoading ? 'Saving...' : 'Save Address'}
+                      </button>
+                      <button onClick={() => setIsEditingAddress(false)} className="px-6 py-2.5 rounded-xl border border-white/10 hover:bg-white/5 text-xs font-bold uppercase">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-neutral-400">
+                    {addressData.address_line_1 ? (
+                      <>
+                        <span className="block text-white mb-1">{addressData.address_line_1}</span>
+                        {addressData.city}, {addressData.state} {addressData.postal_code}<br />
+                        {addressData.country}
+                      </>
+                    ) : (
+                      'Primary Delivery: ' + (user?.address || 'Phase II, Industrial Park, Mumbai, Maharashtra 400013')
+                    )}
+                  </p>
+                )}
               </div>
             </div>
           </div>

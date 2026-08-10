@@ -1,4 +1,4 @@
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -13,7 +13,7 @@ from .models import User, CustomerProfile, OTPRecord, Address
 from .serializers import (
     CheckUserSerializer, LoginSerializer, 
     RegistrationRequestSerializer, OTPVerificationSerializer,
-    UserSerializer, CustomerProfileSerializer
+    UserSerializer, CustomerProfileSerializer, AddressSerializer
 )
 from .permissions import IsAdminUser, IsSalesUser, IsAdminOrSalesUser
 
@@ -317,3 +317,31 @@ class ManageSalesUserView(APIView):
             is_verified=True
         )
         return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+
+class AddressViewSet(viewsets.ModelViewSet):
+    serializer_class = AddressSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if hasattr(user, 'customer_profile'):
+            return Address.objects.filter(customer=user.customer_profile)
+        return Address.objects.none()
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not hasattr(user, 'customer_profile'):
+            CustomerProfile.objects.create(user=user)
+        # Ensure only one default address
+        is_default = serializer.validated_data.get('is_default', False)
+        if is_default:
+            Address.objects.filter(customer=user.customer_profile).update(is_default=False)
+            
+        serializer.save(customer=user.customer_profile)
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        is_default = serializer.validated_data.get('is_default', False)
+        if is_default:
+            Address.objects.filter(customer=user.customer_profile).update(is_default=False)
+        serializer.save()
