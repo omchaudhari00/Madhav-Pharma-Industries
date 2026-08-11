@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Phone, Mail, MessageSquare, MapPin, Play, Facebook, Twitter, Instagram, Handshake, Linkedin, MessageCircle, User, Send, Activity, Heart } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 
 export const ContactUsSection: React.FC = () => {
+  const { openCart } = useApp();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -172,7 +174,10 @@ export const ContactUsSection: React.FC = () => {
             Ready to Source Premium Essential Oils?
           </h3>
           <div>
-            <button className="px-8 py-3.5 rounded-full bg-white text-black font-bold uppercase text-xs sm:text-sm tracking-wider hover:bg-neutral-200 transition-colors duration-300 font-display">
+            <button
+              onClick={openCart}
+              className="px-8 py-3.5 rounded-full bg-white text-black font-bold uppercase text-xs sm:text-sm tracking-wider hover:bg-neutral-200 transition-colors duration-300 font-display cursor-pointer"
+            >
               Request a Quote
             </button>
           </div>
@@ -265,13 +270,13 @@ export const ContactUsSection: React.FC = () => {
                 <a href="mailto:madhavpharmaindustries@gmail.com" className="hover:text-white transition-colors break-all font-medium">madhavpharmaindustries@gmail.com</a>
               </li>
             </ul>
-            <a
-              href="#contact"
-              className="inline-flex items-center justify-center space-x-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider hover:opacity-90 transition-all shadow-[0_0_25px_rgba(212,163,115,0.4)] font-display"
+            <button
+              onClick={openCart}
+              className="inline-flex items-center justify-center space-x-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider hover:opacity-90 transition-all shadow-[0_0_25px_rgba(212,163,115,0.4)] font-display cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
               <span>Get Instant Quote</span>
-            </a>
+            </button>
           </div>
         </div>
 

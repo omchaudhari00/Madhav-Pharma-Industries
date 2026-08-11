@@ -35,7 +35,7 @@ export const HeroSection: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:gap-6 font-display">
             <button
               onClick={openCart}
-              className="group relative inline-flex items-center justify-center p-[3px] rounded-full border border-white/60 hover:border-white transition-all duration-300 focus:outline-none w-full sm:w-auto"
+              className="group relative inline-flex items-center justify-center p-[3px] rounded-full border border-white/60 hover:border-white transition-all duration-300 focus:outline-none w-full sm:w-auto cursor-pointer"
             >
               <span className="relative flex items-center justify-center px-6 sm:px-8 py-3 rounded-full border border-white/80 group-hover:border-white text-white font-display text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors w-full sm:w-auto">
                 Request Quote
