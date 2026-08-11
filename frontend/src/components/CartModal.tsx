@@ -135,8 +135,13 @@ export const CartModal: React.FC = () => {
                   <p className="text-neutral-300 font-medium text-sm mb-1">Your quotation cart is empty</p>
                   <p className="text-neutral-500 text-xs mb-6">Add botanical oils to request instant bulk pricing.</p>
                   <button
-                    onClick={closeCart}
-                    className="px-6 py-2.5 rounded-full border border-white/60 hover:border-white text-xs font-bold uppercase tracking-wider text-white transition-colors"
+                    onClick={() => {
+                      closeCart();
+                      setTimeout(() => {
+                        document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
+                      }, 100);
+                    }}
+                    className="px-6 py-2.5 rounded-full border border-white/60 hover:border-white text-xs font-bold uppercase tracking-wider text-white transition-colors cursor-pointer"
                   >
                     Browse Products
                   </button>

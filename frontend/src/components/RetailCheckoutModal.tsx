@@ -640,7 +640,12 @@ export const RetailCheckoutModal: React.FC = () => {
                       Add 50ml botanical oil bottles to proceed to instant checkout.
                     </p>
                     <button
-                      onClick={handleClose}
+                      onClick={() => {
+                        handleClose();
+                        setTimeout(() => {
+                          document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
+                        }, 100);
+                      }}
                       className="px-6 py-2.5 rounded-full border border-white/60 hover:border-white text-xs font-bold uppercase tracking-wider text-white transition-colors cursor-pointer"
                     >
                       Browse Products
