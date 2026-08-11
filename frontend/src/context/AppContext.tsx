@@ -31,6 +31,95 @@ export interface RetailCartItem {
   imageUrl: string;
 }
 
+export interface ProductShowcaseItem {
+  id: string;
+  name: string;
+  categoryTitle: string;
+  categorySubtitle: string;
+  titleWhite: string;
+  titleGold: string;
+  badgeText: string;
+  specs: string[];
+  cardImage: string;
+  heroImage: string;
+  unitPrice: number;
+  retailPrice?: number;
+  moq?: string;
+  grade: string;
+  availability?: 'In Stock' | 'Out of Stock';
+}
+
+export const DEFAULT_PRODUCTS: ProductShowcaseItem[] = [
+  {
+    id: 'cumin-seed-oil',
+    name: 'Pure Cumin Seed Oil (Jeera Oil)',
+    categoryTitle: 'Cumin',
+    categorySubtitle: 'Seed Oil',
+    titleWhite: 'Cumin',
+    titleGold: 'Seed Oil',
+    badgeText: 'BEST SELLER',
+    specs: ['100% Pure & Natural', 'Steam Distilled', 'Essential Oil'],
+    cardImage: '/images/cumin-seed-oil.png',
+    heroImage: '/images/cumin-seed-oil.png',
+    unitPrice: 120,
+    retailPrice: 299,
+    moq: '5 KG',
+    grade: '100% Steam Distilled • Pharmaceutical Grade',
+    availability: 'In Stock',
+  },
+  {
+    id: 'fennel-seed-oil',
+    name: 'Natural Fennel Seed Oil',
+    categoryTitle: 'Fennel',
+    categorySubtitle: 'Seed Oil',
+    titleWhite: 'Fennel',
+    titleGold: 'Seed Oil',
+    badgeText: 'POPULAR CHOICE',
+    specs: ['100% Pure & Natural', 'Steam Distilled', 'Aromatic Essential Oil'],
+    cardImage: '/images/fennel-oil.jpg',
+    heroImage: '/images/fennel-oil.jpg',
+    unitPrice: 85,
+    retailPrice: 249,
+    moq: '10 KG',
+    grade: '100% Steam Distilled • Food & Wellness Grade',
+    availability: 'In Stock',
+  },
+  {
+    id: 'ajwain-seed-oil',
+    name: 'Pure Ajwain Seed Oil',
+    categoryTitle: 'Ajwain',
+    categorySubtitle: 'Seed Oil',
+    titleWhite: 'Ajwain',
+    titleGold: 'Seed Oil',
+    badgeText: 'HIGH POTENCY',
+    specs: ['100% Pure & Natural', 'Steam Distilled', 'Therapeutic Grade'],
+    cardImage: '/images/ajwain-oil.png',
+    heroImage: '/images/ajwain-oil.png',
+    unitPrice: 95,
+    retailPrice: 279,
+    moq: '5 KG',
+    grade: '100% Steam Distilled • Pharma Grade',
+    availability: 'In Stock',
+  },
+  {
+    id: 'black-seed-oil',
+    name: 'Pure Black Seed Oil (Kalonji Oil)',
+    categoryTitle: 'Black Seed',
+    categorySubtitle: 'Essential Oil',
+    titleWhite: 'Black Seed',
+    titleGold: 'Essential Oil',
+    badgeText: 'PREMIUM CHOICE',
+    specs: ['100% Pure & Cold Pressed/Distilled', 'Rich in Thymoquinone', 'Therapeutic Grade'],
+    cardImage: '/images/all-oils.png',
+    heroImage: '/images/all-oils.png',
+    unitPrice: 150,
+    retailPrice: 349,
+    moq: '5 KG',
+    grade: '100% Steam Distilled • Pharma & Wellness Grade',
+    availability: 'In Stock',
+  },
+];
+
 interface AppContextType {
   shopMode: 'retail' | 'bulk';
   setShopMode: (mode: 'retail' | 'bulk') => void;
@@ -73,6 +162,9 @@ interface AppContextType {
   isRetailOutOfStock: (productId: string) => boolean;
   isB2BOutOfStock: (productId: string) => boolean;
   isDiscontinued: (productId: string) => boolean;
+  allProducts: ProductShowcaseItem[];
+  addProduct: (product: ProductShowcaseItem) => void;
+  deleteProduct: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -354,6 +446,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return !!productStatusMap[productId]?.discontinued;
   };
 
+  const [allProducts, setAllProducts] = useState<ProductShowcaseItem[]>(() => {
+    try {
+      const stored = localStorage.getItem('madhav_custom_products');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const customList = parsed.filter((cp: ProductShowcaseItem) => !DEFAULT_PRODUCTS.some(dp => dp.id === cp.id));
+          return [...DEFAULT_PRODUCTS, ...customList];
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load custom products from localStorage:', e);
+    }
+    return DEFAULT_PRODUCTS;
+  });
+
+  const addProduct = (newProduct: ProductShowcaseItem) => {
+    setAllProducts(prev => {
+      const updated = [...prev, newProduct];
+      try {
+        const customOnly = updated.filter(p => !DEFAULT_PRODUCTS.some(dp => dp.id === p.id));
+        localStorage.setItem('madhav_custom_products', JSON.stringify(customOnly));
+      } catch (e) {
+        console.error('Failed to save product to localStorage:', e);
+      }
+      return updated;
+    });
+  };
+
+  const deleteProduct = (productId: string) => {
+    setAllProducts(prev => {
+      const updated = prev.filter(p => p.id !== productId);
+      try {
+        const customOnly = updated.filter(p => !DEFAULT_PRODUCTS.some(dp => dp.id === p.id));
+        localStorage.setItem('madhav_custom_products', JSON.stringify(customOnly));
+      } catch (e) {
+        console.error('Failed to update localStorage after delete:', e);
+      }
+      return updated;
+    });
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -387,6 +521,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isRetailOutOfStock,
         isB2BOutOfStock,
         isDiscontinued,
+        allProducts,
+        addProduct,
+        deleteProduct,
         shopMode,
         setShopMode: handleSetShopMode,
         retailCartItems,

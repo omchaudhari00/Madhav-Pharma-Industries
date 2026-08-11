@@ -45,10 +45,71 @@ export const AdminDashboard: React.FC = () => {
     isRetailOutOfStock,
     isB2BOutOfStock,
     isDiscontinued,
+    allProducts,
+    addProduct,
+    deleteProduct,
   } = useApp();
   const [activeTab, setActiveTab] = useState<
     'overview' | 'quotes' | 'customers' | 'products' | 'sales' | 'orders' | 'settings'
   >('overview');
+
+  // Add Product Modal State
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [newProductName, setNewProductName] = useState('');
+  const [newProductCategory, setNewProductCategory] = useState('');
+  const [newProductImage, setNewProductImage] = useState('/images/all-oils.png');
+  const [newProductUnitPrice, setNewProductUnitPrice] = useState<number | ''>(100);
+  const [newProductRetailPrice, setNewProductRetailPrice] = useState<number | ''>(279);
+  const [newProductMoq, setNewProductMoq] = useState('5 KG');
+  const [newProductGrade, setNewProductGrade] = useState('100% Steam Distilled • Pharmaceutical Grade');
+  const [newProductAvailability, setNewProductAvailability] = useState<'In Stock' | 'Out of Stock'>('In Stock');
+
+  const handleCreateProduct = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProductName.trim()) {
+      alert('Please enter a product name.');
+      return;
+    }
+
+    const slug = newProductName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const newId = `${slug}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const newProd = {
+      id: newId,
+      name: newProductName.trim(),
+      categoryTitle: newProductCategory.trim() || newProductName.split(' ')[0],
+      categorySubtitle: 'Essential Oil',
+      titleWhite: newProductCategory.trim() || newProductName.split(' ')[0],
+      titleGold: 'Essential Oil',
+      badgeText: 'NEW LAUNCH',
+      specs: ['100% Pure & Natural', 'Steam Distilled', 'Essential Oil'],
+      cardImage: newProductImage.trim() || '/images/all-oils.png',
+      heroImage: newProductImage.trim() || '/images/all-oils.png',
+      unitPrice: Number(newProductUnitPrice) || 100,
+      retailPrice: Number(newProductRetailPrice) || 279,
+      moq: newProductMoq.trim() || '5 KG',
+      grade: newProductGrade.trim() || '100% Steam Distilled • Pharmaceutical Grade',
+      availability: newProductAvailability,
+    };
+
+    addProduct(newProd);
+
+    if (newProductAvailability === 'Out of Stock') {
+      toggleRetailStock(newId);
+      toggleB2BStock(newId);
+    }
+
+    alert(`Product "${newProductName}" added successfully! It is now live in Admin and Website Catalog.`);
+    setIsAddProductModalOpen(false);
+
+    setNewProductName('');
+    setNewProductCategory('');
+    setNewProductImage('/images/all-oils.png');
+    setNewProductUnitPrice(100);
+    setNewProductRetailPrice(279);
+    setNewProductMoq('5 KG');
+    setNewProductGrade('100% Steam Distilled • Pharmaceutical Grade');
+  };
 
   // Empty arrays for real data
   const [customers, setCustomers] = useState<any[]>([]);
@@ -482,7 +543,10 @@ export const AdminDashboard: React.FC = () => {
                 <h3 className="text-2xl font-serif font-bold text-white">Product Catalog & MOQ Management</h3>
                 <p className="text-sm text-neutral-400 mt-1">Admin has full control to add/edit products, MOQ, upload certificates, and toggle availability.</p>
               </div>
-              <button className="px-4 py-2.5 rounded-xl bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg">
+              <button
+                onClick={() => setIsAddProductModalOpen(true)}
+                className="px-4 py-2.5 rounded-xl bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg cursor-pointer"
+              >
                 <Plus className="w-4 h-4" />
                 <span>Add Product</span>
               </button>
@@ -492,10 +556,10 @@ export const AdminDashboard: React.FC = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-white/10 text-neutral-400 text-xs uppercase tracking-wider font-semibold">
-                    <th className="py-3 px-4">ID</th>
-                    <th className="py-3 px-4">Product Name</th>
+                    <th className="py-3 px-4">#</th>
+                    <th className="py-3 px-4">Product Details</th>
                     <th className="py-3 px-4">MOQ</th>
-                    <th className="py-3 px-4">Unit Price</th>
+                    <th className="py-3 px-4">Bulk Unit Price</th>
                     <th className="py-3 px-4">Retail Stock</th>
                     <th className="py-3 px-4">B2B Bulk Stock</th>
                     <th className="py-3 px-4">Display Status</th>
@@ -503,17 +567,29 @@ export const AdminDashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 text-sm">
-                  {products.map((p) => {
-                    const retailOos = isRetailOutOfStock(p.codeId);
-                    const b2bOos = isB2BOutOfStock(p.codeId);
-                    const discontinued = isDiscontinued(p.codeId);
+                  {allProducts.map((p, idx) => {
+                    const retailOos = isRetailOutOfStock(p.id);
+                    const b2bOos = isB2BOutOfStock(p.id);
+                    const discontinued = isDiscontinued(p.id);
 
                     return (
                       <tr key={p.id} className="hover:bg-white/5 transition-colors">
-                        <td className="py-4 px-4 font-mono text-neutral-400">#{p.id}</td>
-                        <td className="py-4 px-4 font-bold text-white">{p.name}</td>
-                        <td className="py-4 px-4 font-mono text-amber-200">{p.moq}</td>
-                        <td className="py-4 px-4 font-mono text-white">{p.price}</td>
+                        <td className="py-4 px-4 font-mono text-neutral-400 text-xs">#{idx + 1}</td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center space-x-3">
+                            <img
+                              src={p.cardImage || p.heroImage}
+                              alt={p.name}
+                              className="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0"
+                            />
+                            <div>
+                              <div className="font-bold text-white text-sm">{p.name}</div>
+                              <div className="text-[11px] text-neutral-400">{p.grade}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 font-mono text-amber-200">{p.moq || '5 KG'}</td>
+                        <td className="py-4 px-4 font-mono text-white">₹{p.unitPrice}/KG</td>
                         <td className="py-4 px-4">
                           <span className={`inline-flex items-center justify-center px-3 py-1 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${
                             retailOos
@@ -544,7 +620,7 @@ export const AdminDashboard: React.FC = () => {
                         <td className="py-4 px-4">
                           <div className="flex flex-wrap items-center gap-2">
                             <button
-                              onClick={() => toggleRetailStock(p.codeId)}
+                              onClick={() => toggleRetailStock(p.id)}
                               className={`px-3 py-1.5 rounded-xl border text-xs font-extrabold transition-all cursor-pointer ${
                                 retailOos
                                   ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500 hover:text-black'
@@ -554,7 +630,7 @@ export const AdminDashboard: React.FC = () => {
                               {retailOos ? 'Restore Retail' : 'OOS Retail'}
                             </button>
                             <button
-                              onClick={() => toggleB2BStock(p.codeId)}
+                              onClick={() => toggleB2BStock(p.id)}
                               className={`px-3 py-1.5 rounded-xl border text-xs font-extrabold transition-all cursor-pointer ${
                                 b2bOos
                                   ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500 hover:text-black'
@@ -564,7 +640,7 @@ export const AdminDashboard: React.FC = () => {
                               {b2bOos ? 'Restore B2B' : 'OOS B2B'}
                             </button>
                             <button
-                              onClick={() => toggleDiscontinued(p.codeId)}
+                              onClick={() => toggleDiscontinued(p.id)}
                               className={`px-3 py-1.5 rounded-xl border text-xs font-extrabold transition-all cursor-pointer ${
                                 discontinued
                                   ? 'bg-blue-500/20 text-blue-300 border-blue-500/40 hover:bg-blue-500 hover:text-black'
@@ -572,6 +648,17 @@ export const AdminDashboard: React.FC = () => {
                               }`}
                             >
                               {discontinued ? 'Restore Display' : 'Discontinue'}
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to delete "${p.name}"?`)) {
+                                  deleteProduct(p.id);
+                                }
+                              }}
+                              className="p-2 rounded-xl bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white border border-red-500/40 transition-colors cursor-pointer"
+                              title="Delete Product"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -725,6 +812,180 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
         )}
+      {/* Add Product Modal Overlay */}
+      {isAddProductModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-neutral-950 border border-neutral-800 rounded-3xl max-w-xl w-full p-6 sm:p-8 text-white shadow-2xl space-y-6 relative max-h-[90vh] overflow-y-auto font-display">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 bg-[#d4a373] text-neutral-950 rounded-xl shadow-md">
+                  <Plus className="w-5 h-5 font-bold" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold font-serif text-white">Add New Product</h3>
+                  <p className="text-xs text-neutral-400">Add essential oil product to Admin &amp; Storefront catalog</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsAddProductModalOpen(false)}
+                className="p-2 rounded-full hover:bg-neutral-900 text-neutral-400 hover:text-white transition-colors"
+                aria-label="Close modal"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateProduct} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
+                  Product Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Organic Peppermint Essential Oil"
+                  value={newProductName}
+                  onChange={(e) => setNewProductName(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-white focus:border-[#d4a373] focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
+                    Category / Tag
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Peppermint"
+                    value={newProductCategory}
+                    onChange={(e) => setNewProductCategory(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-white focus:border-[#d4a373] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
+                    Minimum Order Quantity (MOQ)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 5 KG"
+                    value={newProductMoq}
+                    onChange={(e) => setNewProductMoq(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-white focus:border-[#d4a373] focus:outline-none font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
+                    B2B Bulk Price (₹/KG) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    placeholder="e.g. 110"
+                    value={newProductUnitPrice}
+                    onChange={(e) => setNewProductUnitPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-white focus:border-[#d4a373] focus:outline-none font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
+                    Retail Price (₹/50ml) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    placeholder="e.g. 279"
+                    value={newProductRetailPrice}
+                    onChange={(e) => setNewProductRetailPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-white focus:border-[#d4a373] focus:outline-none font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
+                  Product Image Asset Path or URL
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. /images/all-oils.png or https://..."
+                  value={newProductImage}
+                  onChange={(e) => setNewProductImage(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-white focus:border-[#d4a373] focus:outline-none font-mono"
+                />
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <span className="text-[11px] text-neutral-400 self-center">Presets:</span>
+                  {['/images/cumin-seed-oil.png', '/images/fennel-oil.jpg', '/images/ajwain-oil.png', '/images/all-oils.png'].map((img) => (
+                    <button
+                      type="button"
+                      key={img}
+                      onClick={() => setNewProductImage(img)}
+                      className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all ${newProductImage === img ? 'bg-[#d4a373] text-black border-[#d4a373] font-bold' : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-white'}`}
+                    >
+                      {img.split('/').pop()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
+                  Grade &amp; Purity Description
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 100% Steam Distilled • Pharmaceutical Grade"
+                  value={newProductGrade}
+                  onChange={(e) => setNewProductGrade(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-white focus:border-[#d4a373] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
+                  Initial Availability State
+                </label>
+                <select
+                  value={newProductAvailability}
+                  onChange={(e) => setNewProductAvailability(e.target.value as any)}
+                  className="w-full px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-white focus:border-[#d4a373] focus:outline-none cursor-pointer"
+                >
+                  <option value="In Stock">In Stock (Available)</option>
+                  <option value="Out of Stock">Out of Stock (OOS)</option>
+                </select>
+              </div>
+
+              <div className="pt-4 border-t border-neutral-800 flex items-center justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setIsAddProductModalOpen(false)}
+                  className="px-5 py-2.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-bold uppercase transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider hover:opacity-95 transition-all shadow-lg flex items-center gap-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Save &amp; Publish Product</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       </div>
       </div>
     </div>

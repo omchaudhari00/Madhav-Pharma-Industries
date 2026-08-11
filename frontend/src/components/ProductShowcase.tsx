@@ -82,13 +82,13 @@ const PRODUCTS: ProductShowcaseItem[] = [
 ];
 
 export const ProductShowcase: React.FC = () => {
-  const { addToCart, addToRetailCart, isProductOutOfStock, isRetailOutOfStock, isB2BOutOfStock, isDiscontinued } = useApp();
+  const { addToCart, addToRetailCart, isProductOutOfStock, isRetailOutOfStock, isB2BOutOfStock, isDiscontinued, allProducts } = useApp();
   const [activeProductId, setActiveProductId] = useState<string>('cumin-seed-oil');
   const [retailQty, setRetailQty] = useState<Record<string, number>>({});
   const [cardMode, setCardMode] = useState<Record<string, 'retail' | 'bulk'>>({});
 
-  const visibleProducts = PRODUCTS.filter(p => !isDiscontinued(p.id));
-  const activeProduct = visibleProducts.find((p) => p.id === activeProductId) || visibleProducts[0] || PRODUCTS[0];
+  const visibleProducts = allProducts.filter(p => !isDiscontinued(p.id));
+  const activeProduct = visibleProducts.find((p) => p.id === activeProductId) || visibleProducts[0] || allProducts[0] || PRODUCTS[0];
 
   const getMode = (id: string) => cardMode[id] || 'retail';
   const setMode = (id: string, mode: 'retail' | 'bulk') => {
