@@ -49,7 +49,7 @@ export const AuthModal: React.FC = () => {
     const isSales = (emailTrim === 'vatsaldevani2005@gmail.com' && signInPassword === 'iamvatsal2209');
 
     try {
-      const res = await fetch('/api/accounts/login/', {
+      const res = await fetch('https://madhav-pharma-industries.onrender.com/api/accounts/login/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -110,7 +110,7 @@ export const AuthModal: React.FC = () => {
     setSignUpLoading(true);
 
     try {
-      const res = await fetch('/api/accounts/register/request-otp/', {
+      const res = await fetch('https://madhav-pharma-industries.onrender.com/api/accounts/register/request-otp/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -144,7 +144,7 @@ export const AuthModal: React.FC = () => {
     setSignUpLoading(true);
 
     try {
-      const res = await fetch('/api/accounts/register/resend-otp/', {
+      const res = await fetch('https://madhav-pharma-industries.onrender.com/api/accounts/register/resend-otp/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -173,7 +173,7 @@ export const AuthModal: React.FC = () => {
     setSignUpLoading(true);
 
     try {
-      const res = await fetch('/api/accounts/register/verify-otp/', {
+      const res = await fetch('https://madhav-pharma-industries.onrender.com/api/accounts/register/verify-otp/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

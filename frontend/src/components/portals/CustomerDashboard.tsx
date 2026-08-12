@@ -66,7 +66,7 @@ export const CustomerDashboard: React.FC = () => {
     const loadQuotes = async () => {
       let backendQuotes: any[] = [];
       try {
-        const res = await fetch('/api/quotations/quotations/', {
+        const res = await fetch('https://madhav-pharma-industries.onrender.com/api/quotations/quotations/', {
           headers: {
             ...(token ? { 'Authorization': `Bearer ${token}` } : {})
           }
@@ -132,7 +132,7 @@ export const CustomerDashboard: React.FC = () => {
     if (activeTab === 'profile' && token) {
       const loadAddress = async () => {
         try {
-          const res = await fetch('/api/accounts/addresses/', {
+          const res = await fetch('https://madhav-pharma-industries.onrender.com/api/accounts/addresses/', {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (res.ok) {

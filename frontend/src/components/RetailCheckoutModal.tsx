@@ -140,7 +140,7 @@ export const RetailCheckoutModal: React.FC = () => {
     }
 
     // Call Backend to Send WhatsApp Confirmation
-    fetch('/api/orders/confirm-payment/', {
+    fetch('https://madhav-pharma-industries.onrender.com/api/orders/confirm-payment/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
