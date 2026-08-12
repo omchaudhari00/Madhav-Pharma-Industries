@@ -56,7 +56,7 @@ export const CartModal: React.FC = () => {
     localStorage.setItem('madhav_quotes', JSON.stringify([newQuote, ...existing]));
 
     try {
-      await fetch('https://madhav-pharma-industries.onrender.com/api/quotations/quotations/create_from_cart/', {
+      await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/quotations/quotations/create_from_cart/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
