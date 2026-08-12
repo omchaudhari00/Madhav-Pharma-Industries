@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import User, CustomerProfile, Address
 from django.contrib.auth import authenticate
 from rest_framework.exceptions import AuthenticationFailed
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 class UserSerializer(serializers.ModelSerializer):
     customer_stage = serializers.SerializerMethodField()
@@ -49,6 +51,15 @@ class RegistrationRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
     mobile_number = serializers.CharField()
     password = serializers.CharField(write_only=True)
+
+    def validate_password(self, value):
+        if len(value) > 100:
+            raise serializers.ValidationError("Password must be a maximum of 100 characters.")
+        try:
+            validate_password(value)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(list(e.messages)[0])
+        return value
 
     def validate_email(self, value):
         email_clean = value.strip().lower()

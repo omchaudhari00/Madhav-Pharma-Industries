@@ -107,6 +107,16 @@ export const AuthModal: React.FC = () => {
   const handleRequestOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setSignUpError('');
+
+    if (password.length < 8) {
+      setSignUpError('Password must be at least 8 characters long.');
+      return;
+    }
+    if (password.length > 100) {
+      setSignUpError('Password must be a maximum of 100 characters.');
+      return;
+    }
+
     setSignUpLoading(true);
 
     try {
