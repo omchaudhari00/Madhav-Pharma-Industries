@@ -126,7 +126,7 @@ input[type="number"] {
 
 @media (max-width: 768px), (orientation: portrait) {
   .bg-responsive-fallback {
-    background-image: url('/images/phone-bg.png');
+    background-image: url('/images/phone-bg.png?v=2');
     background-position: bottom;
     transform: none;
     opacity: 1 !important;
