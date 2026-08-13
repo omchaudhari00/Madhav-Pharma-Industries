@@ -234,9 +234,12 @@ export const CustomerDashboard: React.FC = () => {
 
   return (
     <div 
-      className="min-h-screen text-white font-display pb-20 relative bg-cover bg-center bg-fixed selection:bg-neutral-800 selection:text-white"
-      style={{ backgroundImage: "url('/scroll-frames/ezgif-frame-001.jpg')" }}
+      className="min-h-screen text-white font-display pb-20 relative selection:bg-neutral-800 selection:text-white"
     >
+      <div 
+        className="absolute inset-0 pointer-events-none z-0 bg-cover bg-center bg-fixed" 
+        style={{ backgroundImage: "url('/scroll-frames/ezgif-frame-001.jpg')", transform: 'scaleX(-1)' }} 
+      />
       {/* Dark Luxury Glassmorphism Overlay to match main landing page aesthetic */}
       <div className="absolute inset-0 bg-neutral-950/85 backdrop-blur-md pointer-events-none z-0" />
       <div className="relative z-10">
