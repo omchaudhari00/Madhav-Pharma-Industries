@@ -15,9 +15,11 @@ export const Navbar: React.FC = () => {
         <div className="flex items-center space-x-4 sm:space-x-8 lg:space-x-12">
           {/* Logo */}
           <a href="#hero" className="flex items-center space-x-2 sm:space-x-2.5 group shrink-0">
-            <div className="w-7 h-7 rounded-full bg-white text-black flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-              <Activity className="w-4 h-4 text-black" />
-            </div>
+            <img 
+              src="/images/madhav-pharma-logo-1.jpeg" 
+              alt="Madhav Pharma Logo" 
+              className="w-8 h-8 rounded-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
             <span className="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-white font-brand whitespace-nowrap">
               Madhav Pharma
             </span>
