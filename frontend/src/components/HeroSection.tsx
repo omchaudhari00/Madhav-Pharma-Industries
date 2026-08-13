@@ -20,14 +20,14 @@ export const HeroSection: React.FC = () => {
         <div className="max-w-2xl relative">
 
           {/* Headline with exact geometric bold display font style */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.15] sm:leading-[1.1] tracking-tight text-black sm:text-white mb-6 sm:mb-8 font-display">
-            <span>Pure Cumin Seed Oil &</span>
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.15] sm:leading-[1.1] tracking-tight mb-6 sm:mb-8 font-display">
+            <span className="text-black">Pure Cumin Seed Oil &</span>
             <br />
-            <span className="text-neutral-900 sm:text-neutral-100">Natural Essential Oils</span>
+            <span className="text-white">Natural Essential Oils</span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-neutral-800 sm:text-neutral-300 text-xs sm:text-base md:text-lg leading-relaxed font-normal mb-8 sm:mb-12 max-w-xl font-sans-custom">
+          <p className="text-white text-xs sm:text-base md:text-lg leading-relaxed font-normal mb-8 sm:mb-12 max-w-xl font-sans-custom drop-shadow-md">
             Leading manufacturer of 100% steam distilled essential oils with high purity and strong aroma. Trusted by pharmaceutical and food industries worldwide.
           </p>
 
@@ -35,18 +35,18 @@ export const HeroSection: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:gap-6 font-display">
             <button
               onClick={openCart}
-              className="group relative inline-flex items-center justify-center p-[3px] rounded-full border border-black/60 sm:border-white/60 hover:border-black sm:hover:border-white transition-all duration-300 focus:outline-none w-full sm:w-auto cursor-pointer"
+              className="group relative inline-flex items-center justify-center p-[3px] rounded-full border border-white/60 hover:border-white transition-all duration-300 focus:outline-none w-full sm:w-auto cursor-pointer"
             >
-              <span className="relative flex items-center justify-center px-6 sm:px-8 py-3 rounded-full border border-black/80 sm:border-white/80 group-hover:border-black sm:group-hover:border-white text-black sm:text-white font-display text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors w-full sm:w-auto">
+              <span className="relative flex items-center justify-center px-6 sm:px-8 py-3 rounded-full border border-white/80 group-hover:border-white text-white font-display text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors w-full sm:w-auto drop-shadow-md">
                 Request Quote
               </span>
             </button>
 
             <a
               href="#products"
-              className="group relative inline-flex items-center justify-center p-[3px] rounded-full border border-black/60 sm:border-white/60 hover:border-black sm:hover:border-white transition-all duration-300 focus:outline-none w-full sm:w-auto text-center"
+              className="group relative inline-flex items-center justify-center p-[3px] rounded-full border border-white/60 hover:border-white transition-all duration-300 focus:outline-none w-full sm:w-auto text-center"
             >
-              <span className="relative flex items-center justify-center px-6 sm:px-8 py-3 rounded-full border border-black/80 sm:border-white/80 group-hover:border-black sm:group-hover:border-white text-black sm:text-white font-display text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors w-full sm:w-auto">
+              <span className="relative flex items-center justify-center px-6 sm:px-8 py-3 rounded-full border border-white/80 group-hover:border-white text-white font-display text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors w-full sm:w-auto drop-shadow-md">
                 Explore Products
               </span>
             </a>
