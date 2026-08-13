@@ -114,3 +114,24 @@ input[type="number"] {
 ::-webkit-scrollbar-corner {
   background: #0a0a0a;
 }
+
+
+/* Responsive Background for Portals and Fallback */
+.bg-responsive-fallback {
+  background-image: url('/scroll-frames/ezgif-frame-001.jpg');
+  background-position: center;
+  transform: scaleX(-1);
+  background-size: cover;
+}
+
+@media (max-width: 768px), (orientation: portrait) {
+  .bg-responsive-fallback {
+    background-image: url('/images/phone-bg.png');
+    background-position: bottom;
+    transform: none;
+    opacity: 1 !important;
+  }
+  .canvas-animation {
+    display: none !important;
+  }
+}

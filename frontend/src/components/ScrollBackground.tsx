@@ -205,23 +205,20 @@ export default function ScrollBackground() {
 
   return (
     <>
-      {/* Default Fallback Background (First Frame) */}
+      {/* Default Fallback Background (Responsive) */}
       <div 
+        className="bg-responsive-fallback"
         style={{
           position: 'fixed',
           top: 0,
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundImage: 'url(/scroll-frames/ezgif-frame-001.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
           zIndex: 0,
           // Fade out the fallback once the canvas animation is ready
           opacity: isAnimationReady ? 0 : 0.5,
           transition: 'opacity 1.5s ease-in-out',
-          pointerEvents: 'none',
-          transform: 'scaleX(-1)'
+          pointerEvents: 'none'
         }}
       />
       
@@ -229,6 +226,7 @@ export default function ScrollBackground() {
       {!useFallback && (
         <canvas
           ref={canvasRef}
+          className="canvas-animation"
           style={{
             position: 'fixed',
             top: 0,

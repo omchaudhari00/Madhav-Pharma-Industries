@@ -237,8 +237,7 @@ export const CustomerDashboard: React.FC = () => {
       className="min-h-screen text-white font-display pb-20 relative selection:bg-neutral-800 selection:text-white"
     >
       <div 
-        className="absolute inset-0 pointer-events-none z-0 bg-cover bg-center bg-fixed" 
-        style={{ backgroundImage: "url('/scroll-frames/ezgif-frame-001.jpg')", transform: 'scaleX(-1)' }} 
+        className="absolute inset-0 pointer-events-none z-0 bg-fixed bg-responsive-fallback" 
       />
       {/* Dark Luxury Glassmorphism Overlay to match main landing page aesthetic */}
       <div className="absolute inset-0 bg-neutral-950/85 backdrop-blur-md pointer-events-none z-0" />
