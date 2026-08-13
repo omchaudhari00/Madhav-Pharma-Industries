@@ -53,7 +53,7 @@ export default function ScrollBackground() {
       if (!ctx || isAborted) return;
       
       const isPhone = isPhoneOrPortrait();
-      const actualIndex = isPhone ? frameCount - 1 : index;
+      const actualIndex = isPhone ? 0 : index;
 
       if (actualIndex < 0 || actualIndex >= frameCount) return;
       if (!force && actualIndex === lastDrawnFrame) return;
@@ -146,9 +146,9 @@ export default function ScrollBackground() {
       if (isAborted) return;
       
       if (isPhoneOrPortrait()) {
-        targetFrameIndex = frameCount - 1;
-        currentFrameIndex = frameCount - 1;
-        drawFrame(frameCount - 1);
+        targetFrameIndex = 0;
+        currentFrameIndex = 0;
+        drawFrame(0);
         return;
       }
 
@@ -167,10 +167,10 @@ export default function ScrollBackground() {
       if (isAborted) return;
       
       if (isPhoneOrPortrait()) {
-        if (lastDrawnFrame !== frameCount - 1) {
-          currentFrameIndex = frameCount - 1;
-          targetFrameIndex = frameCount - 1;
-          drawFrame(frameCount - 1);
+        if (lastDrawnFrame !== 0) {
+          currentFrameIndex = 0;
+          targetFrameIndex = 0;
+          drawFrame(0);
         }
         animationFrameId = requestAnimationFrame(animate);
         return;
@@ -205,7 +205,7 @@ export default function ScrollBackground() {
 
   return (
     <>
-      {/* Default Fallback Background (Last Frame) */}
+      {/* Default Fallback Background (First Frame) */}
       <div 
         style={{
           position: 'fixed',
@@ -213,7 +213,7 @@ export default function ScrollBackground() {
           left: 0,
           width: '100%',
           height: '100%',
-          backgroundImage: 'url(/scroll-frames/ezgif-frame-300.jpg)',
+          backgroundImage: 'url(/scroll-frames/ezgif-frame-001.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           zIndex: 0,
