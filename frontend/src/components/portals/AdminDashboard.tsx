@@ -244,7 +244,7 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div 
       className="min-h-screen text-white font-display pb-20 relative bg-cover bg-center bg-fixed selection:bg-neutral-800 selection:text-white"
-      style={{ backgroundImage: "url('/scroll-frames/ezgif-frame-300.jpg')" }}
+      style={{ backgroundImage: "url('/scroll-frames/ezgif-frame-001.jpg')" }}
     >
       {/* Dark Luxury Overlay to match main landing page aesthetic without blur */}
       <div className="absolute inset-0 bg-neutral-950/70 pointer-events-none z-0" />
