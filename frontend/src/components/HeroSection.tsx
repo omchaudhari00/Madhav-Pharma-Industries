@@ -8,12 +8,7 @@ export const HeroSection: React.FC = () => {
 
   return (
     <section id="hero" className="relative w-full min-h-[calc(100vh-88px)] bg-transparent text-black sm:text-white flex flex-col justify-center px-6 lg:px-12 py-8 max-w-7xl mx-auto overflow-hidden font-display">
-      {/* Subtle layout grid lines (ultra minimal) */}
-      <div className="absolute inset-0 pointer-events-none -z-10 max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-3 opacity-10">
-        <div className="border-r border-neutral-800 h-full" />
-        <div className="border-r border-neutral-800 h-full" />
-        <div className="h-full" />
-      </div>
+
 
       {/* Main Center Content */}
       <div className="my-auto pt-8 pb-16 lg:py-16 relative z-10 flex flex-col justify-center items-end text-right ml-auto">
