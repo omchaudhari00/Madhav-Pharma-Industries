@@ -90,7 +90,7 @@ export const UpiCardPaymentModal: React.FC<UpiCardPaymentModalProps> = ({
             onPaymentSuccess({
               method: 'Razorpay Gateway (UPI / Card / NetBanking)',
               status: 'Paid',
-              referenceId: response.razorpay_payment_id || `RZP-${Math.floor(10000000 + Math.random() * 90000000)}`,
+              referenceId: response.razorpay_payment_id,
               amountINR
             });
           },
@@ -114,6 +114,7 @@ export const UpiCardPaymentModal: React.FC<UpiCardPaymentModalProps> = ({
     }
     // Fail gracefully if not configured or script fails to load
     console.error("Razorpay is not configured or failed to load. Payment cannot proceed.");
+    alert("Payment gateway is temporarily unavailable. Please try again later.");
     setIsLaunchingRazorpay(false);
   };
 

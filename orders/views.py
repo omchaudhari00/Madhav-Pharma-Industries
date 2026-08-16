@@ -34,37 +34,28 @@ class PaymentViewSet(viewsets.ModelViewSet):
         razorpay_key = getattr(settings, 'RAZORPAY_KEY_ID', None)
         razorpay_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', None)
 
-        if razorpay_key and razorpay_secret and razorpay_key != 'rzp_test_YOUR_KEY_ID_HERE':
-            try:
-                import razorpay
-                client = razorpay.Client(auth=(razorpay_key, razorpay_secret))
-                order_data = {
-                    'amount': int(float(amount) * 100),  # paise
-                    'currency': currency,
-                    'receipt': receipt,
-                    'payment_capture': 1
-                }
-                rzp_order = client.order.create(data=order_data)
-                return Response({
-                    'success': True,
-                    'order_id': rzp_order['id'],
-                    'amount': rzp_order['amount'],
-                    'currency': rzp_order['currency'],
-                    'key_id': razorpay_key
-                }, status=status.HTTP_200_OK)
-            except Exception as e:
-                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Sandbox / simulation fallback when live keys are not configured
-        simulated_order_id = f"order_{uuid.uuid4().hex[:14]}"
-        return Response({
-            'success': True,
-            'order_id': simulated_order_id,
-            'amount': int(float(amount) * 100),
-            'currency': currency,
-            'key_id': 'rzp_test_simulated_key',
-            'sandbox': True
-        }, status=status.HTTP_200_OK)
+        if not razorpay_key or not razorpay_secret or razorpay_key == 'rzp_test_YOUR_KEY_ID_HERE':
+            return Response({'error': 'Payment gateway is not properly configured.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            import razorpay
+            client = razorpay.Client(auth=(razorpay_key, razorpay_secret))
+            order_data = {
+                'amount': int(float(amount) * 100),  # paise
+                'currency': currency,
+                'receipt': receipt,
+                'payment_capture': 1
+            }
+            rzp_order = client.order.create(data=order_data)
+            return Response({
+                'success': True,
+                'order_id': rzp_order['id'],
+                'amount': rzp_order['amount'],
+                'currency': rzp_order['currency'],
+                'key_id': razorpay_key
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], url_path='verify-razorpay-signature')
     def verify_razorpay_payment(self, request):
@@ -79,20 +70,22 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
         razorpay_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', None)
 
-        # In production with a live secret key, enforce HMAC verification
-        if razorpay_secret and razorpay_secret != 'YOUR_KEY_SECRET_HERE':
-            message = f"{razorpay_order_id}|{razorpay_payment_id}"
-            generated_signature = hmac.new(
-                razorpay_secret.encode('utf-8'),
-                message.encode('utf-8'),
-                hashlib.sha256
-            ).hexdigest()
+        if not razorpay_secret or razorpay_secret == 'YOUR_KEY_SECRET_HERE':
+            return Response({'error': 'Payment gateway is not properly configured.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            if not hmac.compare_digest(generated_signature, str(razorpay_signature)):
-                return Response({
-                    'success': False,
-                    'error': 'Cryptographic HMAC signature mismatch. Potential tampering detected.'
-                }, status=status.HTTP_400_BAD_REQUEST)
+        # Enforce HMAC verification
+        message = f"{razorpay_order_id}|{razorpay_payment_id}"
+        generated_signature = hmac.new(
+            razorpay_secret.encode('utf-8'),
+            message.encode('utf-8'),
+            hashlib.sha256
+        ).hexdigest()
+
+        if not hmac.compare_digest(generated_signature, str(razorpay_signature)):
+            return Response({
+                'success': False,
+                'error': 'Cryptographic HMAC signature mismatch. Potential tampering detected.'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         # Update Payment record if provided
         if payment_db_id:
