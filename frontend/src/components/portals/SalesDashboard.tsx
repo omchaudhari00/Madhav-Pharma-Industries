@@ -234,9 +234,11 @@ export const SalesDashboard: React.FC = () => {
             <div className="h-6 w-px bg-white/10 hidden sm:block" />
 
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full bg-blue-500/20 border border-blue-400 flex items-center justify-center text-blue-400">
-                <Briefcase className="w-5 h-5" />
-              </div>
+              <img 
+                src="/images/madhav-pharma-logo-1.jpeg" 
+                alt="Madhav Pharma Logo"
+                className="w-10 h-10 rounded-full object-cover border border-blue-400/50 shadow-[0_0_15px_rgba(96,165,250,0.2)]"
+              />
               <div>
                 <h1 className="text-base sm:text-lg font-extrabold text-white leading-none">
                   Madhav Pharma <span className="text-blue-400 font-normal font-serif">Sales Portal</span>

@@ -266,9 +266,11 @@ export const AdminDashboard: React.FC = () => {
             <div className="h-6 w-px bg-white/10 hidden sm:block" />
 
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full bg-[#d4a373]/20 border border-[#d4a373] flex items-center justify-center text-[#d4a373]">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
+              <img 
+                src="/images/madhav-pharma-logo-1.jpeg" 
+                alt="Madhav Pharma Logo"
+                className="w-10 h-10 rounded-full object-cover border border-[#d4a373]/50 shadow-[0_0_15px_rgba(212,163,115,0.2)]"
+              />
               <div>
                 <h1 className="text-base sm:text-lg font-extrabold text-white leading-none">
                   Madhav Pharma <span className="text-[#d4a373] font-normal font-serif">Admin Portal</span>
