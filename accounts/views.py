@@ -318,6 +318,111 @@ class ManageSalesUserView(APIView):
         )
         return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
 
+class ForgotPasswordRequestOTPView(APIView):
+    """
+    Step 1: User provides their registered email or phone number.
+    A 6-digit OTP is generated and emailed to them.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        identifier = request.data.get('identifier', '').strip().lower()
+
+        if not identifier:
+            return Response({'error': 'Please enter your email address or mobile number.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Find the user by email or mobile number
+        user = User.objects.filter(email__iexact=identifier).first()
+        if not user:
+            user = User.objects.filter(mobile_number=identifier.strip()).first()
+
+        if not user:
+            return Response({'error': 'No account found with this email address or mobile number.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Generate OTP
+        otp = str(random.randint(100000, 999999))
+        OTPRecord.objects.create(
+            email=user.email,
+            mobile_number=user.mobile_number or '',
+            otp=otp,
+            expires_at=timezone.now() + timedelta(minutes=10)
+        )
+
+        # Send OTP email
+        subject = "Madhav Pharma Industries - Password Reset OTP"
+        message = (
+            f"Hello {user.first_name or 'Valued Customer'},\n\n"
+            f"Your password reset verification code is: {otp}\n\n"
+            f"This OTP is valid for 10 minutes. Do not share this code with anyone.\n"
+            f"If you did not request a password reset, please ignore this email.\n\n"
+            f"Regards,\nMadhav Pharma Industries"
+        )
+        try:
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"[Email Error] Failed to send password reset OTP to {user.email}: {e}")
+            return Response({'error': f'Failed to send OTP email. Server error: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({
+            'message': 'A password reset OTP has been sent to your registered email address.',
+            'email_hint': user.email[:3] + '***' + user.email[user.email.index('@'):]
+        })
+
+
+class ForgotPasswordResetView(APIView):
+    """
+    Step 2: User provides the OTP and a new password.
+    If the OTP is valid, the password is updated.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        identifier = request.data.get('identifier', '').strip().lower()
+        otp = request.data.get('otp', '').strip()
+        new_password = request.data.get('new_password', '')
+
+        if not identifier or not otp or not new_password:
+            return Response({'error': 'Email/phone, OTP, and new password are all required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(new_password) < 8:
+            return Response({'error': 'Password must be at least 8 characters long.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Find the user
+        user = User.objects.filter(email__iexact=identifier).first()
+        if not user:
+            user = User.objects.filter(mobile_number=identifier.strip()).first()
+
+        if not user:
+            return Response({'error': 'No account found with this email address or mobile number.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Verify OTP
+        record = OTPRecord.objects.filter(
+            email=user.email,
+            otp=otp,
+            is_used=False,
+            expires_at__gte=timezone.now()
+        ).first()
+
+        if not record:
+            return Response({'error': 'Invalid or expired OTP. Please request a new one.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Mark OTP as used
+        record.is_used = True
+        record.save()
+
+        # Update password
+        user.set_password(new_password)
+        user.save()
+
+        return Response({'message': 'Password has been reset successfully. You can now sign in with your new password.'})
+
+
 class AddressViewSet(viewsets.ModelViewSet):
     serializer_class = AddressSerializer
     permission_classes = [IsAuthenticated]

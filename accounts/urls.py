@@ -2,7 +2,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     CheckUserView, LoginView, RequestOTPView, ResendOTPView, VerifyOTPAndRegisterView,
-    AdminDashboardStatsView, UserListView, ManageSalesUserView, AddressViewSet
+    AdminDashboardStatsView, UserListView, ManageSalesUserView, AddressViewSet,
+    ForgotPasswordRequestOTPView, ForgotPasswordResetView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -19,6 +20,8 @@ urlpatterns = [
     path('admin/stats/', AdminDashboardStatsView.as_view(), name='admin_stats'),
     path('users/', UserListView.as_view(), name='user_list'),
     path('sales-users/', ManageSalesUserView.as_view(), name='manage_sales_user'),
+    path('forgot-password/request-otp/', ForgotPasswordRequestOTPView.as_view(), name='forgot_password_request_otp'),
+    path('forgot-password/reset/', ForgotPasswordResetView.as_view(), name='forgot_password_reset'),
     path('', include(router.urls)),
 ]
 
