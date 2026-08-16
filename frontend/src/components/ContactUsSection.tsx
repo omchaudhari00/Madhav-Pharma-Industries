@@ -102,7 +102,7 @@ export const ContactUsSection: React.FC = () => {
                 ullamcorper id purus eu, rhoncus consequat velit.
               </p>
 
-              {/* 2x2 Contact Grid */}
+              {/* Contact Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 font-sans-custom">
                 <div className="flex items-start space-x-4">
                   <div className="p-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white">
@@ -110,7 +110,7 @@ export const ContactUsSection: React.FC = () => {
                   </div>
                   <div>
                     <h4 className="font-bold text-sm text-white font-display">Phone Number</h4>
-                    <p className="text-xs text-neutral-400 mt-0.5">+6282 4032 567</p>
+                    <p className="text-xs text-neutral-400 mt-0.5">+91 90233 85917</p>
                   </div>
                 </div>
 
@@ -123,42 +123,37 @@ export const ContactUsSection: React.FC = () => {
                     <p className="text-xs text-neutral-400 mt-0.5">Example@Email.Com</p>
                   </div>
                 </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="p-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white">
-                    <MessageSquare className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-white font-display">Whatsapp</h4>
-                    <p className="text-xs text-neutral-400 mt-0.5">082-245-7253</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="p-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white">
-                    <MapPin className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-white font-display">Our Office</h4>
-                    <p className="text-xs text-neutral-400 mt-0.5">2443 Oak Ridge Omaha, QA 45065</p>
-                  </div>
-                </div>
               </div>
             </div>
 
             {/* Embedded Google Map */}
-            <div className="w-full h-56 sm:h-64 rounded-2xl overflow-hidden border border-neutral-800 bg-neutral-900">
-              <iframe
-                title="Office Location Map"
-                width="100%"
-                height="100%"
-                frameBorder="0"
-                scrolling="no"
-                marginHeight={0}
-                marginWidth={0}
-                src="https://maps.google.com/maps?q=London%20Eye&t=&z=13&ie=UTF8&iwloc=&output=embed"
-                className="w-full h-full filter grayscale invert opacity-80 hover:opacity-100 transition-opacity"
-              />
+            <div className="w-full relative rounded-2xl overflow-hidden border border-neutral-800 bg-neutral-900 group">
+              <div className="h-56 sm:h-64 w-full">
+                <iframe
+                  title="Madhav Pharma Location Map"
+                  width="100%"
+                  height="100%"
+                  frameBorder="0"
+                  scrolling="no"
+                  marginHeight={0}
+                  marginWidth={0}
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3667.659345719875!2d72.62849037509536!3d23.395758578912853!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395c330022501157%3A0xf42518f88e35d748!2sMadhav%20Pharma%20industries!5e0!3m2!1sen!2sin!4v1714930355152!5m2!1sen!2sin"
+                  className="w-full h-full filter grayscale invert opacity-80 hover:opacity-100 transition-opacity"
+                />
+              </div>
+              
+              {/* Overlay Link Button */}
+              <div className="absolute bottom-4 right-4 flex space-x-2">
+                <a 
+                  href="https://maps.app.goo.gl/2JGZZPks5hjxwcor7" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-white text-black text-xs font-bold font-display uppercase tracking-wider rounded-lg shadow-lg hover:bg-neutral-200 transition-colors flex items-center space-x-2"
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>Open in Google Maps</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
