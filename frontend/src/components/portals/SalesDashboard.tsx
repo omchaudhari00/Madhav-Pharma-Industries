@@ -3,7 +3,7 @@ import {
   Briefcase, FileText, Users, ShoppingBag, Bell, 
   PhoneCall, DollarSign, Send, ArrowLeft, MessageSquare,
   CheckCircle2, Clock, AlertCircle, TrendingUp,
-  Truck, MapPin, PackageCheck, User, CheckCircle, ExternalLink
+  Truck, MapPin, PackageCheck, User, CheckCircle, ExternalLink, LogOut
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -40,7 +40,7 @@ const getIndividualItems = (q: any) => {
 };
 
 export const SalesDashboard: React.FC = () => {
-  const { user, setPortal } = useApp();
+  const { user, setPortal, logout } = useApp();
   const [activeTab, setActiveTab] = useState<'quotes' | 'retail_orders' | 'customers' | 'orders' | 'notifications'>('quotes');
   const [selectedQuote, setSelectedQuote] = useState<any | null>(null);
 
@@ -257,8 +257,9 @@ export const SalesDashboard: React.FC = () => {
             <span className="text-sm text-neutral-300 hidden md:block">
               {user?.email || 'sales@madhavpharma.com'}
             </span>
-            <button onClick={logout} className="text-red-400 hover:text-red-300 font-bold underline underline-offset-2 transition-colors text-xs ml-1">
-              Logout
+            <button onClick={logout} className="flex items-center gap-1.5 text-red-400 hover:text-red-300 font-bold underline underline-offset-2 transition-colors text-xs ml-1">
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Logout</span>
             </button>
           </div>
         </div>

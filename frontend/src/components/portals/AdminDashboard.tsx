@@ -4,7 +4,7 @@ import {
   ShoppingBag, Settings as SettingsIcon, TrendingUp, 
   CheckCircle, XCircle, AlertCircle, Eye, Edit3, 
   Trash2, Plus, ArrowLeft, UserPlus, Star, DollarSign,
-  RefreshCw, Lock
+  RefreshCw, Lock, LogOut
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -49,6 +49,7 @@ export const AdminDashboard: React.FC = () => {
     addProduct,
     deleteProduct,
     token,
+    logout,
   } = useApp();
   const [activeTab, setActiveTab] = useState<
     'overview' | 'quotes' | 'customers' | 'products' | 'sales' | 'orders' | 'settings'
@@ -290,8 +291,9 @@ export const AdminDashboard: React.FC = () => {
             <span className="text-sm text-neutral-300 hidden md:block">
               {user?.email || 'admin@madhavpharma.com'}
             </span>
-            <button onClick={logout} className="text-red-400 hover:text-red-300 font-bold underline underline-offset-2 transition-colors text-xs ml-1">
-              Logout
+            <button onClick={logout} className="flex items-center gap-1.5 text-red-400 hover:text-red-300 font-bold underline underline-offset-2 transition-colors text-xs ml-1">
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Logout</span>
             </button>
           </div>
         </div>

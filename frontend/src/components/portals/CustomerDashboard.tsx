@@ -3,7 +3,7 @@ import {
   FileText, ShoppingBag, User, Package, ArrowLeft, 
   CheckCircle, XCircle, RefreshCw, Award, Clock, 
   ExternalLink, Download, ShieldCheck, Sparkles, AlertCircle,
-  CreditCard, Smartphone, Lock, X, MapPin, Truck, Check, ChevronDown, ChevronUp
+  CreditCard, Smartphone, Lock, X, MapPin, Truck, Check, ChevronDown, ChevronUp, LogOut
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { generateInvoicePDF } from '../../utils/InvoiceGenerator';
@@ -41,7 +41,7 @@ const getIndividualItems = (q: any) => {
 };
 
 export const CustomerDashboard: React.FC = () => {
-  const { user, setPortal, openCart, token } = useApp();
+  const { user, setPortal, openCart, token, logout } = useApp();
   const [activeTab, setActiveTab] = useState<'quotes' | 'orders' | 'products' | 'profile'>('quotes');
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
@@ -268,8 +268,9 @@ export const CustomerDashboard: React.FC = () => {
                   </h1>
                 <div className="flex items-center text-xs text-neutral-400 mt-0.5 space-x-3">
                   <span>Welcome, {user?.first_name || 'Valued Buyer'} • {user?.email}</span>
-                  <button onClick={logout} className="text-red-400 hover:text-red-300 font-bold underline underline-offset-2 transition-colors">
-                    Logout
+                  <button onClick={logout} className="flex items-center gap-1.5 text-red-400 hover:text-red-300 font-bold underline underline-offset-2 transition-colors">
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Logout</span>
                   </button>
                 </div>
               </div>
