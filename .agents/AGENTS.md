@@ -12,3 +12,8 @@
 
 ## 3. UI Aesthetics & Iconography
 - **No Emojis in Frontend**: Never use emojis in frontend components, buttons, notifications, or modal text. Use clean typography or standard SVG icons (Lucide React) instead.
+
+## 4. React Refactoring: Scope and Imports
+- **Verify Variable Scope**: Before adding an event handler (e.g., `onClick={logout}`) or referencing a variable, explicitly check if that function/variable is defined in the current file scope.
+- **Check Hooks and Context**: If the function belongs to a context or hook (like `useApp()`), ensure it is properly destructured at the top of the component (e.g., `const { user, setPortal, logout } = useApp();`).
+- **Check Imports**: If the function is a utility or icon, ensure the `import` statement exists at the top of the file.
