@@ -85,7 +85,7 @@ export const UpiCardPaymentModal: React.FC<UpiCardPaymentModalProps> = ({
           currency: 'INR',
           name: razorpayCompanyName,
           description: `Order ${orderReference}`,
-          image: '/vite.svg',
+          image: window.location.origin + '/images/favicon-circle.png',
           handler: function (response: any) {
             onPaymentSuccess({
               method: 'Razorpay Gateway (UPI / Card / NetBanking)',
