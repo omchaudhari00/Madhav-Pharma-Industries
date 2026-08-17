@@ -257,6 +257,91 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, [isAuthModalOpen, isCartOpen, isRetailCheckoutOpen]);
 
+  // URL Hash Routing - Sync State to URL
+  useEffect(() => {
+    let newHash = '';
+    if (isAuthModalOpen) {
+      newHash = authModalTab === 'signup' ? '#signup' : '#signin';
+    } else if (isCartOpen) {
+      newHash = '#cart';
+    } else if (isRetailCheckoutOpen) {
+      newHash = '#checkout';
+    } else if (currentPortal !== 'storefront') {
+      newHash = `#${currentPortal}`;
+    }
+    
+    // Only update if it's different to prevent loops
+    if (window.location.hash !== newHash) {
+      if (newHash === '') {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      } else {
+        window.history.pushState(null, '', newHash);
+      }
+    }
+  }, [isAuthModalOpen, authModalTab, isCartOpen, isRetailCheckoutOpen, currentPortal]);
+
+  // URL Hash Routing - Sync URL to State (on load and on browser back/forward)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      
+      setIsAuthModalOpen(false);
+      setIsCartOpen(false);
+      setIsRetailCheckoutOpen(false);
+
+      if (hash === 'signin' || hash === 'signup') {
+        setAuthModalTab(hash as 'signin' | 'signup');
+        setIsAuthModalOpen(true);
+      } else if (hash === 'cart') {
+        setIsCartOpen(true);
+      } else if (hash === 'checkout') {
+        setIsRetailCheckoutOpen(true);
+      } else if (hash === 'admin' || hash === 'sales' || hash === 'customer') {
+        try {
+          const storedUser = localStorage.getItem('madhav_user');
+          if (storedUser) {
+            const u = JSON.parse(storedUser);
+            if (hash === 'admin' && u.role === 'Admin') {
+              setPortal('admin');
+            } else if (hash === 'sales' && u.role === 'Sales') {
+              setPortal('sales');
+            } else if (hash === 'customer' && (u.role === 'Customer' || !u.role)) {
+              setPortal('customer');
+            } else {
+              setPortal('storefront');
+              window.history.replaceState(null, '', window.location.pathname + window.location.search);
+            }
+          } else {
+            // Not logged in, redirect to sign in
+            setPortal('storefront');
+            setAuthModalTab('signin');
+            setIsAuthModalOpen(true);
+            window.history.replaceState(null, '', '#signin');
+          }
+        } catch (e) {
+          setPortal('storefront');
+        }
+      } else {
+        setPortal('storefront');
+      }
+    };
+
+    handleHashChange();
+
+    window.addEventListener('hashchange', handleHashChange);
+    // Overriding pushState/replaceState so the component knows when the app itself changes the URL programmatically without a hashchange event
+    const originalPushState = window.history.pushState;
+    window.history.pushState = function (...args) {
+      originalPushState.apply(this, args);
+      // Wait for React to process, though we handle State->URL in the other hook anyway
+    };
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.history.pushState = originalPushState;
+    };
+  }, []);
+
   const login = (userData: UserProfile, tokenStr?: string) => {
     setUser(userData);
     localStorage.setItem('madhav_user', JSON.stringify(userData));
