@@ -211,16 +211,14 @@ export const SalesDashboard: React.FC = () => {
 
   return (
     <div 
-      className="min-h-screen text-white font-display pb-20 relative selection:bg-neutral-800 selection:text-white"
+      className="min-h-screen bg-neutral-950 text-white font-display pb-20 relative selection:bg-neutral-800 selection:text-white"
     >
-      <div 
-        className="absolute inset-0 pointer-events-none z-0 bg-fixed bg-responsive-fallback" 
-      />
-      {/* Dark Luxury Overlay to match main landing page aesthetic without blur */}
-      <div className="absolute inset-0 bg-neutral-950/70 pointer-events-none z-0" />
+      
+      
+      
       <div className="relative z-10">
         {/* Sales Top Banner Header */}
-      <div className="border-b border-white/10 bg-neutral-900/60 backdrop-blur-xl sticky top-0 z-50">
+      <div className="border-b border-white/10 bg-neutral-950 border-b border-white/5 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[5rem] py-3 flex-wrap sm:flex-nowrap gap-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
@@ -317,7 +315,7 @@ export const SalesDashboard: React.FC = () => {
                 <div 
                   key={q.id}
                   onClick={() => setSelectedQuote(q)}
-                  className={`p-6 rounded-3xl bg-neutral-900/40 backdrop-blur-xl border transition-all cursor-pointer ${
+                  className={`p-6 rounded-3xl bg-neutral-900/40  border transition-all cursor-pointer ${
                     selectedQuote?.id === q.id ? 'border-blue-400 bg-neutral-900/70 shadow-lg' : 'border-white/10 hover:border-white/30'
                   }`}
                 >
@@ -490,7 +488,7 @@ export const SalesDashboard: React.FC = () => {
 
         {/* Tab 2: RETAIL B2C ORDERS & FULFILLMENT DESK */}
         {activeTab === 'retail_orders' && (
-          <div className="p-8 rounded-3xl bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-xl space-y-6">
+          <div className="p-8 rounded-3xl bg-neutral-900 border border-white/10 shadow-xl space-y-6">
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 border-b border-white/10 pb-6">
               <div>
                 <h3 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
@@ -668,7 +666,7 @@ export const SalesDashboard: React.FC = () => {
 
         {/* Tab 3: ASSIGNED CUSTOMERS & LEADS */}
         {activeTab === 'customers' && (
-          <div className="p-8 rounded-3xl bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-xl space-y-6">
+          <div className="p-8 rounded-3xl bg-neutral-900 border border-white/10 shadow-xl space-y-6">
             <div>
               <h3 className="text-2xl font-serif font-bold text-white">My Assigned Customers & Leads</h3>
               <p className="text-sm text-neutral-400 mt-1">Sales agents can contact leads and track negotiation history (Cannot delete or deactivate users).</p>
@@ -710,7 +708,7 @@ export const SalesDashboard: React.FC = () => {
 
         {/* Tab 3: ORDERS TRACKING */}
         {activeTab === 'orders' && (
-          <div className="p-8 rounded-3xl bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-xl space-y-6">
+          <div className="p-8 rounded-3xl bg-neutral-900 border border-white/10 shadow-xl space-y-6">
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 border-b border-white/10 pb-6">
               <div>
                 <h3 className="text-2xl font-serif font-bold text-white">Track Orders & Payments</h3>
@@ -798,7 +796,7 @@ export const SalesDashboard: React.FC = () => {
 
         {/* Tab 4: NOTIFICATIONS */}
         {activeTab === 'notifications' && (
-          <div className="p-8 rounded-3xl bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-xl space-y-6">
+          <div className="p-8 rounded-3xl bg-neutral-900 border border-white/10 shadow-xl space-y-6">
             <div>
               <h3 className="text-2xl font-serif font-bold text-white">Send Quote Reminders & Outreach</h3>
               <p className="text-sm text-neutral-400 mt-1">Quickly dispatch SMS or email notifications to leads when quotations are expiring.</p>

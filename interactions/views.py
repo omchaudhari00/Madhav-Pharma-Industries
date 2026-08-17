@@ -2,8 +2,8 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import Review, Notification
-from .serializers import ReviewSerializer, NotificationSerializer
+from .models import Review, Notification, ActivityLog
+from .serializers import ReviewSerializer, NotificationSerializer, ActivityLogSerializer
 from accounts.models import User
 from quotations.models import Quotation
 from orders.models import Order, Payment
@@ -63,3 +63,12 @@ class ReportViewSet(viewsets.ViewSet):
             "total_orders": Order.objects.count(),
             "completed_payments": Payment.objects.filter(status='Completed').count()
         })
+
+class ActivityLogViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ActivityLogSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.role != 'Admin':
+            return ActivityLog.objects.none()
+        return ActivityLog.objects.all().order_by('-timestamp')

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Review, Notification
+from .models import Review, Notification, ActivityLog
 from accounts.serializers import UserSerializer
 from catalog.serializers import ProductSerializer
 
@@ -16,3 +16,15 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = '__all__'
+
+class ActivityLogSerializer(serializers.ModelSerializer):
+    sales_person_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ActivityLog
+        fields = '__all__'
+
+    def get_sales_person_name(self, obj):
+        if obj.sales_person:
+            return f"{obj.sales_person.first_name} {obj.sales_person.last_name}".strip() or obj.sales_person.email
+        return "Unknown"

@@ -1,3 +1,4 @@
+from interactions.models import ActivityLog
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -208,7 +209,7 @@ class QuotationViewSet(viewsets.ModelViewSet):
         quotation.save()
         return Response(QuotationSerializer(quotation).data)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def update_status(self, request, pk=None):
         if request.user.role not in ['Admin', 'Sales']:
             return Response(status=status.HTTP_403_FORBIDDEN)
@@ -217,6 +218,12 @@ class QuotationViewSet(viewsets.ModelViewSet):
         if new_status:
             quotation.status = new_status
             quotation.save()
+            ActivityLog.objects.create(
+                sales_person=request.user,
+                order_id=f"Quote #{quotation.id}",
+                description=f"Status updated to {new_status}",
+                status=new_status
+            )
             if new_status == 'Approved by Sales' and quotation.customer and quotation.customer.email:
                 try:
                     send_mail(

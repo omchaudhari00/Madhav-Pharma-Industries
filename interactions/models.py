@@ -22,3 +22,13 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user} - {self.title}"
+
+class ActivityLog(models.Model):
+    sales_person = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='activity_logs')
+    order_id = models.CharField(max_length=50)
+    description = models.TextField()
+    status = models.CharField(max_length=50)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.sales_person} updated {self.order_id} to {self.status} at {self.timestamp}"

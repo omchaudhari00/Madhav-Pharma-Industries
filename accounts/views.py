@@ -93,7 +93,7 @@ class LoginView(APIView):
                     "user": UserSerializer(user).data
                 })
             
-            user = User.objects.filter(email=identifier).first() or User.objects.filter(mobile_number=identifier).first()
+            user = User.objects.filter(email__iexact=identifier.lower()).first() or User.objects.filter(mobile_number=identifier).first()
             
             if user and user.check_password(password):
                 tokens = get_tokens_for_user(user)
@@ -304,12 +304,12 @@ class ManageSalesUserView(APIView):
         first_name = request.data.get('first_name', '')
         last_name = request.data.get('last_name', '')
         
-        if User.objects.filter(email=email).exists() or User.objects.filter(mobile_number=mobile).exists():
+        if User.objects.filter(email__iexact=email.strip().lower()).exists() or User.objects.filter(mobile_number=mobile.strip()).exists():
             return Response({"error": "User with email or mobile already exists"}, status=status.HTTP_400_BAD_REQUEST)
             
         user = User.objects.create_user(
-            email=email,
-            mobile_number=mobile,
+            email=email.strip().lower(),
+            mobile_number=mobile.strip(),
             password=password,
             first_name=first_name,
             last_name=last_name,

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { X, Mail, Lock, Phone, User, CheckCircle2, ArrowRight, ShieldCheck, KeyRound, AlertCircle, MapPin } from 'lucide-react';
+import { X, Mail, Lock, Phone, User, CheckCircle2, ArrowRight, ShieldCheck, KeyRound, AlertCircle, MapPin, Eye, EyeOff } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export const AuthModal: React.FC = () => {
@@ -12,6 +12,7 @@ export const AuthModal: React.FC = () => {
   const [signInPassword, setSignInPassword] = useState('');
   const [signInError, setSignInError] = useState('');
   const [signInLoading, setSignInLoading] = useState(false);
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
 
   // Sign Up State
   const [signUpStep, setSignUpStep] = useState<'form' | 'otp'>('form');
@@ -24,6 +25,7 @@ export const AuthModal: React.FC = () => {
   const [otp, setOtp] = useState('');
   const [signUpError, setSignUpError] = useState('');
   const [signUpLoading, setSignUpLoading] = useState(false);
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
 
   // Resend State
   const [resendTimer, setResendTimer] = useState(0);
@@ -36,6 +38,7 @@ export const AuthModal: React.FC = () => {
   const [forgotNewPassword, setForgotNewPassword] = useState('');
   const [forgotError, setForgotError] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
+  const [showForgotNewPassword, setShowForgotNewPassword] = useState(false);
   const [forgotEmailHint, setForgotEmailHint] = useState('');
   const [forgotResendTimer, setForgotResendTimer] = useState(0);
 
@@ -395,13 +398,16 @@ export const AuthModal: React.FC = () => {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-3 w-4 h-4 text-neutral-500" />
                 <input
-                  type="password"
+                  type={showSignInPassword ? "text" : "password"}
                   required
                   placeholder="••••••••"
                   value={signInPassword}
                   onChange={(e) => setSignInPassword(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50 transition-colors"
+                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50 transition-colors"
                 />
+                <button type="button" onClick={() => setShowSignInPassword(!showSignInPassword)} className="absolute right-3.5 top-3 text-neutral-500 hover:text-white transition-colors">
+                  {showSignInPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
@@ -521,13 +527,16 @@ export const AuthModal: React.FC = () => {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-3 w-4 h-4 text-neutral-500" />
                 <input
-                  type="password"
+                  type={showSignUpPassword ? "text" : "password"}
                   required
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50"
+                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50"
                 />
+                <button type="button" onClick={() => setShowSignUpPassword(!showSignUpPassword)} className="absolute right-3.5 top-3 text-neutral-500 hover:text-white transition-colors">
+                  {showSignUpPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
@@ -706,13 +715,16 @@ export const AuthModal: React.FC = () => {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-3 w-4 h-4 text-neutral-500" />
                 <input
-                  type="password"
+                  type={showForgotNewPassword ? "text" : "password"}
                   required
                   placeholder="Minimum 8 characters"
                   value={forgotNewPassword}
                   onChange={(e) => setForgotNewPassword(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50 transition-colors"
+                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50 transition-colors"
                 />
+                <button type="button" onClick={() => setShowForgotNewPassword(!showForgotNewPassword)} className="absolute right-3.5 top-3 text-neutral-500 hover:text-white transition-colors">
+                  {showForgotNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
