@@ -99,9 +99,6 @@ export const UpiCardPaymentModal: React.FC<UpiCardPaymentModalProps> = ({
             email: customerEmail,
             contact: customerPhone
           },
-          theme: {
-            color: '#10b981' // emerald theme
-          },
           modal: {
             ondismiss: function () {
               setIsLaunchingRazorpay(false);
