@@ -26,8 +26,28 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { UpiCardPaymentModal, PaymentSuccessDetails } from './UpiCardPaymentModal';
 import { generateInvoicePDF } from '../utils/InvoiceGenerator';
+
+export interface PaymentSuccessDetails {
+  method: string;
+  status: 'Paid';
+  referenceId: string;
+  amountINR: number;
+}
+
+const loadRazorpayScript = (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    if ((window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 export const RetailCheckoutModal: React.FC = () => {
   const {
@@ -53,8 +73,13 @@ export const RetailCheckoutModal: React.FC = () => {
   const [address, setAddress] = useState('');
   const [paymentMethod] = useState<'Card'>('Card');
   const [orderId, setOrderId] = useState('');
-  const [isGatewayOpen, setIsGatewayOpen] = useState(false);
+  const [isLaunchingRazorpay, setIsLaunchingRazorpay] = useState(false);
   const [verifiedPayment, setVerifiedPayment] = useState<PaymentSuccessDetails | null>(null);
+
+  const env = (import.meta as any).env || {};
+  const razorpayKeyId = env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YOUR_KEY_ID_HERE';
+  const razorpayCompanyName = env.VITE_RAZORPAY_COMPANY_NAME || 'Madhav Pharma Industries';
+  const isRazorpayConfigured = razorpayKeyId && razorpayKeyId !== 'rzp_test_YOUR_KEY_ID_HERE';
 
   // Sync user profile data whenever modal opens or user logs in
   useEffect(() => {
@@ -90,7 +115,7 @@ export const RetailCheckoutModal: React.FC = () => {
     setStep('checkout');
   };
 
-  const handlePayInvoice = (e: React.FormEvent) => {
+  const handlePayInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !phone.trim() || !address.trim() || !email.trim()) {
       alert('Please fill in Name, Mobile Number, Address, and Email to complete your order.');
@@ -103,11 +128,51 @@ export const RetailCheckoutModal: React.FC = () => {
 
     const generatedId = `MP-RET-${Math.floor(10000 + Math.random() * 90000)}`;
     setOrderId(generatedId);
-    setIsGatewayOpen(true);
+    
+    setIsLaunchingRazorpay(true);
+
+    if (isRazorpayConfigured) {
+      const loaded = await loadRazorpayScript();
+      setIsLaunchingRazorpay(false);
+
+      if (loaded && (window as any).Razorpay) {
+        const rzp = new (window as any).Razorpay({
+          key: razorpayKeyId,
+          amount: Math.round(totalINR * 100), // Razorpay expects paise
+          currency: 'INR',
+          name: razorpayCompanyName,
+          description: `Order ${generatedId}`,
+          handler: function (response: any) {
+            handlePaymentSuccess({
+              method: 'Razorpay Gateway (UPI / Card / NetBanking)',
+              status: 'Paid',
+              referenceId: response.razorpay_payment_id,
+              amountINR: totalINR
+            });
+          },
+          prefill: {
+            name: name,
+            email: email,
+            contact: phone
+          },
+          modal: {
+            ondismiss: function () {
+              setIsLaunchingRazorpay(false);
+            }
+          }
+        });
+        rzp.open();
+        return;
+      }
+    }
+    
+    // Fail gracefully if not configured or script fails to load
+    console.error("Razorpay is not configured or failed to load. Payment cannot proceed.");
+    alert("Payment gateway is temporarily unavailable. Please try again later.");
+    setIsLaunchingRazorpay(false);
   };
 
   const handlePaymentSuccess = (details: PaymentSuccessDetails) => {
-    setIsGatewayOpen(false);
     setVerifiedPayment(details);
     setStep('processing');
 
@@ -616,10 +681,11 @@ export const RetailCheckoutModal: React.FC = () => {
 
                   <button
                     type="submit"
-                    className="w-full py-4 rounded-full bg-gradient-to-r from-[#d4a373] via-[#e6bc92] to-[#c29161] hover:opacity-95 text-black font-extrabold text-sm uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_6px_24px_rgba(212,163,115,0.4)] cursor-pointer"
+                    disabled={isLaunchingRazorpay}
+                    className="w-full py-4 rounded-full bg-gradient-to-r from-[#d4a373] via-[#e6bc92] to-[#c29161] hover:opacity-95 text-black font-extrabold text-sm uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_6px_24px_rgba(212,163,115,0.4)] cursor-pointer disabled:opacity-50"
                   >
                     <ShieldCheck className="w-5 h-5" />
-                    <span>PLACE YOUR ORDER AND PAY (₹{totalINR}.00)</span>
+                    <span>{isLaunchingRazorpay ? 'OPENING SECURE GATEWAY...' : `PLACE YOUR ORDER AND PAY (₹${totalINR}.00)`}</span>
                   </button>
 
                   <p className="text-[11px] text-center text-neutral-400">
@@ -748,21 +814,8 @@ export const RetailCheckoutModal: React.FC = () => {
         </div>
       </div>
 
-      {/* 100% Secure UPI & Card Gateway Modal */}
-      <UpiCardPaymentModal
-        isOpen={isGatewayOpen}
-        onClose={() => setIsGatewayOpen(false)}
-        amountINR={totalINR}
-        orderReference={orderId || 'Retail Order'}
-        customerName={name}
-        customerPhone={phone}
-        customerEmail={email}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
+      {/* Modals are handled directly now */}
     </div>
   );
 };
-
-
-
 
