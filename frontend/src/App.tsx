@@ -15,6 +15,48 @@ import { CustomerDashboard } from './components/portals/CustomerDashboard';
 
 const AppContent: React.FC = () => {
   const { currentPortal } = useApp();
+  const [isLoading, setIsLoading] = React.useState(true);
+  const previousPortal = React.useRef(currentPortal);
+
+  React.useEffect(() => {
+    // Show premium splash screen for 1.5s on app load
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  React.useEffect(() => {
+    // Trigger loading screen on portal changes
+    if (currentPortal !== previousPortal.current) {
+      const isEnteringCustomerSide = currentPortal === 'customer';
+      previousPortal.current = currentPortal;
+
+      if (isEnteringCustomerSide) {
+        setIsLoading(true);
+        const timer = setTimeout(() => {
+          setIsLoading(false);
+        }, 800);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [currentPortal]);
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center">
+        <div className="relative">
+          {/* Subtle glowing background behind the logo */}
+          <div className="absolute inset-0 bg-[#d4a373] blur-3xl opacity-20 rounded-full animate-pulse"></div>
+          <img 
+            src="/images/favicon-circle.png" 
+            alt="Madhav Pharma Loading" 
+            className="w-28 h-28 object-contain animate-spin-coin relative z-10" 
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

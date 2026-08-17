@@ -57,6 +57,21 @@
   animation: spin-slow 20s linear infinite;
 }
 
+/* Coin Spin Animation for Loading Screen */
+@keyframes spin-coin {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+.animate-spin-coin {
+  animation: spin-coin 1.5s linear infinite;
+  transform-style: preserve-3d;
+}
+
 /* Hide up/down spinner arrows in number inputs */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
