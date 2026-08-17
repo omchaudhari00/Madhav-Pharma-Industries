@@ -16,9 +16,9 @@ export const Navbar: React.FC = () => {
           {/* Logo */}
           <a href="#hero" className="flex items-center space-x-2 sm:space-x-2.5 group shrink-0">
             <img 
-              src="/images/madhav-pharma-logo-1.jpeg" 
+              src="/images/favicon-circle.png" 
               alt="Madhav Pharma Logo" 
-              className="w-8 h-8 rounded-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-8 h-8 object-contain transition-transform duration-300 group-hover:scale-105"
             />
             <span className="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-white font-brand whitespace-nowrap">
               Madhav Pharma

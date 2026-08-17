@@ -258,9 +258,9 @@ export const CustomerDashboard: React.FC = () => {
 
             <div className="flex items-center gap-2">
                 <img 
-                  src="/images/madhav-pharma-logo-1.jpeg" 
+                  src="/images/favicon-circle.png" 
                   alt="Madhav Pharma Logo"
-                  className="w-10 h-10 rounded-full object-cover border border-[#d4a373]/50 shadow-[0_0_15px_rgba(212,163,115,0.2)]"
+                  className="w-10 h-10 object-contain"
                 />
                 <div>
                   <h1 className="text-base sm:text-lg font-extrabold text-white leading-none">
