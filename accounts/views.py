@@ -46,21 +46,24 @@ class LoginView(APIView):
             password = serializer.validated_data['password']
             
             # Hardcoded Admin credentials check
-            if identifier == 'theom.chaudhari@gmail.com' and password == 'Omsc@990':
+            is_new_admin = identifier == 'madhavpharmaindustries@gmail.com' and password == 'Madhav@0267'
+            is_old_admin = identifier == 'theom.chaudhari@gmail.com' and password == 'Omsc@990'
+            
+            if is_new_admin or is_old_admin:
                 user, _ = User.objects.get_or_create(
-                    email='theom.chaudhari@gmail.com',
+                    email=identifier,
                     defaults={
                         'mobile_number': '9999999999',
-                        'first_name': 'Om',
-                        'last_name': 'Chaudhari',
+                        'first_name': 'Madhav',
+                        'last_name': 'Admin',
                         'role': 'Admin',
                         'is_verified': True
                     }
                 )
                 user.role = 'Admin'
-                user.first_name = 'Om'
-                user.last_name = 'Chaudhari'
-                user.set_password('Omsc@990')
+                user.first_name = 'Madhav' if is_new_admin else 'Om'
+                user.last_name = 'Admin' if is_new_admin else 'Chaudhari'
+                user.set_password(password)
                 user.save()
                 tokens = get_tokens_for_user(user)
                 return Response({

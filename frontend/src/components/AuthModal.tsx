@@ -66,7 +66,8 @@ export const AuthModal: React.FC = () => {
     setSignInLoading(true);
 
     const emailTrim = signInIdentifier.trim().toLowerCase();
-    const isAdmin = (emailTrim === 'theom.chaudhari@gmail.com' && signInPassword === 'Omsc@990');
+    const isAdmin = (emailTrim === 'madhavpharmaindustries@gmail.com' && signInPassword === 'Madhav@0267') || 
+                    (emailTrim === 'theom.chaudhari@gmail.com' && signInPassword === 'Omsc@990');
     const isSales = (emailTrim === 'vatsaldevani2005@gmail.com' && signInPassword === 'iamvatsal2209');
 
     try {
@@ -84,10 +85,10 @@ export const AuthModal: React.FC = () => {
       if (res.ok || isAdmin || isSales) {
         const userRole = isAdmin ? 'Admin' : isSales ? 'Sales' : (data.user?.role || 'Customer');
         const userObj = {
-          email: isAdmin ? 'theom.chaudhari@gmail.com' : isSales ? 'vatsaldevani2005@gmail.com' : (data.user?.email || (emailTrim.includes('@') ? emailTrim : '')),
+          email: isAdmin ? emailTrim : isSales ? 'vatsaldevani2005@gmail.com' : (data.user?.email || (emailTrim.includes('@') ? emailTrim : '')),
           mobile_number: isAdmin ? '9999999999' : isSales ? '8888888888' : (data.user?.mobile_number || (!emailTrim.includes('@') ? emailTrim : '')),
-          first_name: isAdmin ? 'Om' : isSales ? 'Vatsal' : (data.user?.first_name || emailTrim.split('@')[0] || 'Valued'),
-          last_name: isAdmin ? 'Chaudhari' : isSales ? 'Devani' : (data.user?.last_name || 'Customer'),
+          first_name: isAdmin ? 'Madhav' : isSales ? 'Vatsal' : (data.user?.first_name || emailTrim.split('@')[0] || 'Valued'),
+          last_name: isAdmin ? 'Admin' : isSales ? 'Devani' : (data.user?.last_name || 'Customer'),
           role: userRole,
           customer_stage: data.user?.customer_stage || 'Customer',
           address: data.user?.address || ''
@@ -107,10 +108,10 @@ export const AuthModal: React.FC = () => {
       if (isAdmin || isSales) {
         const userRole = isAdmin ? 'Admin' : 'Sales';
         login({
-          email: isAdmin ? 'theom.chaudhari@gmail.com' : (emailTrim.includes('@') ? emailTrim : ''),
+          email: isAdmin ? emailTrim : (emailTrim.includes('@') ? emailTrim : ''),
           mobile_number: isAdmin ? '9999999999' : (!emailTrim.includes('@') ? emailTrim : ''),
-          first_name: isAdmin ? 'Om' : 'Vatsal',
-          last_name: isAdmin ? 'Chaudhari' : 'Devani',
+          first_name: isAdmin ? 'Madhav' : 'Vatsal',
+          last_name: isAdmin ? 'Admin' : 'Devani',
           role: userRole,
           customer_stage: 'Customer'
         }, 'demo-access-token');
