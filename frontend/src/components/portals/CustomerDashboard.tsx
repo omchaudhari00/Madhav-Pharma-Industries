@@ -266,9 +266,12 @@ export const CustomerDashboard: React.FC = () => {
                   <h1 className="text-base sm:text-lg font-extrabold text-white leading-none">
                     Madhav Pharma <span className="text-[#d4a373] font-normal font-serif">Customer Portal</span>
                   </h1>
-                <p className="text-xs text-neutral-400 mt-0.5">
-                  Welcome, {user?.first_name || 'Valued Buyer'} • {user?.email}
-                </p>
+                <div className="flex items-center text-xs text-neutral-400 mt-0.5 space-x-3">
+                  <span>Welcome, {user?.first_name || 'Valued Buyer'} • {user?.email}</span>
+                  <button onClick={logout} className="text-red-400 hover:text-red-300 font-bold underline underline-offset-2 transition-colors">
+                    Logout
+                  </button>
+                </div>
               </div>
             </div>
           </div>

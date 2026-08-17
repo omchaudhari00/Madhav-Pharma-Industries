@@ -88,23 +88,13 @@ export const Navbar: React.FC = () => {
                   else if (user.role === 'Sales') setPortal('sales');
                   else setPortal('customer');
                 }}
-                className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity shadow-md whitespace-nowrap shrink-0"
+                className="flex items-center space-x-2 bg-neutral-900/80 border border-neutral-800 rounded-full px-4 py-1.5 hover:bg-neutral-800 transition-colors shrink-0 shadow-md group"
               >
-                Portal ({user.role})
+                <User className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span className="text-sm font-bold text-white max-w-[120px] truncate group-hover:text-emerald-400 transition-colors">
+                  {user.first_name || user.role}
+                </span>
               </button>
-              <div className="flex items-center space-x-2 bg-neutral-900/80 border border-neutral-800 rounded-full pl-3 pr-1 py-1 shrink-0">
-                <div className="flex items-center space-x-1.5 text-xs font-bold text-white">
-                  <User className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span className="max-w-[120px] truncate">{user.first_name || user.role}</span>
-                </div>
-                <button
-                  onClick={logout}
-                  title="Log out"
-                  className="p-1 rounded-full hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                </button>
-              </div>
             </div>
           ) : (
             <button
@@ -181,34 +171,18 @@ export const Navbar: React.FC = () => {
             {/* Mobile Sign In/Up or User State */}
             <div className="pt-3 border-t border-neutral-800 flex flex-col gap-3">
               {user ? (
-                <>
-                  <button
-                    onClick={() => {
-                      if (user.role === 'Admin') setPortal('admin');
-                      else if (user.role === 'Sales') setPortal('sales');
-                      else setPortal('customer');
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider text-center shadow-lg"
-                  >
-                    Open My Portal ({user.role})
-                  </button>
-                  <div className="w-full flex items-center justify-between bg-neutral-900 border border-neutral-800 rounded-xl p-3">
-                    <div className="flex items-center space-x-2 text-sm font-bold text-white">
-                      <User className="w-4 h-4 text-emerald-400" />
-                      <span>{user.first_name || user.role}</span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        logout();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="px-3 py-1 text-xs text-red-400 hover:text-red-300 font-bold"
-                    >
-                      Log Out
-                    </button>
-                  </div>
-                </>
+                <button
+                  onClick={() => {
+                    if (user.role === 'Admin') setPortal('admin');
+                    else if (user.role === 'Sales') setPortal('sales');
+                    else setPortal('customer');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center space-x-2 bg-neutral-900 border border-neutral-800 rounded-xl p-3 text-sm font-bold text-white hover:bg-neutral-800 transition-colors"
+                >
+                  <User className="w-4 h-4 text-emerald-400" />
+                  <span>{user.first_name || user.role}</span>
+                </button>
               ) : (
                 <button
                   onClick={() => {

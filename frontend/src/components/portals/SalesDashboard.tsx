@@ -257,6 +257,9 @@ export const SalesDashboard: React.FC = () => {
             <span className="text-sm text-neutral-300 hidden md:block">
               {user?.email || 'sales@madhavpharma.com'}
             </span>
+            <button onClick={logout} className="text-red-400 hover:text-red-300 font-bold underline underline-offset-2 transition-colors text-xs ml-1">
+              Logout
+            </button>
           </div>
         </div>
       </div>
