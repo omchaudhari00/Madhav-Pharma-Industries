@@ -458,7 +458,7 @@ export const AuthModal: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="Alpesh"
+                    placeholder="First Name"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-3 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50"
@@ -469,7 +469,7 @@ export const AuthModal: React.FC = () => {
                 <label className="block text-xs text-neutral-400 mb-1.5">Last Name</label>
                 <input
                   type="text"
-                  placeholder="Patel"
+                  placeholder="Last Name"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50"
@@ -484,7 +484,7 @@ export const AuthModal: React.FC = () => {
                 <input
                   type="email"
                   required
-                  placeholder="company@pharma.com"
+                  placeholder="Email Address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50"
@@ -499,7 +499,7 @@ export const AuthModal: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="9023385917"
+                  placeholder="Mobile Number"
                   value={mobileNumber}
                   onChange={(e) => setMobileNumber(e.target.value)}
                   className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50"
@@ -514,7 +514,7 @@ export const AuthModal: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="123 Pharma Estate, Ahmedabad, Gujarat - 380001"
+                  placeholder="Full Address"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50"

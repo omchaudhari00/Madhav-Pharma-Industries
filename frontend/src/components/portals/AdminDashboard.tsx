@@ -325,13 +325,17 @@ export const AdminDashboard: React.FC = () => {
       
       {/* LEFT SIDEBAR */}
       <aside className="w-64 bg-[#d4a373] flex flex-col shadow-xl z-20">
-        <div className="p-6 border-b border-black/10 flex items-center gap-3">
+        <button 
+          onClick={() => setPortal('storefront')}
+          className="p-6 border-b border-black/10 flex items-center gap-3 text-left hover:bg-black/5 transition-colors cursor-pointer focus:outline-none"
+          title="Return to Storefront"
+        >
           <img src="/images/favicon-circle.png" alt="Logo" className="w-10 h-10 object-contain" />
           <div>
             <h1 className="text-black font-extrabold leading-none font-serif">Madhav Pharma</h1>
             <p className="text-xs text-neutral-800 font-bold mt-1">Admin Portal</p>
           </div>
-        </div>
+        </button>
         
         <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
           {[

@@ -30,9 +30,10 @@ const AppContent: React.FC = () => {
     // Trigger loading screen on portal changes
     if (currentPortal !== previousPortal.current) {
       const isEnteringCustomerSide = currentPortal === 'customer';
+      const isExitingCustomerSideToStorefront = previousPortal.current === 'customer' && currentPortal === 'storefront';
       previousPortal.current = currentPortal;
 
-      if (isEnteringCustomerSide) {
+      if (isEnteringCustomerSide || isExitingCustomerSideToStorefront) {
         setIsLoading(true);
         const timer = setTimeout(() => {
           setIsLoading(false);
