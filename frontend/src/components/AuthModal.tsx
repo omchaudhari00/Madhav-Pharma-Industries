@@ -57,6 +57,7 @@ export const AuthModal: React.FC = () => {
     }
     return () => clearTimeout(timer);
   }, [forgotResendTimer]);
+
   useEffect(() => {
     if (isAuthModalOpen) {
       document.body.style.overflow = 'hidden';

@@ -147,21 +147,33 @@ export const ContactUsSection: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
 
             {/* Embedded Google Map with Glass Frame */}
-            <div className="w-full h-56 sm:h-64 rounded-3xl overflow-hidden border border-white/15 bg-neutral-900/40 backdrop-blur-xl shadow-xl">
+            <div className="w-full relative h-56 sm:h-64 rounded-3xl overflow-hidden border border-white/15 bg-neutral-900/40 backdrop-blur-xl shadow-xl group">
               <iframe
-                title="Office Location Map"
+                title="Madhav Pharma Location Map"
                 width="100%"
                 height="100%"
                 frameBorder="0"
                 scrolling="no"
                 marginHeight={0}
                 marginWidth={0}
-                src="https://maps.google.com/maps?q=London%20Eye&t=&z=13&ie=UTF8&iwloc=&output=embed"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3667.659345719875!2d72.62849037509536!3d23.395758578912853!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395c330022501157%3A0xf42518f88e35d748!2sMadhav%20Pharma%20industries!5e0!3m2!1sen!2sin!4v1714930355152!5m2!1sen!2sin"
                 className="w-full h-full filter grayscale invert opacity-80 hover:opacity-100 transition-opacity"
               />
+              {/* Overlay Link Button */}
+              <div className="absolute bottom-4 right-4 flex space-x-2">
+                <a 
+                  href="https://maps.app.goo.gl/2JGZZPks5hjxwcor7" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-white text-black text-xs font-bold font-display uppercase tracking-wider rounded-lg shadow-lg hover:bg-neutral-200 transition-colors flex items-center space-x-2"
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>Open in Google Maps</span>
+                </a>
+              </div>
+            </div>
             </div>
           </div>
         </div>

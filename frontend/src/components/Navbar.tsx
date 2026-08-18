@@ -41,7 +41,7 @@ export const Navbar: React.FC = () => {
         {/* Left: Brand Logo */}
         <a href="#hero" className="flex items-center space-x-2 sm:space-x-2.5 group shrink-0">
           <img 
-            src="/images/madhav-pharma-logo-1.jpeg" 
+            src="/images/favicon-circle.png" 
             alt="Madhav Pharma Logo" 
             className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border border-amber-500/40 transition-transform duration-300 group-hover:scale-105"
           />
