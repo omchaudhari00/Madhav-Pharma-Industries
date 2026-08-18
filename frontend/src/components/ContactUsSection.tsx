@@ -313,7 +313,7 @@ export const ContactUsSection: React.FC = () => {
           <div className="flex items-center justify-center text-center">
             <span>made with </span>
             <Heart className="w-3.5 h-3.5 inline-block text-neutral-500 fill-neutral-500 mx-1.5" />
-            <span> by elite webworks</span>
+            <span> by elite community</span>
           </div>
           <div className="flex items-center space-x-6">
             <a href="#privacy" className="hover:text-white transition-colors">Privacy Policy</a>
