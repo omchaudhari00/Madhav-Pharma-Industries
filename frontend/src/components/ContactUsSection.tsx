@@ -221,9 +221,9 @@ export const ContactUsSection: React.FC = () => {
           <div>
             <div className="flex items-center space-x-2.5 font-bold text-lg tracking-wider text-white font-display mb-5">
               <img 
-                src="/images/madhav-pharma-logo-1.jpeg" 
+                src="/images/favicon-circle.png" 
                 alt="Madhav Pharma Logo" 
-                className="w-9 h-9 rounded-full object-cover border border-[#d4a373]/60 shadow-[0_0_15px_rgba(212,163,115,0.4)]"
+                className="w-9 h-9 object-contain drop-shadow-[0_0_15px_rgba(212,163,115,0.4)]"
               />
               <span className="font-brand text-xl text-white font-bold tracking-tight">Madhav Pharma</span>
             </div>
