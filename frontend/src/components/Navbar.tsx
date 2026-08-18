@@ -96,30 +96,27 @@ export const Navbar: React.FC = () => {
 
           {/* User Logged In State vs Sign In / Up */}
           {user ? (
-            <div className="flex items-center space-x-2 shrink-0">
-              <button
-                onClick={() => {
-                  if (user.role === 'Admin') setPortal('admin');
-                  else if (user.role === 'Sales') setPortal('sales');
-                  else setPortal('customer');
-                }}
-                className="hidden sm:inline-flex px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity shadow-md whitespace-nowrap shrink-0"
-              >
-                Portal ({user.role})
-              </button>
-              <div className="flex items-center space-x-2 bg-neutral-900/80 border border-neutral-800 rounded-full pl-3 pr-1.5 py-1 shrink-0">
-                <div className="flex items-center space-x-1.5 text-xs font-bold text-white">
-                  <User className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span className="max-w-[80px] sm:max-w-[120px] truncate">{user.first_name || user.role}</span>
-                </div>
+            <div className="hidden xl:flex items-center space-x-2 shrink-0">
+              {user.role !== 'Customer' && (
                 <button
-                  onClick={logout}
-                  title="Log out"
-                  className="p-1 rounded-full hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
+                  onClick={() => {
+                    if (user.role === 'Admin') setPortal('admin');
+                    else if (user.role === 'Sales') setPortal('sales');
+                  }}
+                  className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity shadow-md whitespace-nowrap shrink-0"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
+                  Portal ({user.role})
                 </button>
-              </div>
+              )}
+              {/* Desktop User Profile Button (Clean Pill without Logout) */}
+              <button
+                onClick={() => setPortal('customer')}
+                className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-neutral-900/80 border border-neutral-800 text-xs font-bold text-white hover:text-[#d4a373] hover:border-amber-500/40 transition-all duration-200 shrink-0 cursor-pointer shadow-sm"
+                title="Open My Profile / Orders"
+              >
+                <User className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="max-w-[120px] truncate">{user.first_name || user.role}</span>
+              </button>
             </div>
           ) : (
             /* Glassmorphism Theme Desktop SIGN IN / UP Button (Visible ONLY on Desktop >= 1280px) */
@@ -208,33 +205,46 @@ export const Navbar: React.FC = () => {
 
               {/* Mobile/iPad SIGN IN / UP Button or Logged in portal controls */}
               {user ? (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
+                  {/* My Profile Button */}
                   <button
                     onClick={() => {
-                      if (user.role === 'Admin') setPortal('admin');
-                      else if (user.role === 'Sales') setPortal('sales');
-                      else setPortal('customer');
+                      setPortal('customer');
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider text-center shadow-lg"
+                    className="w-full flex items-center justify-between p-3.5 rounded-xl bg-neutral-900/90 border border-emerald-500/30 text-white font-medium text-sm hover:border-emerald-500/60 transition-colors cursor-pointer"
                   >
-                    Open My Portal ({user.role})
-                  </button>
-                  <div className="w-full flex items-center justify-between bg-neutral-900 border border-neutral-800 rounded-xl p-3">
-                    <div className="flex items-center space-x-2 text-sm font-bold text-white">
+                    <span className="flex items-center space-x-2.5">
                       <User className="w-4 h-4 text-emerald-400" />
-                      <span>{user.first_name || user.role}</span>
-                    </div>
+                      <span className="font-bold">{user.first_name || user.role}'s Profile</span>
+                    </span>
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
+                      My Account
+                    </span>
+                  </button>
+
+                  {user.role !== 'Customer' && (
                     <button
                       onClick={() => {
-                        logout();
+                        if (user.role === 'Admin') setPortal('admin');
+                        else if (user.role === 'Sales') setPortal('sales');
                         setMobileMenuOpen(false);
                       }}
-                      className="px-3 py-1 text-xs text-red-400 hover:text-red-300 font-bold"
+                      className="w-full py-3 rounded-xl bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider text-center shadow-lg"
                     >
-                      Log Out
+                      Open My Portal ({user.role})
                     </button>
-                  </div>
+                  )}
+                  <button
+                    onClick={() => {
+                      logout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center justify-center space-x-2 py-3 rounded-xl bg-neutral-900 border border-neutral-800 text-red-400 hover:text-red-300 font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>LOG OUT</span>
+                  </button>
                 </div>
               ) : (
                 /* Glassmorphism Theme Mobile & iPad Hamburger Menu Sign In / Up Button */
