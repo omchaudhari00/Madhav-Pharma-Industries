@@ -105,17 +105,6 @@ export const ContactUsSection: React.FC = () => {
                 Reach out to Madhav Pharma Industries for inquiries, wholesale orders, or product support.
               </p>
 
-<<<<<<< HEAD
-              {/* Contact Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 font-sans-custom">
-                <div className="flex items-start space-x-4">
-                  <div className="p-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white">
-                    <Phone className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-white font-display">Phone Number</h4>
-                    <p className="text-xs text-neutral-400 mt-0.5">+91 90233 85917</p>
-=======
               {/* 2x2 Glassmorphism Contact Grid */}
               <div className="grid grid-cols-2 gap-3 sm:gap-6 mb-8 font-sans-custom">
                 <div className="flex flex-col items-center text-center xl:flex-row xl:items-start xl:text-left space-y-2 xl:space-y-0 xl:space-x-4">
@@ -125,7 +114,6 @@ export const ContactUsSection: React.FC = () => {
                   <div>
                     <h4 className="font-bold text-xs sm:text-sm text-neutral-900 xl:text-white font-display">Phone Number</h4>
                     <p className="text-[11px] sm:text-xs text-neutral-900 xl:text-neutral-300 mt-0.5 font-semibold xl:font-normal">+91 9023385917</p>
->>>>>>> 70176be (changes in frontend for mobile users)
                   </div>
                 </div>
 
@@ -138,39 +126,6 @@ export const ContactUsSection: React.FC = () => {
                     <p className="text-[10px] sm:text-xs text-neutral-900 xl:text-neutral-300 mt-0.5 font-semibold xl:font-normal break-all sm:break-normal">madhavpharmaindustries@gmail.com</p>
                   </div>
                 </div>
-<<<<<<< HEAD
-              </div>
-            </div>
-
-            {/* Embedded Google Map */}
-            <div className="w-full relative rounded-2xl overflow-hidden border border-neutral-800 bg-neutral-900 group">
-              <div className="h-56 sm:h-64 w-full">
-                <iframe
-                  title="Madhav Pharma Location Map"
-                  width="100%"
-                  height="100%"
-                  frameBorder="0"
-                  scrolling="no"
-                  marginHeight={0}
-                  marginWidth={0}
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3667.659345719875!2d72.62849037509536!3d23.395758578912853!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395c330022501157%3A0xf42518f88e35d748!2sMadhav%20Pharma%20industries!5e0!3m2!1sen!2sin!4v1714930355152!5m2!1sen!2sin"
-                  className="w-full h-full filter grayscale invert opacity-80 hover:opacity-100 transition-opacity"
-                />
-              </div>
-              
-              {/* Overlay Link Button */}
-              <div className="absolute bottom-4 right-4 flex space-x-2">
-                <a 
-                  href="https://maps.app.goo.gl/2JGZZPks5hjxwcor7" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 bg-white text-black text-xs font-bold font-display uppercase tracking-wider rounded-lg shadow-lg hover:bg-neutral-200 transition-colors flex items-center space-x-2"
-                >
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>Open in Google Maps</span>
-                </a>
-              </div>
-=======
 
                 <div className="flex flex-col items-center text-center xl:flex-row xl:items-start xl:text-left space-y-2 xl:space-y-0 xl:space-x-4">
                   <div className="p-2.5 sm:p-3.5 bg-neutral-900/10 xl:bg-white/5 backdrop-blur-md border border-neutral-900/20 xl:border-white/15 rounded-2xl text-[#d4a373] shadow-sm">
@@ -207,7 +162,6 @@ export const ContactUsSection: React.FC = () => {
                 src="https://maps.google.com/maps?q=London%20Eye&t=&z=13&ie=UTF8&iwloc=&output=embed"
                 className="w-full h-full filter grayscale invert opacity-80 hover:opacity-100 transition-opacity"
               />
->>>>>>> 70176be (changes in frontend for mobile users)
             </div>
           </div>
         </div>

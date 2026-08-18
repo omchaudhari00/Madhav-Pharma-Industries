@@ -51,14 +51,13 @@ export const AuthModal: React.FC = () => {
   }, [resendTimer]);
 
   useEffect(() => {
-<<<<<<< HEAD
     let timer: any;
     if (forgotResendTimer > 0) {
       timer = setTimeout(() => setForgotResendTimer(forgotResendTimer - 1), 1000);
     }
     return () => clearTimeout(timer);
   }, [forgotResendTimer]);
-=======
+  useEffect(() => {
     if (isAuthModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -68,7 +67,6 @@ export const AuthModal: React.FC = () => {
       document.body.style.overflow = '';
     };
   }, [isAuthModalOpen]);
->>>>>>> 70176be (changes in frontend for mobile users)
 
   if (!isAuthModalOpen) return null;
 

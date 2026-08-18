@@ -36,23 +36,6 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-<<<<<<< HEAD
-    <header className="sticky top-0 z-50 w-full bg-neutral-950/85 backdrop-blur-md border-b border-white/10 transition-all duration-300">
-      <nav className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3.5 sm:py-4 flex items-center justify-between text-white relative font-display">
-        {/* Left: Logo & Desktop Navigation Links */}
-        <div className="flex items-center space-x-4 sm:space-x-8 lg:space-x-12">
-          {/* Logo */}
-          <a href="#hero" className="flex items-center space-x-2 sm:space-x-2.5 group shrink-0">
-            <img 
-              src="/images/favicon-circle.png" 
-              alt="Madhav Pharma Logo" 
-              className="w-8 h-8 object-contain transition-transform duration-300 group-hover:scale-105"
-            />
-            <span className="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-white font-brand whitespace-nowrap">
-              Madhav Pharma
-            </span>
-          </a>
-=======
     <header id="main-navbar-header" className="sticky top-0 z-40 w-full bg-neutral-950/90 xl:bg-transparent backdrop-blur-xl xl:backdrop-blur-none border-b border-white/10 xl:border-b-0 transition-all duration-300">
       <nav className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-3 sm:py-4 flex items-center justify-between text-white relative font-display">
         {/* Left: Brand Logo */}
@@ -66,7 +49,6 @@ export const Navbar: React.FC = () => {
             Madhav Pharma
           </span>
         </a>
->>>>>>> 70176be (changes in frontend for mobile users)
 
         {/* Right-Aligned Desktop Navigation Links (Visible on Large Screens 1280px+) */}
         <div className="hidden xl:flex items-center space-x-6 xl:space-x-8 text-xs sm:text-sm font-medium text-neutral-300 whitespace-nowrap ml-auto mr-6 xl:mr-8">
@@ -121,19 +103,10 @@ export const Navbar: React.FC = () => {
                   else if (user.role === 'Sales') setPortal('sales');
                   else setPortal('customer');
                 }}
-<<<<<<< HEAD
-                className="flex items-center space-x-2 bg-neutral-900/80 border border-neutral-800 rounded-full px-4 py-1.5 hover:bg-neutral-800 transition-colors shrink-0 shadow-md group"
-=======
                 className="hidden sm:inline-flex px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 font-extrabold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity shadow-md whitespace-nowrap shrink-0"
->>>>>>> 70176be (changes in frontend for mobile users)
               >
-                <User className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span className="text-sm font-bold text-white max-w-[120px] truncate group-hover:text-emerald-400 transition-colors">
-                  {user.first_name || user.role}
-                </span>
+                Portal ({user.role})
               </button>
-<<<<<<< HEAD
-=======
               <div className="flex items-center space-x-2 bg-neutral-900/80 border border-neutral-800 rounded-full pl-3 pr-1.5 py-1 shrink-0">
                 <div className="flex items-center space-x-1.5 text-xs font-bold text-white">
                   <User className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -147,7 +120,6 @@ export const Navbar: React.FC = () => {
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
               </div>
->>>>>>> 70176be (changes in frontend for mobile users)
             </div>
           ) : (
             /* Glassmorphism Theme Desktop SIGN IN / UP Button (Visible ONLY on Desktop >= 1280px) */
@@ -236,20 +208,6 @@ export const Navbar: React.FC = () => {
 
               {/* Mobile/iPad SIGN IN / UP Button or Logged in portal controls */}
               {user ? (
-<<<<<<< HEAD
-                <button
-                  onClick={() => {
-                    if (user.role === 'Admin') setPortal('admin');
-                    else if (user.role === 'Sales') setPortal('sales');
-                    else setPortal('customer');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full flex items-center justify-center space-x-2 bg-neutral-900 border border-neutral-800 rounded-xl p-3 text-sm font-bold text-white hover:bg-neutral-800 transition-colors"
-                >
-                  <User className="w-4 h-4 text-emerald-400" />
-                  <span>{user.first_name || user.role}</span>
-                </button>
-=======
                 <div className="space-y-2">
                   <button
                     onClick={() => {
@@ -278,7 +236,6 @@ export const Navbar: React.FC = () => {
                     </button>
                   </div>
                 </div>
->>>>>>> 70176be (changes in frontend for mobile users)
               ) : (
                 /* Glassmorphism Theme Mobile & iPad Hamburger Menu Sign In / Up Button */
                 <button
