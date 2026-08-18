@@ -9,6 +9,17 @@ export const CartModal: React.FC = () => {
   const [expectedPrices, setExpectedPrices] = useState<Record<string, string>>({});
   const [qtyInputs, setQtyInputs] = useState<Record<string, string>>({});
 
+  React.useEffect(() => {
+    if (isCartOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isCartOpen]);
+
   if (!isCartOpen) return null;
 
   const totalEstimatedINR = cartItems.reduce((acc, item) => acc + item.quantityKg * item.unitPrice, 0);
@@ -76,16 +87,16 @@ export const CartModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden font-display" data-lenis-prevent="true">
-      {/* Backdrop */}
+      {/* Simple Backdrop Blur (Without Heavy Black Tint) */}
       <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 backdrop-blur-md bg-black/20 transition-all duration-300"
         onClick={closeCart}
       />
 
-      <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-        {/* Drawer Panel */}
+      <div className="absolute inset-y-0 right-0 w-full lg:w-auto flex pl-0 lg:pl-10">
+        {/* Drawer Panel (Same size as 50ml Retail Cart: lg:max-w-2xl) */}
         <div 
-          className="w-screen max-w-md bg-neutral-950 border-l border-neutral-800 text-white shadow-2xl flex flex-col h-full max-h-screen overflow-hidden"
+          className="w-full lg:w-screen lg:max-w-2xl bg-neutral-950 border-l border-neutral-800 text-white shadow-2xl flex flex-col h-full max-h-screen overflow-hidden"
           data-lenis-prevent="true"
         >
           {/* Top Header */}

@@ -98,8 +98,6 @@ export const RetailCheckoutModal: React.FC = () => {
     }
   }, [user, isRetailCheckoutOpen]);
 
-  if (!isRetailCheckoutOpen) return null;
-
   const totalINR = retailCartItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
 
   const handleProceedToCheckout = () => {
@@ -238,18 +236,31 @@ export const RetailCheckoutModal: React.FC = () => {
     generateInvoicePDF(orderDetails);
   };
 
+  useEffect(() => {
+    if (isRetailCheckoutOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isRetailCheckoutOpen]);
+
+  if (!isRetailCheckoutOpen) return null;
+
   return (
     <div className="fixed inset-0 z-50 overflow-hidden font-display" data-lenis-prevent="true">
-      {/* Backdrop */}
+      {/* Simple Backdrop Blur (Without Heavy Black Tint) */}
       <div
-        className="absolute inset-0 bg-black/85 backdrop-blur-md transition-opacity"
+        className="absolute inset-0 backdrop-blur-md bg-black/20 transition-all duration-300"
         onClick={handleClose}
       />
 
-      <div className="absolute inset-y-0 right-0 max-w-full flex pl-4 sm:pl-10">
-        {/* Modal Drawer */}
+      <div className="absolute inset-y-0 right-0 w-full lg:w-auto flex pl-0 lg:pl-10">
+        {/* Modal Drawer (Full Screen on Mobile & iPad < 1024px) */}
         <div 
-          className="w-screen max-w-2xl bg-neutral-950 border-l border-neutral-800 text-white shadow-2xl flex flex-col h-full max-h-screen overflow-hidden"
+          className="w-full lg:w-screen lg:max-w-2xl bg-neutral-950 border-l border-neutral-800 text-white shadow-2xl flex flex-col h-full max-h-screen overflow-hidden"
           data-lenis-prevent="true"
         >
           {/* Top Header */}

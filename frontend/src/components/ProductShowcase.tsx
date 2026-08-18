@@ -125,16 +125,16 @@ export const ProductShowcase: React.FC = () => {
 
   return (
     <div className="w-full max-w-full my-8">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-stretch font-display">
-        <div className="lg:col-span-4 xl:col-span-3 flex flex-col gap-4 sm:gap-5 justify-between">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 xl:gap-8 items-stretch font-display">
+        <div className="xl:col-span-3 flex flex-col md:flex-row xl:flex-col gap-4 sm:gap-5 justify-between">
           {visibleProducts.map((prod) => {
             const isActive = activeProductId === prod.id;
             return (
               <div
                 key={prod.id}
                 onClick={() => setActiveProductId(prod.id)}
-                className={`relative group rounded-3xl p-6 transition-all duration-500 cursor-pointer flex items-center justify-between overflow-hidden border min-h-[140px] sm:min-h-[155px] lg:min-h-[165px] bg-neutral-900/30 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] hover:border-white/25 hover:bg-neutral-900/50 flex-1 ${isActive
-                  ? 'border-white/40 bg-neutral-900/50 ring-1 ring-white/20'
+                className={`relative group rounded-3xl p-5 sm:p-6 transition-all duration-500 cursor-pointer flex items-center justify-between overflow-hidden border min-h-[120px] sm:min-h-[140px] xl:min-h-[165px] bg-neutral-950/90 xl:bg-neutral-900/30 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] hover:border-white/25 hover:bg-neutral-900/50 flex-1 ${isActive
+                  ? 'border-white/40 bg-neutral-900/90 xl:bg-neutral-900/50 ring-1 ring-white/20'
                   : 'border-white/10'
                   }`}
               >
@@ -181,7 +181,7 @@ export const ProductShowcase: React.FC = () => {
           })}
         </div>
 
-        <div className="lg:col-span-8 xl:col-span-9 relative group rounded-3xl p-5 sm:p-8 lg:p-14 bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] hover:border-white/25 hover:bg-neutral-900/50 transition-all duration-500 flex flex-col md:flex-row items-center justify-between overflow-hidden min-h-[460px] sm:min-h-[500px] lg:min-h-[540px]">
+        <div className="xl:col-span-9 relative group rounded-3xl p-6 sm:p-10 xl:p-14 bg-neutral-950/90 xl:bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] hover:border-white/25 hover:bg-neutral-900/50 transition-all duration-500 flex flex-col md:flex-row items-center justify-between overflow-hidden min-h-[460px] sm:min-h-[500px] xl:min-h-[540px]">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none z-20" />
           <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/5 rounded-full blur-2xl pointer-events-none group-hover:bg-white/10 transition-colors duration-500 z-0" />
           <div className="absolute right-10 top-1/2 -translate-y-1/2 w-80 h-80 bg-[#d4a373]/15 rounded-full blur-3xl pointer-events-none z-0" />

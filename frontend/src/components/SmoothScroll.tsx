@@ -10,7 +10,7 @@ interface SmoothScrollContextType {
 
 const SmoothScrollContext = createContext<SmoothScrollContextType>({
   lenis: null,
-  scrollTo: () => {},
+  scrollTo: () => { },
 });
 
 export const useSmoothScroll = () => useContext(SmoothScrollContext);
@@ -25,9 +25,12 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
+      syncTouch: true,
+      smoothTouch: true,
       wheelMultiplier: 1.05,
-      touchMultiplier: 1.8,
-    });
+      touchMultiplier: 2.0,
+      touchInertiaMultiplier: 35,
+    } as any);
 
     lenisRef.current = lenis;
 
@@ -39,7 +42,7 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
     requestAnimationFrame(raf);
 
     // Global event listener for smooth scrolling on all anchor links with `#id`
-    const handleAnchorClick = (e: MouseEvent) => {
+    const handleAnchorClick = (e: MouseEvent | TouchEvent) => {
       const target = e.target as HTMLElement | null;
       const anchor = target?.closest('a');
       if (anchor) {
@@ -48,7 +51,7 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
           const element = document.querySelector(href);
           if (element) {
             e.preventDefault();
-            lenis.scrollTo(element as HTMLElement, { duration: 1.2, offset: -80 });
+            lenis.scrollTo(element as HTMLElement, { duration: 1.2, offset: -70 });
             window.history.pushState(null, '', href);
           }
         }
@@ -56,9 +59,11 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
     };
 
     document.addEventListener('click', handleAnchorClick);
+    document.addEventListener('touchend', handleAnchorClick, { passive: true });
 
     return () => {
       document.removeEventListener('click', handleAnchorClick);
+      document.removeEventListener('touchend', handleAnchorClick);
       lenis.destroy();
       lenisRef.current = null;
     };

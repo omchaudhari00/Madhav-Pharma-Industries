@@ -35,9 +35,8 @@ export default function ScrollBackground() {
     function isPhoneOrPortrait(): boolean {
       if (typeof window === 'undefined') return false;
       const width = window.innerWidth;
-      const height = window.innerHeight;
-      // Phone screens (<= 768px width) OR portrait/16:9 phone aspect ratio (height >= width)
-      return width <= 768 || height >= width;
+      // Phone screens (< 768px width)
+      return width < 768;
     }
 
     function resizeCanvas() {

@@ -51,12 +51,24 @@ export const AuthModal: React.FC = () => {
   }, [resendTimer]);
 
   useEffect(() => {
+<<<<<<< HEAD
     let timer: any;
     if (forgotResendTimer > 0) {
       timer = setTimeout(() => setForgotResendTimer(forgotResendTimer - 1), 1000);
     }
     return () => clearTimeout(timer);
   }, [forgotResendTimer]);
+=======
+    if (isAuthModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isAuthModalOpen]);
+>>>>>>> 70176be (changes in frontend for mobile users)
 
   if (!isAuthModalOpen) return null;
 
@@ -323,7 +335,7 @@ export const AuthModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto font-display">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto overscroll-contain font-display" data-lenis-prevent="true">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity"
@@ -331,7 +343,7 @@ export const AuthModal: React.FC = () => {
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-neutral-950 border border-neutral-800 rounded-3xl p-6 sm:p-8 text-white shadow-2xl z-10">
+      <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto overscroll-contain bg-neutral-950 border border-neutral-800 rounded-3xl p-6 sm:p-8 text-white shadow-2xl z-10" data-lenis-prevent="true">
         {/* Top Header & Close Button */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2">

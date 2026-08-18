@@ -78,9 +78,28 @@ const AppContent: React.FC = () => {
               <Navbar />
 
               <main>
-                <HeroSection />
-                <AboutUsSection />
-                <AboutSection />
+                {/* Home & About Us Section Container with Background Image (< 1024px) */}
+                <div className="relative w-full overflow-hidden">
+                  {/* Dedicated Mobile & iPad (including iPad Pro) Background Image */}
+                  <div className="block xl:hidden absolute inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
+                    <img 
+                      src="/images/home-about-gy.png" 
+                      alt="Madhav Pharma Home & About Background" 
+                      className="w-full h-full object-cover object-[51%_center] filter brightness-75 contrast-105"
+                    />
+                  </div>
+
+                  {/* Home & About Sections Content */}
+                  <div className="relative z-10">
+                    <HeroSection />
+                    <AboutUsSection />
+                  </div>
+                </div>
+
+                {/* All Subsequent Sections */}
+                <div className="bg-transparent text-white relative z-20">
+                  <AboutSection />
+                </div>
               </main>
             </div>
 
