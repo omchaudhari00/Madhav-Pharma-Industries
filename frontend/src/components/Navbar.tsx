@@ -6,9 +6,20 @@ import { useApp } from '../context/AppContext';
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const { openAuth, openCart, cartTotalCount, user, logout, setPortal, currentPortal, openRetailCheckout, retailCartTotalCount } = useApp();
 
   const totalCartCount = retailCartTotalCount + cartTotalCount;
+
+  // Handle scroll detection for transparent-to-black navbar transition
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 5);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Check on mount
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Close mobile menu when tapping outside
   useEffect(() => {
@@ -36,7 +47,14 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header id="main-navbar-header" className="sticky top-0 z-40 w-full bg-neutral-950/90 xl:bg-transparent backdrop-blur-xl xl:backdrop-blur-none border-b border-white/10 xl:border-b-0 transition-all duration-300">
+    <header 
+      id="main-navbar-header" 
+      className={`sticky top-0 z-40 w-full transition-all duration-500 ease-in-out ${
+        isScrolled 
+          ? 'bg-neutral-950/95 backdrop-blur-xl border-b border-white/10 shadow-lg' 
+          : 'bg-transparent border-b border-transparent'
+      }`}
+    >
       <nav className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-3 sm:py-4 flex items-center justify-between text-white relative font-display">
         {/* Left: Brand Logo */}
         <a href="#hero" className="flex items-center space-x-2 sm:space-x-2.5 group shrink-0">
