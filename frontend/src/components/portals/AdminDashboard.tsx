@@ -3,7 +3,7 @@ import {
   ShieldCheck, Users, Package, FileText, Briefcase,
   ShoppingBag, Settings as SettingsIcon, TrendingUp,
   CheckCircle, XCircle, AlertCircle, Eye, EyeOff, Edit3,
-  Trash2, Plus, ArrowLeft, UserPlus, Star, DollarSign,
+  Trash2, Plus, ArrowLeft, UserPlus, Star, IndianRupee,
   RefreshCw, Lock, LogOut, X, PenLine
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
@@ -414,7 +414,7 @@ export const AdminDashboard: React.FC = () => {
                   <div className="px-4 py-3 sm:py-0 first:pl-0 last:pr-0">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-bold uppercase tracking-wider text-neutral-600">Total Revenue</span>
-                      <DollarSign className="w-4 h-4 text-[#d4a373]" />
+                      <IndianRupee className="w-4 h-4 text-[#d4a373]" />
                     </div>
                     <div className="text-3xl font-serif font-extrabold text-neutral-900">₹0</div>
                     <p className="text-xs text-neutral-600 mt-1">

@@ -95,11 +95,14 @@ export const AuthModal: React.FC = () => {
 
       if (res.ok || isAdmin || isSales) {
         const userRole = isAdmin ? 'Admin' : isSales ? 'Sales' : (data.user?.role || 'Customer');
+        const adminFirstName = emailTrim === 'theom.chaudhari@gmail.com' ? 'Om' : (data.user?.first_name || 'Madhav');
+        const adminLastName = emailTrim === 'theom.chaudhari@gmail.com' ? 'Chaudhari' : (data.user?.last_name || 'Admin');
+        
         const userObj = {
           email: isAdmin ? emailTrim : isSales ? 'vatsaldevani2005@gmail.com' : (data.user?.email || (emailTrim.includes('@') ? emailTrim : '')),
           mobile_number: isAdmin ? '9999999999' : isSales ? '8888888888' : (data.user?.mobile_number || (!emailTrim.includes('@') ? emailTrim : '')),
-          first_name: isAdmin ? 'Madhav' : isSales ? 'Vatsal' : (data.user?.first_name || emailTrim.split('@')[0] || 'Valued'),
-          last_name: isAdmin ? 'Admin' : isSales ? 'Devani' : (data.user?.last_name || 'Customer'),
+          first_name: isAdmin ? adminFirstName : isSales ? 'Vatsal' : (data.user?.first_name || emailTrim.split('@')[0] || 'Valued'),
+          last_name: isAdmin ? adminLastName : isSales ? 'Devani' : (data.user?.last_name || 'Customer'),
           role: userRole,
           customer_stage: data.user?.customer_stage || 'Customer',
           address: data.user?.address || ''
@@ -121,8 +124,8 @@ export const AuthModal: React.FC = () => {
         login({
           email: isAdmin ? emailTrim : (emailTrim.includes('@') ? emailTrim : ''),
           mobile_number: isAdmin ? '9999999999' : (!emailTrim.includes('@') ? emailTrim : ''),
-          first_name: isAdmin ? 'Madhav' : 'Vatsal',
-          last_name: isAdmin ? 'Admin' : 'Devani',
+          first_name: isAdmin ? (emailTrim === 'theom.chaudhari@gmail.com' ? 'Om' : 'Madhav') : 'Vatsal',
+          last_name: isAdmin ? (emailTrim === 'theom.chaudhari@gmail.com' ? 'Chaudhari' : 'Admin') : 'Devani',
           role: userRole,
           customer_stage: 'Customer'
         }, 'demo-access-token');
