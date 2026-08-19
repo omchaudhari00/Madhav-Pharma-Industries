@@ -377,7 +377,12 @@ export const AdminDashboard: React.FC = () => {
         </div>
         
         <div className="p-4 border-t border-black/10">
-          <button onClick={() => setPortal('storefront')} className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-black/20 text-black hover:bg-black/5 text-xs font-bold uppercase transition-colors mb-2">
+            <div className="mb-4 px-2">
+              <p className="text-[10px] text-neutral-700 font-bold uppercase tracking-wider mb-1">Logged In As</p>
+              <p className="text-black font-semibold truncate text-sm">{user?.first_name} {user?.last_name}</p>
+              <p className="text-xs text-neutral-800 truncate">{user?.email}</p>
+            </div>
+            <button onClick={() => setPortal('storefront')} className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-black/20 text-black hover:bg-black/5 text-xs font-bold uppercase transition-colors mb-2">
             <ArrowLeft className="w-4 h-4" /> Back to Storefront
           </button>
           <button onClick={logout} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-black text-white hover:bg-neutral-800 text-xs font-bold uppercase transition-colors">
