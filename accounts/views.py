@@ -414,7 +414,11 @@ class UpdateProfileView(APIView):
         if 'last_name' in data:
             user.last_name = data['last_name']
         if 'mobile_number' in data:
-            user.mobile_number = data['mobile_number']
+            new_mobile = data['mobile_number'].strip()
+            if new_mobile and new_mobile != user.mobile_number:
+                if User.objects.filter(mobile_number=new_mobile).exclude(pk=user.pk).exists():
+                    return Response({'error': 'This phone number is already linked to another account.'}, status=status.HTTP_400_BAD_REQUEST)
+            user.mobile_number = new_mobile
         user.save()
         return Response({'message': 'Profile updated successfully', 'user': UserSerializer(user).data})
 

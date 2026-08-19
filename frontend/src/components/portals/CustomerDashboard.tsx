@@ -762,88 +762,91 @@ export const CustomerDashboard: React.FC = () => {
               <p className="text-sm text-neutral-500 mt-1">Manage your GSTIN, company registration, and shipping addresses.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-6 rounded-2xl bg-white shadow-sm border border-neutral-200 space-y-4">
+            <div className="p-6 rounded-2xl bg-white shadow-sm border border-neutral-200 space-y-5">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-lg font-bold text-neutral-900">Account Details</h4>
-                  {!isEditingProfile && (
-                    <button onClick={() => setIsEditingProfile(true)} className="px-4 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-xs font-bold text-neutral-900 transition-colors">
+                  <h4 className="text-lg font-bold text-neutral-900">Account Details & Address</h4>
+                  {!isEditingProfile && !isEditingAddress && (
+                    <button onClick={() => { setIsEditingProfile(true); setIsEditingAddress(true); }} className="px-4 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-xs font-bold text-neutral-900 transition-colors">
                       Edit
                     </button>
                   )}
                 </div>
                 
-                {isEditingProfile ? (
-                  <div className="space-y-4 pt-2">
-                    <div className="grid grid-cols-2 gap-4">
-                      <input type="text" value={profileData.first_name} onChange={e => setProfileData({...profileData, first_name: e.target.value})} placeholder="First Name" className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373] text-black" />
-                      <input type="text" value={profileData.last_name} onChange={e => setProfileData({...profileData, last_name: e.target.value})} placeholder="Last Name" className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373] text-black" />
+                {(isEditingProfile || isEditingAddress) ? (
+                  <div className="space-y-5 pt-2">
+                    {/* Name Fields */}
+                    <div>
+                      <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider block mb-2">Full Name</label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <input type="text" value={profileData.first_name} onChange={e => setProfileData({...profileData, first_name: e.target.value})} placeholder="First Name" className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373] text-black" />
+                        <input type="text" value={profileData.last_name} onChange={e => setProfileData({...profileData, last_name: e.target.value})} placeholder="Last Name" className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373] text-black" />
+                      </div>
                     </div>
-                    <input type="text" value={profileData.mobile_number} onChange={e => setProfileData({...profileData, mobile_number: e.target.value})} placeholder="Phone Number" className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373] text-black" />
-                    <div className="flex gap-3 pt-2">
-                      <button onClick={handleSaveProfile} disabled={profileLoading} className="flex-1 py-2.5 rounded-xl bg-[#d4a373] text-black font-bold text-xs uppercase hover:opacity-90">
-                        {profileLoading ? 'Saving...' : 'Save Profile'}
-                      </button>
-                      <button onClick={() => setIsEditingProfile(false)} className="px-6 py-2.5 rounded-xl border border-neutral-200 hover:bg-neutral-100 text-xs font-bold uppercase text-black">
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3 text-sm text-neutral-600">
-                    <div><span className="text-neutral-500 block text-xs">Email Address:</span> {user?.email}</div>
-                    <div><span className="text-neutral-500 block text-xs">Full Name:</span> {user?.first_name} {user?.last_name}</div>
-                    <div><span className="text-neutral-500 block text-xs">Phone Number:</span> {user?.mobile_number || 'Not provided'}</div>
-                    <div><span className="text-neutral-500 block text-xs">Current Stage:</span> <strong className="text-[#d4a373]">{stage}</strong></div>
-                  </div>
-                )}
-              </div>
 
-              <div className="p-6 rounded-2xl bg-white shadow-sm border border-neutral-200 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-lg font-bold text-neutral-900">Billing & Shipping Address</h4>
-                  {!isEditingAddress && (
-                    <button onClick={() => setIsEditingAddress(true)} className="px-4 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-black text-xs font-bold text-neutral-900 transition-colors">
-                      Edit
-                    </button>
-                  )}
-                </div>
-                
-                {isEditingAddress ? (
-                  <div className="space-y-4 pt-2">
-                    <input type="text" value={addressData.address_line_1} onChange={e => setAddressData({...addressData, address_line_1: e.target.value})} placeholder="Address Line 1" className="w-full bg-neutral-50 text-black border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
-                    <div className="grid grid-cols-2 gap-4">
-                      <input type="text" value={addressData.city} onChange={e => setAddressData({...addressData, city: e.target.value})} placeholder="City" className="w-full bg-neutral-50 text-black border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
-                      <input type="text" value={addressData.state} onChange={e => setAddressData({...addressData, state: e.target.value})} placeholder="State" className="w-full bg-neutral-50 text-black border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                    {/* Phone Number */}
+                    <div>
+                      <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider block mb-2">Phone Number (can be used to login)</label>
+                      <input type="text" value={profileData.mobile_number} onChange={e => setProfileData({...profileData, mobile_number: e.target.value})} placeholder="Phone Number" className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373] text-black" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <input type="text" value={addressData.postal_code} onChange={e => setAddressData({...addressData, postal_code: e.target.value})} placeholder="PIN Code" className="w-full bg-neutral-50 text-black border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
-                      <input type="text" value={addressData.country} onChange={e => setAddressData({...addressData, country: e.target.value})} placeholder="Country" className="w-full bg-neutral-50 text-black border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+
+                    {/* Address Fields */}
+                    <div className="pt-3 border-t border-neutral-200">
+                      <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider block mb-2">Billing & Shipping Address</label>
+                      <div className="space-y-3">
+                        <input type="text" value={addressData.address_line_1} onChange={e => setAddressData({...addressData, address_line_1: e.target.value})} placeholder="Address Line 1" className="w-full bg-neutral-50 text-black border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                        <div className="grid grid-cols-2 gap-4">
+                          <input type="text" value={addressData.city} onChange={e => setAddressData({...addressData, city: e.target.value})} placeholder="City" className="w-full bg-neutral-50 text-black border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                          <input type="text" value={addressData.state} onChange={e => setAddressData({...addressData, state: e.target.value})} placeholder="State" className="w-full bg-neutral-50 text-black border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <input type="text" value={addressData.postal_code} onChange={e => setAddressData({...addressData, postal_code: e.target.value})} placeholder="PIN Code" className="w-full bg-neutral-50 text-black border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                          <input type="text" value={addressData.country} onChange={e => setAddressData({...addressData, country: e.target.value})} placeholder="Country" className="w-full bg-neutral-50 text-black border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                        </div>
+                      </div>
                     </div>
+
+                    {/* Save / Cancel Buttons */}
                     <div className="flex gap-3 pt-2">
-                      <button onClick={handleSaveAddress} disabled={addressLoading} className="flex-1 py-2.5 rounded-xl bg-[#d4a373] text-black font-bold text-xs uppercase hover:opacity-90">
-                        {addressLoading ? 'Saving...' : 'Save Address'}
+                      <button 
+                        onClick={async () => { await handleSaveProfile(); await handleSaveAddress(); setIsEditingProfile(false); setIsEditingAddress(false); }} 
+                        disabled={profileLoading || addressLoading} 
+                        className="flex-1 py-2.5 rounded-xl bg-[#d4a373] text-black font-bold text-xs uppercase hover:opacity-90"
+                      >
+                        {(profileLoading || addressLoading) ? 'Saving...' : 'Save Changes'}
                       </button>
-                      <button onClick={() => setIsEditingAddress(false)} className="px-6 py-2.5 rounded-xl border border-neutral-200 hover:bg-neutral-100 text-black text-xs font-bold uppercase">
+                      <button onClick={() => { setIsEditingProfile(false); setIsEditingAddress(false); }} className="px-6 py-2.5 rounded-xl border border-neutral-200 hover:bg-neutral-100 text-xs font-bold uppercase text-black">
                         Cancel
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-neutral-500">
-                    {addressData.address_line_1 ? (
-                      <>
-                        <span className="block text-neutral-900 mb-1">{addressData.address_line_1}</span>
-                        {addressData.city}, {addressData.state} {addressData.postal_code}<br />
-                        {addressData.country}
-                      </>
-                    ) : (
-                      'Primary Delivery: ' + (user?.address || 'Phase II, Industrial Park, Mumbai, Maharashtra 400013')
-                    )}
-                  </p>
+                  <div className="space-y-4">
+                    {/* Read-only Account Info */}
+                    <div className="space-y-3 text-sm text-neutral-600">
+                      <div><span className="text-neutral-500 block text-xs">Email Address:</span> {user?.email}</div>
+                      <div><span className="text-neutral-500 block text-xs">Full Name:</span> {user?.first_name} {user?.last_name}</div>
+                      <div><span className="text-neutral-500 block text-xs">Phone Number:</span> {user?.mobile_number || 'Not provided'}</div>
+                      <div><span className="text-neutral-500 block text-xs">Current Stage:</span> <strong className="text-[#d4a373]">{stage}</strong></div>
+                    </div>
+
+                    {/* Read-only Address */}
+                    <div className="pt-3 border-t border-neutral-200">
+                      <span className="text-neutral-500 block text-xs mb-1">Billing & Shipping Address:</span>
+                      <p className="text-sm text-neutral-600">
+                        {addressData.address_line_1 ? (
+                          <>
+                            <span className="block text-neutral-900 mb-1">{addressData.address_line_1}</span>
+                            {addressData.city}, {addressData.state} {addressData.postal_code}<br />
+                            {addressData.country}
+                          </>
+                        ) : (
+                          'Primary Delivery: ' + (user?.address || 'Phase II, Industrial Park, Mumbai, Maharashtra 400013')
+                        )}
+                      </p>
+                    </div>
+                  </div>
                 )}
               </div>
-            </div>
           </div>
         )}
       </div>
