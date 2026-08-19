@@ -1,0 +1,2069 @@
+{
+  "name": "Hotel Management - Unified Leads, AI Chat + Voice Booking, Confirmations",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Hotel Management Automation - Setup\n\n**Credentials to configure (Settings > Credentials):**\n1. Google Sheets OAuth2 - `Google Sheets - Hotel`\n2. Gmail OAuth2 - `Gmail - Hotel Reservations`\n3. Groq API - `Groq API` (model: llama-3.3-70b-versatile)\n4. HTTP Header Auth - `WhatsApp Graph API Token` (Header: Authorization, Value: Bearer <your Meta permanent token>)\n\n**Google Sheet required (3 tabs in ONE spreadsheet):**\n- `Bookings` - booking_id, source, channel, guest_name, phone, email, checkin_date, checkout_date, room_type, guests, total_price, status, special_requests, message, mmt_booking_ref, created_at\n- `Hotel_Info` - category, item_name, description, price, notes (rooms/amenities/policies - AI reads this live)\n- `Errors` - timestamp, channel, phone, error_message\n\n**Replace placeholders:** search this JSON for `REPLACE_` and fill: Google Sheet ID, WhatsApp Phone Number ID, WhatsApp Verify Token, credential IDs.\n\n**Webhook URLs (after import + activate):**\n- Website lead: POST /webhook/hotel/website-lead\n- MakeMyTrip lead: POST /webhook/hotel/mmt-lead\n- WhatsApp: GET+POST /webhook/hotel/whatsapp (set this as Meta callback URL)\n- AI Voice bridge: POST /webhook/hotel/voice-query",
+        "height": 620,
+        "width": 460,
+        "color": 5
+      },
+      "id": "bdcd7fbb",
+      "name": "Setup Notes - READ FIRST",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1400,
+        -520
+      ]
+    },
+    {
+      "parameters": {
+        "content": "Website aur MakeMyTrip ke webhook payload field-names guess kiye gaye hain (common patterns + fallbacks). Jab actual payload sample mil jaye, 'Normalize Website Lead' / 'Normalize MakeMyTrip Lead' nodes ke andar field paths verify/adjust kar lena - fallback chain already hai isliye workflow blank values ke saath bhi nahi tootega.",
+        "height": 220,
+        "width": 380,
+        "color": 7
+      },
+      "id": "f7dfcc32",
+      "name": "Website + MMT field mapping",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1400,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "content": "LiveKit / calling bridge service is webhook ko POST karega jab bhi caller kuch bole (per-turn), body shape:\n{ call_id, caller_phone, caller_name, query }\n\nResponse wapas JSON milega:\n{ reply, booking_confirmed, end_call }\n\nBridge service 'reply' ko TTS se bolwaye. Same AI brain (Hotel AI Assistant) WhatsApp chatbot wala hi use ho raha hai - isliye dono jagah jawab consistent rahenge.",
+        "height": 260,
+        "width": 420,
+        "color": 7
+      },
+      "id": "fba35266",
+      "name": "Voice bridge contract",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        600,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hotel/website-lead",
+        "responseMode": "onReceived",
+        "responseCode": 200,
+        "options": {}
+      },
+      "id": "0ed00f2f",
+      "name": "Website Lead Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1400,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hotel/mmt-lead",
+        "responseMode": "onReceived",
+        "responseCode": 200,
+        "options": {}
+      },
+      "id": "2580c25c",
+      "name": "MakeMyTrip Lead Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1400,
+        -60
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "hotel/whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "5f0faae6",
+      "name": "WhatsApp Verify Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1400,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hotel/whatsapp",
+        "responseMode": "onReceived",
+        "responseCode": 200,
+        "options": {}
+      },
+      "id": "2fa906bf",
+      "name": "WhatsApp Inbound Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1400,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hotel/voice-query",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f0caebe5",
+      "name": "Voice Agent Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1400,
+        780
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "booking_id",
+              "name": "booking_id",
+              "value": "={{ 'LD-' + $now.format('yyyyLLdd') + '-' + Math.random().toString(36).substring(2,8).toUpperCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "source",
+              "name": "source",
+              "value": "Website",
+              "type": "string"
+            },
+            {
+              "id": "channel",
+              "name": "channel",
+              "value": "website",
+              "type": "string"
+            },
+            {
+              "id": "guest_name",
+              "name": "guest_name",
+              "value": "={{ $json.body.name || $json.body.full_name || $json.body.guest_name || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "name": "phone",
+              "value": "={{ $json.body.phone || $json.body.mobile || $json.body.contact_number || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "name": "email",
+              "value": "={{ $json.body.email || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "checkin_date",
+              "name": "checkin_date",
+              "value": "={{ $json.body.checkin || $json.body.check_in || $json.body.checkin_date || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "checkout_date",
+              "name": "checkout_date",
+              "value": "={{ $json.body.checkout || $json.body.check_out || $json.body.checkout_date || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "room_type",
+              "name": "room_type",
+              "value": "={{ $json.body.room_type || $json.body.roomType || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "guests",
+              "name": "guests",
+              "value": "={{ $json.body.guests || $json.body.pax || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "message",
+              "name": "message",
+              "value": "={{ $json.body.message || $json.body.notes || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "status",
+              "name": "status",
+              "value": "New Lead",
+              "type": "string"
+            },
+            {
+              "id": "created_at",
+              "name": "created_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4d6f770e",
+      "name": "Normalize Website Lead",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -1160,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Hotel Bookings & Info"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Bookings",
+          "mode": "list",
+          "cachedResultName": "Bookings"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "booking_id": "={{ $json.booking_id }}",
+            "source": "={{ $json.source }}",
+            "channel": "={{ $json.channel }}",
+            "guest_name": "={{ $json.guest_name }}",
+            "phone": "={{ $json.phone }}",
+            "email": "={{ $json.email }}",
+            "checkin_date": "={{ $json.checkin_date }}",
+            "checkout_date": "={{ $json.checkout_date }}",
+            "room_type": "={{ $json.room_type }}",
+            "guests": "={{ $json.guests }}",
+            "status": "={{ $json.status }}",
+            "message": "={{ $json.message }}",
+            "created_at": "={{ $json.created_at }}"
+          },
+          "schema": [
+            {
+              "id": "booking_id",
+              "displayName": "booking_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "guest_name",
+              "displayName": "guest_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "checkin_date",
+              "displayName": "checkin_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "checkout_date",
+              "displayName": "checkout_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "room_type",
+              "displayName": "room_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "guests",
+              "displayName": "guests",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "0ef5e566",
+      "name": "Log Website Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -920,
+        -240
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_GOOGLE_SHEETS_CRED_ID",
+          "name": "Google Sheets - Hotel"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "booking_id",
+              "name": "booking_id",
+              "value": "={{ 'LD-' + $now.format('yyyyLLdd') + '-' + Math.random().toString(36).substring(2,8).toUpperCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "source",
+              "name": "source",
+              "value": "MakeMyTrip",
+              "type": "string"
+            },
+            {
+              "id": "channel",
+              "name": "channel",
+              "value": "mmt",
+              "type": "string"
+            },
+            {
+              "id": "guest_name",
+              "name": "guest_name",
+              "value": "={{ $json.body.guest_name || $json.body.customer_name || $json.body.name || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "name": "phone",
+              "value": "={{ $json.body.phone || $json.body.mobile || $json.body.contact_number || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "name": "email",
+              "value": "={{ $json.body.email || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "checkin_date",
+              "name": "checkin_date",
+              "value": "={{ $json.body.checkin_date || $json.body.check_in || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "checkout_date",
+              "name": "checkout_date",
+              "value": "={{ $json.body.checkout_date || $json.body.check_out || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "room_type",
+              "name": "room_type",
+              "value": "={{ $json.body.room_type || $json.body.roomType || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "guests",
+              "name": "guests",
+              "value": "={{ $json.body.guests || $json.body.pax || $json.body.adults || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "message",
+              "name": "message",
+              "value": "={{ $json.body.special_requests || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "mmt_booking_ref",
+              "name": "mmt_booking_ref",
+              "value": "={{ $json.body.booking_id || $json.body.reservation_id || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "status",
+              "name": "status",
+              "value": "New Lead",
+              "type": "string"
+            },
+            {
+              "id": "created_at",
+              "name": "created_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "932b3b28",
+      "name": "Normalize MakeMyTrip Lead",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -1160,
+        -60
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Hotel Bookings & Info"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Bookings",
+          "mode": "list",
+          "cachedResultName": "Bookings"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "booking_id": "={{ $json.booking_id }}",
+            "source": "={{ $json.source }}",
+            "channel": "={{ $json.channel }}",
+            "guest_name": "={{ $json.guest_name }}",
+            "phone": "={{ $json.phone }}",
+            "email": "={{ $json.email }}",
+            "checkin_date": "={{ $json.checkin_date }}",
+            "checkout_date": "={{ $json.checkout_date }}",
+            "room_type": "={{ $json.room_type }}",
+            "guests": "={{ $json.guests }}",
+            "status": "={{ $json.status }}",
+            "message": "={{ $json.message }}",
+            "mmt_booking_ref": "={{ $json.mmt_booking_ref }}",
+            "created_at": "={{ $json.created_at }}"
+          },
+          "schema": [
+            {
+              "id": "booking_id",
+              "displayName": "booking_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "guest_name",
+              "displayName": "guest_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "checkin_date",
+              "displayName": "checkin_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "checkout_date",
+              "displayName": "checkout_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "room_type",
+              "displayName": "room_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "guests",
+              "displayName": "guests",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mmt_booking_ref",
+              "displayName": "mmt_booking_ref",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "e8c71c15",
+      "name": "Log MakeMyTrip Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -920,
+        -60
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_GOOGLE_SHEETS_CRED_ID",
+          "name": "Google Sheets - Hotel"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c-equals",
+              "leftValue": "={{ $json.query['hub.verify_token'] }}",
+              "rightValue": "REPLACE_WHATSAPP_VERIFY_TOKEN",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": false
+      },
+      "id": "ca953f26",
+      "name": "IF Verify Token Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1160,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "f7d29c55",
+      "name": "Respond Verify Challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -920,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Forbidden",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "id": "42548213",
+      "name": "Respond Verify Forbidden",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -920,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "channel",
+              "name": "channel",
+              "value": "whatsapp",
+              "type": "string"
+            },
+            {
+              "id": "message_text",
+              "name": "message_text",
+              "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.text?.body || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "name": "phone",
+              "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "guest_name",
+              "name": "guest_name",
+              "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.contacts?.[0]?.profile?.name || 'Guest' }}",
+              "type": "string"
+            },
+            {
+              "id": "wa_message_id",
+              "name": "wa_message_id",
+              "value": "={{ $json.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.id || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "77afed9b",
+      "name": "Extract WhatsApp Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -1160,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c-notempty",
+              "leftValue": "={{ $json.message_text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": false
+      },
+      "id": "7b5e866a",
+      "name": "IF Has Text Message",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -920,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "channel",
+              "name": "channel",
+              "value": "voice",
+              "type": "string"
+            },
+            {
+              "id": "message_text",
+              "name": "message_text",
+              "value": "={{ $json.body.query || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "name": "phone",
+              "value": "={{ $json.body.caller_phone || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "guest_name",
+              "name": "guest_name",
+              "value": "={{ $json.body.caller_name || 'Guest' }}",
+              "type": "string"
+            },
+            {
+              "id": "call_id",
+              "name": "call_id",
+              "value": "={{ $json.body.call_id || $json.body.caller_phone || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1e2ee617",
+      "name": "Extract Voice Query",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -1160,
+        780
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "channel",
+              "name": "channel",
+              "value": "={{ $json.channel }}",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "name": "phone",
+              "value": "={{ $json.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "guest_name",
+              "name": "guest_name",
+              "value": "={{ $json.guest_name }}",
+              "type": "string"
+            },
+            {
+              "id": "message_text",
+              "name": "message_text",
+              "value": "={{ $json.message_text }}",
+              "type": "string"
+            },
+            {
+              "id": "session_key",
+              "name": "session_key",
+              "value": "={{ $json.phone }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a50661c3",
+      "name": "Normalize Inbound Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -680,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message_text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Aap ek professional hotel ke official AI guest-assistant hain. Aap do channels par kaam karte hain - WhatsApp chat aur AI phone call - isliye aapka reply hamesha plain, natural spoken-style text mein hona chahiye: koi markdown (**, #, bullets ke liye *) use mat karo, koi emoji zaroorat nahi, kyunki voice call par ye text seedha bola jayega.\n\nCurrent date: {{ $now.format('DDDD') }}\n\n## Language\nGuest jis bhasha mein baat kare (Hindi, English, ya Hinglish), usi mein reply karo - warm, polite aur professional hotel-staff jaisa tone rakho.\n\n## Hotel information - MANDATORY tool use\nRoom types, pricing, amenities, ya policies se related KOI BHI sawaal ka jawab dene se pehle 'Get Hotel Info' tool zaroor call karo, chahe conversation mein pehle bhi call kiya ho - prices/availability change ho sakte hain. Kabhi bhi price ya amenity guess/invent mat karo. Agar tool mein koi cheez nahi milti, saaf bolo ki reception se confirm karwa denge - jhooth mat bolo.\n\n## Booking flow\nJab guest room book karna chahe, conversationally ye details collect karo (ek saath sab mat pucho, natural conversation rakho):\n- Guest ka pura naam\n- Check-in date\n- Check-out date\n- Room type (Hotel Info se available types batao)\n- Kitne guests\n- Email (optional hai lekin bolna ki isse booking confirmation mil jayega)\n- Phone already pata hai agar guest ne diya nahi hai to context se le lo, dobara mat pucho agar already available hai\n\nTotal price calculate karo: room ka per-night price (Hotel Info tool se) x number of nights.\n\nBooking tabhi confirm mano jab guest EXPLICITLY confirm kare (jaise \"haan confirm kar do\", \"book kar do\", \"yes confirm\", \"theek hai final karo\"). Sirf interest dikhana (jaise \"accha lagta hai\" ya \"sochta hoon\") booking confirm nahi hai - us case mein booking_confirmed false hi rakho.\n\n## Output format - STRICT\nHamesha raw JSON object return karo, is exact shape mein - koi markdown code block mein wrap mat karo, JSON se pehle ya baad mein koi extra text mat likho:\n{\n  \"reply\": \"guest ko bhejne wala plain spoken-style jawab\",\n  \"booking_confirmed\": true ya false,\n  \"booking_details\": {\n    \"guest_name\": \"...\",\n    \"phone\": \"...\",\n    \"email\": \"...\",\n    \"checkin_date\": \"...\",\n    \"checkout_date\": \"...\",\n    \"room_type\": \"...\",\n    \"guests\": 0,\n    \"total_price\": 0,\n    \"special_requests\": \"...\"\n  }\n}\nbooking_confirmed false hone par bhi booking_details object zaroor bhejo (ab tak jo details collect hui hain unke saath, baaki fields empty string ya 0 rakho).",
+          "maxIterations": 15
+        }
+      },
+      "id": "3dd23072",
+      "name": "Hotel AI Assistant",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -440,
+        620
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "2f529f20",
+      "name": "Hotel Assistant LLM",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        900
+      ],
+      "credentials": {
+        "groqApi": {
+          "id": "REPLACE_GROQ_CRED_ID",
+          "name": "Groq API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Normalize Inbound Message').item.json.session_key }}",
+        "contextWindowLength": 30
+      },
+      "id": "d60706f4",
+      "name": "Hotel Chat Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -420,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Hotel Bookings & Info"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Hotel_Info",
+          "mode": "list",
+          "cachedResultName": "Hotel_Info"
+        },
+        "descriptionType": "manual",
+        "toolDescription": "Hotel ki complete jaankari deta hai - sabhi room types, unki per-night pricing, amenities, aur policies. Kisi bhi room, price, amenity, ya policy se related sawaal ka jawab dene se PEHLE ye tool zaroor call karo. Prices kabhi guess mat karo, hamesha is tool se fresh data lo.",
+        "options": {}
+      },
+      "id": "758ac8ab",
+      "name": "Get Hotel Info",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.5,
+      "position": [
+        -260,
+        900
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_GOOGLE_SHEETS_CRED_ID",
+          "name": "Google Sheets - Hotel"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{ \"type\": \"object\", \"properties\": { \"reply\": { \"type\": \"string\" }, \"booking_confirmed\": { \"type\": \"boolean\" }, \"booking_details\": { \"type\": \"object\", \"properties\": { \"guest_name\": { \"type\": \"string\" }, \"phone\": { \"type\": \"string\" }, \"email\": { \"type\": \"string\" }, \"checkin_date\": { \"type\": \"string\" }, \"checkout_date\": { \"type\": \"string\" }, \"room_type\": { \"type\": \"string\" }, \"guests\": { \"type\": \"number\" }, \"total_price\": { \"type\": \"number\" }, \"special_requests\": { \"type\": \"string\" } }, \"required\": [\"guest_name\", \"phone\", \"checkin_date\", \"checkout_date\", \"room_type\", \"guests\", \"total_price\"] } }, \"required\": [\"reply\", \"booking_confirmed\", \"booking_details\"] }",
+        "autoFix": true
+      },
+      "id": "5e1727ab",
+      "name": "Booking Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -100,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "id": "da8b1cdf",
+      "name": "Fixer LLM",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -100,
+        1080
+      ],
+      "credentials": {
+        "groqApi": {
+          "id": "REPLACE_GROQ_CRED_ID",
+          "name": "Groq API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "reply",
+              "name": "reply",
+              "value": "={{ $json.output.reply }}",
+              "type": "string"
+            },
+            {
+              "id": "booking_confirmed",
+              "name": "booking_confirmed",
+              "value": "={{ $json.output.booking_confirmed }}",
+              "type": "boolean"
+            },
+            {
+              "id": "booking_details",
+              "name": "booking_details",
+              "value": "={{ $json.output.booking_details }}",
+              "type": "object"
+            },
+            {
+              "id": "channel",
+              "name": "channel",
+              "value": "={{ $('Normalize Inbound Message').item.json.channel }}",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "name": "phone",
+              "value": "={{ $('Normalize Inbound Message').item.json.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "guest_name",
+              "name": "guest_name",
+              "value": "={{ $('Normalize Inbound Message').item.json.guest_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "635d9cc3",
+      "name": "Merge AI Success Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -180,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "reply",
+              "name": "reply",
+              "value": "Sorry, hamein abhi thodi technical dikkat aa rahi hai. Kripya thodi der baad phir try karein ya hotel reception se seedha baat karein. / Sorry, we're facing a temporary technical issue, please try again shortly.",
+              "type": "string"
+            },
+            {
+              "id": "booking_confirmed",
+              "name": "booking_confirmed",
+              "value": "false",
+              "type": "boolean"
+            },
+            {
+              "id": "booking_details",
+              "name": "booking_details",
+              "value": "={{ {} }}",
+              "type": "object"
+            },
+            {
+              "id": "channel",
+              "name": "channel",
+              "value": "={{ $('Normalize Inbound Message').item.json.channel }}",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "name": "phone",
+              "value": "={{ $('Normalize Inbound Message').item.json.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "guest_name",
+              "name": "guest_name",
+              "value": "={{ $('Normalize Inbound Message').item.json.guest_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "660addca",
+      "name": "Merge AI Error Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -180,
+        780
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c-equals",
+                    "leftValue": "={{ $json.channel }}",
+                    "rightValue": "whatsapp",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "whatsapp"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c-equals",
+                    "leftValue": "={{ $json.channel }}",
+                    "rightValue": "voice",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "none"
+        }
+      },
+      "id": "61a3e46c",
+      "name": "Route By Channel",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        60,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/REPLACE_WHATSAPP_PHONE_NUMBER_ID/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"messaging_product\": \"whatsapp\", \"to\": $json.phone, \"type\": \"text\", \"text\": { \"body\": $json.reply, \"preview_url\": false } } }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "d42cb490",
+      "name": "Send WhatsApp Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        300,
+        460
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WHATSAPP_TOKEN_CRED_ID",
+          "name": "WhatsApp Graph API Token"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"reply\": $json.reply, \"booking_confirmed\": $json.booking_confirmed, \"end_call\": $json.booking_confirmed === true } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "e0c96721",
+      "name": "Respond Voice Reply",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        300,
+        780
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c-bool",
+              "leftValue": "={{ $json.booking_confirmed }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": false
+      },
+      "id": "881d6552",
+      "name": "IF Booking Confirmed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        300,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Hotel Bookings & Info"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Bookings",
+          "mode": "list",
+          "cachedResultName": "Bookings"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "booking_id": "={{ 'BK-' + $now.format('yyyyLLdd') + '-' + Math.random().toString(36).substring(2,8).toUpperCase() }}",
+            "source": "={{ $json.channel === 'voice' ? 'AI Voice Call' : 'WhatsApp Chatbot' }}",
+            "channel": "={{ $json.channel }}",
+            "guest_name": "={{ $json.booking_details.guest_name || $json.guest_name }}",
+            "phone": "={{ $json.booking_details.phone || $json.phone }}",
+            "email": "={{ $json.booking_details.email || '' }}",
+            "checkin_date": "={{ $json.booking_details.checkin_date || '' }}",
+            "checkout_date": "={{ $json.booking_details.checkout_date || '' }}",
+            "room_type": "={{ $json.booking_details.room_type || '' }}",
+            "guests": "={{ $json.booking_details.guests || '' }}",
+            "total_price": "={{ $json.booking_details.total_price || '' }}",
+            "special_requests": "={{ $json.booking_details.special_requests || '' }}",
+            "status": "Confirmed",
+            "message": "={{ $json.reply }}",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "schema": [
+            {
+              "id": "booking_id",
+              "displayName": "booking_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "guest_name",
+              "displayName": "guest_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "checkin_date",
+              "displayName": "checkin_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "checkout_date",
+              "displayName": "checkout_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "room_type",
+              "displayName": "room_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "guests",
+              "displayName": "guests",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_price",
+              "displayName": "total_price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "special_requests",
+              "displayName": "special_requests",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "3881d7ab",
+      "name": "Log Confirmed Booking",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        560,
+        620
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_GOOGLE_SHEETS_CRED_ID",
+          "name": "Google Sheets - Hotel"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/REPLACE_WHATSAPP_PHONE_NUMBER_ID/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"messaging_product\": \"whatsapp\", \"to\": ($json.booking_details.phone || $json.phone), \"type\": \"text\", \"text\": { \"body\": \"Booking Confirmed!\\n\\nGuest: \" + ($json.booking_details.guest_name || $json.guest_name) + \"\\nCheck-in: \" + $json.booking_details.checkin_date + \"\\nCheck-out: \" + $json.booking_details.checkout_date + \"\\nRoom: \" + $json.booking_details.room_type + \"\\nGuests: \" + $json.booking_details.guests + \"\\nTotal: Rs \" + $json.booking_details.total_price + \"\\n\\nThank you for choosing us! Koi bhi sawaal ho toh yahin WhatsApp par msg karein.\", \"preview_url\": false } } }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "9035d3c2",
+      "name": "Send WhatsApp Booking Confirmation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        620
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WHATSAPP_TOKEN_CRED_ID",
+          "name": "WhatsApp Graph API Token"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c-notempty",
+              "leftValue": "={{ $json.booking_details.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": false
+      },
+      "id": "63cd5e2f",
+      "name": "IF Has Email",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1080,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.booking_details.email }}",
+        "subject": "=Booking Confirmed - {{ $json.booking_details.room_type || 'Your Reservation' }}",
+        "emailType": "html",
+        "message": "=<p>Dear {{ $json.booking_details.guest_name || $json.guest_name }},</p><p>Your booking is confirmed. Details below:</p><table cellpadding='6' style='border-collapse:collapse'><tr><td><b>Check-in</b></td><td>{{ $json.booking_details.checkin_date }}</td></tr><tr><td><b>Check-out</b></td><td>{{ $json.booking_details.checkout_date }}</td></tr><tr><td><b>Room Type</b></td><td>{{ $json.booking_details.room_type }}</td></tr><tr><td><b>Guests</b></td><td>{{ $json.booking_details.guests }}</td></tr><tr><td><b>Total</b></td><td>Rs {{ $json.booking_details.total_price }}</td></tr></table><p>Hume aapki host karne ka intezaar hai. Kisi bhi sawaal ke liye WhatsApp par reply karein.</p>",
+        "options": {}
+      },
+      "id": "d2f7a220",
+      "name": "Send Email Confirmation",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1340,
+        560
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_GMAIL_CRED_ID",
+          "name": "Gmail - Hotel Reservations"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Hotel Bookings & Info"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Errors",
+          "mode": "list",
+          "cachedResultName": "Errors"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $now.toISO() }}",
+            "channel": "={{ $json.channel || $json.source || 'unknown' }}",
+            "phone": "={{ $json.phone || '' }}",
+            "error_message": "={{ $json.error?.message || $json.error || 'Unknown error' }}"
+          },
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "ead3d36b",
+      "name": "Log Automation Error",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1340,
+        900
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_GOOGLE_SHEETS_CRED_ID",
+          "name": "Google Sheets - Hotel"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Website Lead Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize Website Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Website Lead": {
+      "main": [
+        [
+          {
+            "node": "Log Website Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Website Lead": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Log Automation Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MakeMyTrip Lead Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize MakeMyTrip Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize MakeMyTrip Lead": {
+      "main": [
+        [
+          {
+            "node": "Log MakeMyTrip Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log MakeMyTrip Lead": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Log Automation Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Verify Webhook": {
+      "main": [
+        [
+          {
+            "node": "IF Verify Token Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Verify Token Valid": {
+      "main": [
+        [
+          {
+            "node": "Respond Verify Challenge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Verify Forbidden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Inbound Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract WhatsApp Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract WhatsApp Message": {
+      "main": [
+        [
+          {
+            "node": "IF Has Text Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has Text Message": {
+      "main": [
+        [
+          {
+            "node": "Normalize Inbound Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice Agent Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Voice Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Voice Query": {
+      "main": [
+        [
+          {
+            "node": "Normalize Inbound Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Inbound Message": {
+      "main": [
+        [
+          {
+            "node": "Hotel AI Assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hotel Assistant LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Hotel AI Assistant",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hotel Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Hotel AI Assistant",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Hotel Info": {
+      "ai_tool": [
+        [
+          {
+            "node": "Hotel AI Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Booking Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Hotel AI Assistant",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixer LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Booking Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hotel AI Assistant": {
+      "main": [
+        [
+          {
+            "node": "Merge AI Success Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge AI Error Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge AI Success Output": {
+      "main": [
+        [
+          {
+            "node": "Route By Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge AI Error Output": {
+      "main": [
+        [
+          {
+            "node": "Route By Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route By Channel": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Reply",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF Booking Confirmed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Voice Reply",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF Booking Confirmed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WhatsApp Reply": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Log Automation Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Booking Confirmed": {
+      "main": [
+        [
+          {
+            "node": "Log Confirmed Booking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Confirmed Booking": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Booking Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Automation Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WhatsApp Booking Confirmation": {
+      "main": [
+        [
+          {
+            "node": "IF Has Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF Has Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Automation Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has Email": {
+      "main": [
+        [
+          {
+            "node": "Send Email Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email Confirmation": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Log Automation Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

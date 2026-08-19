@@ -42,6 +42,11 @@ class Quotation(models.Model):
     discount = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
     valid_until = models.DateField(null=True, blank=True)
     
+    # Snapshot fields for preserving customer data at the time of quotation creation
+    snapshot_customer_name = models.CharField(max_length=255, blank=True, null=True)
+    snapshot_customer_phone = models.CharField(max_length=20, blank=True, null=True)
+    snapshot_customer_address = models.TextField(blank=True, null=True)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

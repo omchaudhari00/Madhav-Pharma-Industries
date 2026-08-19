@@ -44,6 +44,8 @@ class QuotationSerializer(serializers.ModelSerializer):
         read_only_fields = ['quotation_number', 'customer', 'status', 'created_at', 'updated_at']
 
     def get_customer_address(self, obj):
+        if obj.snapshot_customer_address:
+            return obj.snapshot_customer_address
         if hasattr(obj.customer, 'customer_profile'):
             addr = obj.customer.customer_profile.addresses.filter(is_default=True).first() or obj.customer.customer_profile.addresses.first()
             if addr:

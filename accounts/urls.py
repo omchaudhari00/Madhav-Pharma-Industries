@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     CheckUserView, LoginView, RequestOTPView, ResendOTPView, VerifyOTPAndRegisterView,
     AdminDashboardStatsView, UserListView, ManageSalesUserView, AddressViewSet,
-    ForgotPasswordRequestOTPView, ForgotPasswordResetView
+    ForgotPasswordRequestOTPView, ForgotPasswordResetView, UpdateProfileView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -11,6 +11,7 @@ router = DefaultRouter()
 router.register(r'addresses', AddressViewSet, basename='address')
 
 urlpatterns = [
+    path('profile/update/', UpdateProfileView.as_view(), name='update_profile'),
     path('check-user/', CheckUserView.as_view(), name='check_user'),
     path('login/', LoginView.as_view(), name='login'),
     path('register/request-otp/', RequestOTPView.as_view(), name='request_otp'),

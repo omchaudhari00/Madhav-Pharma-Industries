@@ -35,11 +35,20 @@ class QuoteCartViewSet(viewsets.ViewSet):
         cart, _ = QuoteCart.objects.get_or_create(customer=request.user)
         if not cart.items.exists():
             return Response({"error": "Cart is empty"}, status=status.HTTP_400_BAD_REQUEST)
+        user = request.user
+        address_line = ''
+        if hasattr(user, 'customer_profile'):
+            addr = user.customer_profile.addresses.filter(is_default=True).first() or user.customer_profile.addresses.first()
+            if addr:
+                address_line = addr.address_line_1
         
         with transaction.atomic():
             quotation = Quotation.objects.create(
-                customer=request.user,
-                customer_notes=request.data.get('customer_notes', '')
+                customer=user,
+                customer_notes=request.data.get('customer_notes', ''),
+                snapshot_customer_name=f"{user.first_name} {user.last_name}".strip(),
+                snapshot_customer_phone=user.mobile_number,
+                snapshot_customer_address=address_line
             )
             for item in cart.items.all():
                 QuotationItem.objects.create(
@@ -74,11 +83,21 @@ class QuotationViewSet(viewsets.ModelViewSet):
         customer_notes = request.data.get('notes', '')
         
         from catalog.models import Product
+        
+        address_line = ''
+        if hasattr(user, 'customer_profile'):
+            addr = user.customer_profile.addresses.filter(is_default=True).first() or user.customer_profile.addresses.first()
+            if addr:
+                address_line = addr.address_line_1
+                
         with transaction.atomic():
             quotation = Quotation.objects.create(
                 customer=user,
                 customer_notes=customer_notes,
-                status='Pending'
+                status='Pending',
+                snapshot_customer_name=f"{user.first_name} {user.last_name}".strip(),
+                snapshot_customer_phone=user.mobile_number,
+                snapshot_customer_address=address_line
             )
             for item in items_data:
                 product_name = item.get('name')

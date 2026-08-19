@@ -41,7 +41,7 @@ const getIndividualItems = (q: any) => {
 };
 
 export const CustomerDashboard: React.FC = () => {
-  const { user, setPortal, openCart, token, logout } = useApp();
+  const { user, setPortal, openCart, token, logout, login } = useApp();
   const [activeTab, setActiveTab] = useState<'quotes' | 'orders' | 'products' | 'profile'>('quotes');
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
@@ -61,6 +61,51 @@ export const CustomerDashboard: React.FC = () => {
     address_line_1: '', city: '', state: '', postal_code: '', country: 'India', is_default: true
   });
   const [addressLoading, setAddressLoading] = useState(false);
+
+  // Profile State
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileData, setProfileData] = useState({
+    first_name: user?.first_name || '',
+    last_name: user?.last_name || '',
+    mobile_number: user?.mobile_number || ''
+  });
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        mobile_number: user.mobile_number || ''
+      });
+    }
+  }, [user]);
+
+  const handleSaveProfile = async () => {
+    if (!token) return;
+    setProfileLoading(true);
+    try {
+      const res = await fetch('/api/accounts/profile/update/', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(profileData)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.user) {
+          login(data.user, token);
+        }
+        setIsEditingProfile(false);
+      }
+    } catch (e) {
+      console.error('Failed to save profile', e);
+    }
+    setProfileLoading(false);
+  };
+
 
   useEffect(() => {
     const loadQuotes = async () => {
@@ -535,7 +580,7 @@ export const CustomerDashboard: React.FC = () => {
                       <React.Fragment key={ord.id}>
                         <tr 
                           onClick={() => setExpandedOrderId(expandedOrderId === ord.id ? null : ord.id)}
-                          className="hover:bg-white/5 transition-colors cursor-pointer"
+                          className="hover:bg-neutral-100 text-black transition-colors cursor-pointer"
                         >
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-2">
@@ -560,7 +605,7 @@ export const CustomerDashboard: React.FC = () => {
                                   alert(`Downloading GST Invoice ${ord.id}...`);
                                 }
                               }}
-                              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-neutral-900 text-xs font-bold flex items-center gap-1.5"
+                              className="px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-black text-neutral-900 text-xs font-bold flex items-center gap-1.5"
                             >
                               <Download className="w-3.5 h-3.5" />
                               <span>Download PDF</span>
@@ -571,7 +616,7 @@ export const CustomerDashboard: React.FC = () => {
                           <tr>
                             <td colSpan={6} className="p-0 border-b border-neutral-100 bg-white shadow-sm">
                               <div className="p-6">
-                                <div className="p-6 rounded-3xl bg-neutral-950/80 border border-neutral-200 space-y-6">
+                                <div className="p-6 rounded-3xl bg-neutral-50 text-black/80 border border-neutral-200 space-y-6">
                                   <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
                                     <span className="text-xs uppercase tracking-widest text-[#d4a373] font-bold">
                                       Live Delivery Status
@@ -712,7 +757,7 @@ export const CustomerDashboard: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <h4 className="text-lg font-bold text-neutral-900">Billing & Shipping Address</h4>
                   {!isEditingAddress && (
-                    <button onClick={() => setIsEditingAddress(true)} className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-neutral-900 transition-colors">
+                    <button onClick={() => setIsEditingAddress(true)} className="px-4 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-black text-xs font-bold text-neutral-900 transition-colors">
                       Edit
                     </button>
                   )}
@@ -720,20 +765,20 @@ export const CustomerDashboard: React.FC = () => {
                 
                 {isEditingAddress ? (
                   <div className="space-y-4 pt-2">
-                    <input type="text" value={addressData.address_line_1} onChange={e => setAddressData({...addressData, address_line_1: e.target.value})} placeholder="Address Line 1" className="w-full bg-neutral-950 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                    <input type="text" value={addressData.address_line_1} onChange={e => setAddressData({...addressData, address_line_1: e.target.value})} placeholder="Address Line 1" className="w-full bg-neutral-50 text-black border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
                     <div className="grid grid-cols-2 gap-4">
-                      <input type="text" value={addressData.city} onChange={e => setAddressData({...addressData, city: e.target.value})} placeholder="City" className="w-full bg-neutral-950 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
-                      <input type="text" value={addressData.state} onChange={e => setAddressData({...addressData, state: e.target.value})} placeholder="State" className="w-full bg-neutral-950 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                      <input type="text" value={addressData.city} onChange={e => setAddressData({...addressData, city: e.target.value})} placeholder="City" className="w-full bg-neutral-50 text-black border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                      <input type="text" value={addressData.state} onChange={e => setAddressData({...addressData, state: e.target.value})} placeholder="State" className="w-full bg-neutral-50 text-black border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <input type="text" value={addressData.postal_code} onChange={e => setAddressData({...addressData, postal_code: e.target.value})} placeholder="PIN Code" className="w-full bg-neutral-950 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
-                      <input type="text" value={addressData.country} onChange={e => setAddressData({...addressData, country: e.target.value})} placeholder="Country" className="w-full bg-neutral-950 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                      <input type="text" value={addressData.postal_code} onChange={e => setAddressData({...addressData, postal_code: e.target.value})} placeholder="PIN Code" className="w-full bg-neutral-50 text-black border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                      <input type="text" value={addressData.country} onChange={e => setAddressData({...addressData, country: e.target.value})} placeholder="Country" className="w-full bg-neutral-50 text-black border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
                     </div>
                     <div className="flex gap-3 pt-2">
                       <button onClick={handleSaveAddress} disabled={addressLoading} className="flex-1 py-2.5 rounded-xl bg-[#d4a373] text-black font-bold text-xs uppercase hover:opacity-90">
                         {addressLoading ? 'Saving...' : 'Save Address'}
                       </button>
-                      <button onClick={() => setIsEditingAddress(false)} className="px-6 py-2.5 rounded-xl border border-neutral-200 hover:bg-white/5 text-xs font-bold uppercase">
+                      <button onClick={() => setIsEditingAddress(false)} className="px-6 py-2.5 rounded-xl border border-neutral-200 hover:bg-neutral-100 text-black text-xs font-bold uppercase">
                         Cancel
                       </button>
                     </div>
@@ -760,7 +805,7 @@ export const CustomerDashboard: React.FC = () => {
       {/* B2B Quotation Payment Modal */}
       {selectedQuoteForPayment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md font-display">
-          <div className="relative w-full max-w-lg bg-neutral-950 border border-neutral-800 rounded-3xl p-6 sm:p-8 text-neutral-900 shadow-2xl space-y-6">
+          <div className="relative w-full max-w-lg bg-neutral-50 text-black border border-neutral-800 rounded-3xl p-6 sm:p-8 text-neutral-900 shadow-2xl space-y-6">
             <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 text-white shadow-md">

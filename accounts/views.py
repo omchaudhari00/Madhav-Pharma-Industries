@@ -402,3 +402,19 @@ class AddressViewSet(viewsets.ModelViewSet):
         if is_default:
             Address.objects.filter(customer=user.customer_profile).update(is_default=False)
         serializer.save()
+
+class UpdateProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        user = request.user
+        data = request.data
+        if 'first_name' in data:
+            user.first_name = data['first_name']
+        if 'last_name' in data:
+            user.last_name = data['last_name']
+        if 'mobile_number' in data:
+            user.mobile_number = data['mobile_number']
+        user.save()
+        return Response({'message': 'Profile updated successfully', 'user': UserSerializer(user).data})
+

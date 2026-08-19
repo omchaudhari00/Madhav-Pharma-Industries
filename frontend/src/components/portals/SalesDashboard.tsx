@@ -130,11 +130,11 @@ export const SalesDashboard: React.FC = () => {
               requestedPrice: `₹${item.items && item.items.length > 0 ? item.items[0].requested_price : '1,500'} / KG`,
               targetPrice: item.final_price ? `₹${item.final_price}` : '₹1,500',
               status: item.status || 'Pending',
-              customer: item.customer_details ? `${item.customer_details.first_name} ${item.customer_details.last_name}` : 'Enterprise Client',
+              customer: item.snapshot_customer_name || (item.customer_details ? `${item.customer_details.first_name} ${item.customer_details.last_name}` : 'Enterprise Client'),
               customerNote: item.customer_notes || 'Quotation submitted for review',
               customerAddress: item.customer_address || '123 Pharma Estate, Ahmedabad',
               salesRemarks: '',
-              phone: item.customer_details?.mobile_number || '9000000000',
+              phone: item.snapshot_customer_phone || (item.customer_details?.mobile_number || '9000000000'),
               stage: item.customer_details?.customer_stage || 'Lead'
             }));
           }
