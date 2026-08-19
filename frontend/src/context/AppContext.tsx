@@ -154,7 +154,6 @@ interface AppContextType {
   cartTotalCount: number;
   currentPortal: 'storefront' | 'admin' | 'sales' | 'customer';
   setPortal: (portal: 'storefront' | 'admin' | 'sales' | 'customer') => void;
-  switchDemoRole: (role: 'Admin' | 'Sales' | 'Customer', stage?: 'Lead' | 'Customer') => void;
   outOfStockProducts: Record<string, boolean>;
   toggleProductStock: (productId: string) => void;
   isProductOutOfStock: (productId: string) => boolean;
@@ -198,24 +197,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (window.location.hash === '#privacy' || window.location.hash === '#terms' || window.location.hash === '#refund') {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
     }
-  };
-
-  const switchDemoRole = (role: 'Admin' | 'Sales' | 'Customer', stage: 'Lead' | 'Customer' = 'Lead') => {
-    const demoUser: UserProfile = {
-      id: role === 'Admin' ? 1 : role === 'Sales' ? 2 : 3,
-      email: `${role.toLowerCase()}@madhavpharma.com`,
-      first_name: role === 'Admin' ? 'Rajesh' : role === 'Sales' ? 'Vikram' : 'Ananya',
-      last_name: role === 'Admin' ? 'Madhav (Owner)' : role === 'Sales' ? 'Sharma (Sales)' : 'Patel (Buyer)',
-      role: role,
-      customer_stage: role === 'Customer' ? stage : undefined,
-    };
-    setUser(demoUser);
-    localStorage.setItem('madhav_user', JSON.stringify(demoUser));
-    setToken('demo-jwt-token');
-    localStorage.setItem('madhav_token', 'demo-jwt-token');
-    if (role === 'Admin') setPortal('admin');
-    else if (role === 'Sales') setPortal('sales');
-    else setPortal('customer');
   };
 
   const [outOfStockProducts, setOutOfStockProducts] = useState<Record<string, boolean>>({});
@@ -643,7 +624,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         cartTotalCount,
         currentPortal,
         setPortal,
-        switchDemoRole,
         outOfStockProducts,
         toggleProductStock,
         isProductOutOfStock,

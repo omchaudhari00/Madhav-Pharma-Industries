@@ -14,3 +14,4 @@ django-storages
 gunicorn
 whitenoise
 django-anymail[resend]
+razorpay>=1.4.1

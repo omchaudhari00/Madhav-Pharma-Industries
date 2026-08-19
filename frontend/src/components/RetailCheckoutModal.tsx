@@ -61,7 +61,8 @@ export const RetailCheckoutModal: React.FC = () => {
     openCart,
     cartTotalCount,
     openAuth,
-    openLegalModal
+    openLegalModal,
+    token
   } = useApp();
 
   const [step, setStep] = useState<'cart' | 'checkout' | 'processing' | 'paid'>('cart');

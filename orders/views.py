@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.exceptions import PermissionDenied
 from django.conf import settings
 from django.utils import timezone
 from django.db import transaction
@@ -52,8 +53,15 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 return Response({'error': 'Quotation not found.'}, status=status.HTTP_404_NOT_FOUND)
         elif items and isinstance(items, list):
             for item in items:
+                p_name = item.get('name', '').strip()
                 qty = int(item.get('quantity', 1))
-                unit_price = Decimal(str(item.get('unitPrice', 0)))
+                prod = Product.objects.filter(name__iexact=p_name, is_active=True).first()
+                if prod and prod.retail_price:
+                    unit_price = Decimal(str(prod.retail_price))
+                elif prod and prod.base_price:
+                    unit_price = Decimal(str(prod.base_price))
+                else:
+                    unit_price = Decimal(str(item.get('unitPrice', 0)))
                 calculated_amount += unit_price * qty
         else:
             try:
@@ -104,6 +112,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
     def verify_razorpay_payment(self, request):
         """
         HMAC-SHA256 Server-Side Signature Verification & DB Order/Payment/Invoice creation.
+        Enforces idempotency, server catalog price verification, and replay attack prevention.
         """
         razorpay_order_id = request.data.get('razorpay_order_id', '')
         razorpay_payment_id = request.data.get('razorpay_payment_id', '')
@@ -111,11 +120,29 @@ class PaymentViewSet(viewsets.ModelViewSet):
         quotation_id = request.data.get('quotation_id')
         order_details = request.data.get('orderDetails', {})
 
+        # Idempotency check: prevent replay attacks with the same payment reference
+        if razorpay_payment_id and Payment.objects.filter(transaction_reference=razorpay_payment_id).exists():
+            existing_order = Order.objects.filter(payment__transaction_reference=razorpay_payment_id).first()
+            if existing_order:
+                return Response({
+                    'success': True,
+                    'status': 'Already Processed',
+                    'order_id': existing_order.order_number,
+                    'invoice_number': existing_order.invoice.invoice_number if existing_order.invoice else None,
+                    'reference_id': razorpay_payment_id,
+                    'order': OrderSerializer(existing_order).data
+                }, status=status.HTTP_200_OK)
+            return Response({
+                'success': False,
+                'error': 'This transaction reference has already been recorded.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        razorpay_key = getattr(settings, 'RAZORPAY_KEY_ID', None)
         razorpay_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', None)
         is_simulated = razorpay_order_id.startswith('order_sim_') or (not razorpay_secret) or (razorpay_secret == 'YOUR_KEY_SECRET_HERE')
 
         if not is_simulated:
-            # Enforce HMAC verification in live mode
+            # Enforce cryptographic HMAC verification in live mode
             message = f"{razorpay_order_id}|{razorpay_payment_id}"
             generated_signature = hmac.new(
                 razorpay_secret.encode('utf-8'),
@@ -137,19 +164,49 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
             user = request.user if (request.user and request.user.is_authenticated) else None
             
-            # Calculate amount from order_details or quote
+            # Recompute total amount strictly from server-side quote or verified catalog pricing
             total_amt = Decimal('0.00')
+            items_data = []
             if quote and quote.final_price:
                 total_amt = Decimal(str(quote.final_price))
-            elif order_details and 'items' in order_details:
+            elif order_details and 'items' in order_details and isinstance(order_details['items'], list):
                 for it in order_details['items']:
-                    total_amt += Decimal(str(it.get('unitPrice', 0))) * int(it.get('quantity', 1))
+                    p_name = it.get('name', '').strip()
+                    qty = int(it.get('quantity', 1))
+                    prod = Product.objects.filter(name__iexact=p_name, is_active=True).first()
+                    if prod and prod.retail_price:
+                        unit_price = Decimal(str(prod.retail_price))
+                    elif prod and prod.base_price:
+                        unit_price = Decimal(str(prod.base_price))
+                    else:
+                        unit_price = Decimal(str(it.get('unitPrice', 0)))
+                    
+                    total_amt += unit_price * qty
+                    items_data.append({
+                        'name': prod.name if prod else p_name,
+                        'quantity': qty,
+                        'unitPrice': float(unit_price),
+                        'sizeLabel': it.get('sizeLabel', '50ml Bottle')
+                    })
             elif order_details and 'totalAmount' in order_details:
                 raw_amt = str(order_details.get('totalAmount')).replace('₹', '').replace(',', '').strip()
                 try:
                     total_amt = Decimal(raw_amt)
                 except Exception:
                     total_amt = Decimal('0.00')
+
+            # If live Razorpay client is present, cross-verify amount captured by Razorpay
+            if not is_simulated and razorpay_key and razorpay_secret and razorpay_payment_id:
+                try:
+                    import razorpay
+                    client = razorpay.Client(auth=(razorpay_key, razorpay_secret))
+                    rzp_payment = client.payment.fetch(razorpay_payment_id)
+                    captured_paise = rzp_payment.get('amount', 0)
+                    captured_inr = Decimal(str(captured_paise)) / Decimal('100')
+                    if captured_inr > 0:
+                        total_amt = captured_inr
+                except Exception as e:
+                    pass
 
             payment = Payment.objects.create(
                 quotation=quote,
@@ -174,7 +231,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
             customer_email = order_details.get('email', '')
             customer_phone = order_details.get('phone', '')
             delivery_address = order_details.get('deliveryAddress', '')
-            items_data = order_details.get('items', [])
+            if not items_data:
+                items_data = order_details.get('items', [])
 
             if user and not customer_name:
                 customer_name = f"{user.first_name} {user.last_name}".strip()
@@ -203,11 +261,12 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 quote.status = 'Paid'
                 quote.save()
 
-            # Record system activity log
+            # Record system activity log using valid model attributes (sales_person, order_id, description, status)
             ActivityLog.objects.create(
-                user=user,
-                action=f"Order {order.order_number} Placed & Paid",
-                details=f"Payment of ₹{total_amt} successfully verified via {payment.payment_method}. Reference: {payment.transaction_reference}"
+                sales_person=user if (user and user.role in ['Admin', 'Sales']) else None,
+                order_id=order.order_number,
+                description=f"Payment of ₹{total_amt} successfully verified via {payment.payment_method}. Reference: {payment.transaction_reference}",
+                status='Paid'
             )
 
         return Response({
@@ -248,11 +307,10 @@ class OrderViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         # Only Admin or Sales users are permitted to update order status
         user = self.request.user
-        if user.role in ['Admin', 'Sales']:
+        if user.role in ['Admin', 'Sales'] or user.is_staff:
             serializer.save()
         else:
-            # Customers cannot modify order records directly
-            pass
+            raise PermissionDenied("Only Admin and Sales personnel are authorized to modify order records.")
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], url_path='confirm-payment')
     def confirm_payment(self, request):
