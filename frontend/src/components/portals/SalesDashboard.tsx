@@ -575,17 +575,17 @@ export const SalesDashboard: React.FC = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                       {/* Customer Contact & Delivery Address Box */}
                       <div className="lg:col-span-5 space-y-3">
-                        <div className="p-5 rounded-2xl bg-black/40 border border-neutral-200 space-y-3">
-                          <div className="flex items-center gap-2 text-xs font-bold text-[#d4a373] uppercase tracking-wider">
+                        <div className="p-5 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-3">
+                          <div className="flex items-center gap-2 text-xs font-bold text-[#b5835a] uppercase tracking-wider">
                             <User className="w-3.5 h-3.5" />
                             <span>Who to send to</span>
                           </div>
                           <div className="text-sm font-bold text-neutral-900">{ord.customerName || 'Valued Customer'}</div>
-                          <div className="text-xs text-neutral-600">{ord.phone || '+91 98765 43210'}</div>
-                          <div className="text-xs text-neutral-500">{ord.email || 'customer@example.com'}</div>
+                          <div className="text-xs text-neutral-700">{ord.phone || '+91 98765 43210'}</div>
+                          <div className="text-xs text-neutral-600">{ord.email || 'customer@example.com'}</div>
 
                           <div className="pt-3 border-t border-neutral-200 mt-2">
-                            <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">
+                            <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
                               <MapPin className="w-3.5 h-3.5" />
                               <span>Delivery Address ("Where to send")</span>
                             </div>
