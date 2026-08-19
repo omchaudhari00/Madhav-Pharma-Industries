@@ -317,9 +317,9 @@ export const AdminDashboard: React.FC = () => {
     const currentHash = window.location.hash.replace('#', '');
     const parts = currentHash.split('-');
     if (parts[0] === 'admin' && parts[1] !== activeTab) {
-      window.history.replaceState(null, '', `#{parts[0]}-${activeTab}`);
+      window.history.replaceState(null, '', `#${parts[0]}-${activeTab}`);
     } else if (currentHash === 'admin') {
-      window.history.replaceState(null, '', `#{currentHash}-${activeTab}`);
+      window.history.replaceState(null, '', `#${currentHash}-${activeTab}`);
     }
   }, [activeTab]);
 
