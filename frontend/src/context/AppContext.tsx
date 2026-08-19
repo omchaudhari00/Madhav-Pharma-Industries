@@ -285,6 +285,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
+      const basePortal = hash.split('-')[0];
       
       setIsAuthModalOpen(false);
       setIsCartOpen(false);
@@ -297,16 +298,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsCartOpen(true);
       } else if (hash === 'checkout') {
         setIsRetailCheckoutOpen(true);
-      } else if (hash === 'admin' || hash === 'sales' || hash === 'customer') {
+      } else if (basePortal === 'admin' || basePortal === 'sales' || basePortal === 'customer') {
         try {
           const storedUser = localStorage.getItem('madhav_user');
           if (storedUser) {
             const u = JSON.parse(storedUser);
-            if (hash === 'admin' && u.role === 'Admin') {
+            if (basePortal === 'admin' && u.role === 'Admin') {
               setPortal('admin');
-            } else if (hash === 'sales' && u.role === 'Sales') {
+            } else if (basePortal === 'sales' && u.role === 'Sales') {
               setPortal('sales');
-            } else if (hash === 'customer' && (u.role === 'Customer' || !u.role)) {
+            } else if (basePortal === 'customer' && (u.role === 'Customer' || !u.role)) {
               setPortal('customer');
             } else {
               setPortal('storefront');

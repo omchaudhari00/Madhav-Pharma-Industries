@@ -304,6 +304,25 @@ export const AdminDashboard: React.FC = () => {
     }
   }, [activeTab, token]);
 
+  
+  useEffect(() => {
+    const hash = window.location.hash.replace('#', '');
+    const parts = hash.split('-');
+    if (parts.length > 1 && parts[0] === 'admin') {
+      setActiveTab(parts[1] as any);
+    }
+  }, []);
+
+  useEffect(() => {
+    const currentHash = window.location.hash.replace('#', '');
+    const parts = currentHash.split('-');
+    if (parts[0] === 'admin' && parts[1] !== activeTab) {
+      window.history.replaceState(null, '', `#{parts[0]}-${activeTab}`);
+    } else if (currentHash === 'admin') {
+      window.history.replaceState(null, '', `#{currentHash}-${activeTab}`);
+    }
+  }, [activeTab]);
+
   const [orders, setOrders] = useState<any[]>([]);
 
   const handleAssignQuote = (quoteId: string, agentName: string) => {

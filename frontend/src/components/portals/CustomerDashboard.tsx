@@ -45,6 +45,25 @@ export const CustomerDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'quotes' | 'orders' | 'products' | 'profile'>('quotes');
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
+  
+  useEffect(() => {
+    const hash = window.location.hash.replace('#', '');
+    const parts = hash.split('-');
+    if (parts.length > 1 && parts[0] === 'customer') {
+      setActiveTab(parts[1] as any);
+    }
+  }, []);
+
+  useEffect(() => {
+    const currentHash = window.location.hash.replace('#', '');
+    const parts = currentHash.split('-');
+    if (parts[0] === 'customer' && parts[1] !== activeTab) {
+      window.history.replaceState(null, '', `#{parts[0]}-${activeTab}`);
+    } else if (currentHash === 'customer') {
+      window.history.replaceState(null, '', `#{currentHash}-${activeTab}`);
+    }
+  }, [activeTab]);
+
   const stage = user?.customer_stage || 'Lead';
   const isCustomer = stage === 'Customer';
 
