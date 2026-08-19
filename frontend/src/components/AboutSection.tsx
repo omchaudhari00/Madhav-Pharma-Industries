@@ -111,15 +111,15 @@ export const AboutSection: React.FC = () => {
             ].map((card, index, array) => (
               <div key={card.step} className="relative flex flex-col items-center h-full w-full">
                 <div
-                  className="w-full h-full relative group rounded-3xl p-6 sm:p-7 bg-neutral-900/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] hover:border-emerald-500/40 hover:bg-neutral-900/60 transition-all duration-500 flex flex-col items-center text-center justify-between overflow-hidden"
+                  className="w-full h-full relative group rounded-3xl p-6 sm:p-7 bg-neutral-900/40 backdrop-blur-xl border border-white/10 hover:border-emerald-500/40 hover:bg-neutral-900/60 transition-all duration-500 flex flex-col items-center text-center justify-between overflow-hidden"
                 >
                   {/* Icon Container */}
-                  <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 shadow-sm mb-3">
+                  <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 mb-3">
                     {card.icon}
                   </div>
 
                   {/* Step Number Badge */}
-                  <div className="w-7 h-7 rounded-full bg-[#d4a373] text-neutral-950 font-bold text-xs flex items-center justify-center mb-3 shadow-md">
+                  <div className="w-7 h-7 rounded-full bg-[#d4a373] text-neutral-950 font-bold text-xs flex items-center justify-center mb-3">
                     {card.step}
                   </div>
 
@@ -200,7 +200,7 @@ export const AboutSection: React.FC = () => {
             ].map((item, idx) => (
               <div
                 key={idx}
-                className="relative group rounded-3xl p-6 sm:p-7 bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.6)] hover:border-emerald-500/40 hover:bg-neutral-900/50 transition-all duration-500 flex flex-col justify-between overflow-hidden h-full w-full"
+                className="relative group rounded-3xl p-6 sm:p-7 bg-neutral-900/30 backdrop-blur-xl border border-white/10 hover:border-emerald-500/40 hover:bg-neutral-900/50 transition-all duration-500 flex flex-col justify-between overflow-hidden h-full w-full"
               >
                 <div className="mb-4">{item.icon}</div>
                 <div>
