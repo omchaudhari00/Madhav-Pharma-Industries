@@ -21,9 +21,34 @@ export const AuthModal: React.FC = () => {
   const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [address, setAddress] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [signUpError, setSignUpError] = useState('');
+
+  // Auto-detect city and state from postal code
+  useEffect(() => {
+    if (postalCode.length === 6) {
+      fetch(`https://api.postalpincode.in/pincode/${postalCode}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice && data[0].PostOffice.length > 0) {
+            const po = data[0].PostOffice[0];
+            setCity(po.District || po.Region || po.Block || '');
+            setState(po.State || '');
+          }
+        })
+        .catch(err => console.error("Failed to fetch pincode details:", err));
+    } else {
+      // Clear city and state if pincode is not 6 digits
+      if (postalCode.length > 0 && postalCode.length < 6) {
+        setCity('');
+        setState('');
+      }
+    }
+  }, [postalCode]);
   const [signUpLoading, setSignUpLoading] = useState(false);
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
 
@@ -286,6 +311,9 @@ export const AuthModal: React.FC = () => {
           email: email,
           mobile_number: mobileNumber,
           address: address,
+          city: city,
+          state: state,
+          postal_code: postalCode,
           otp: otp,
           first_name: firstName,
           last_name: lastName,
@@ -502,16 +530,42 @@ export const AuthModal: React.FC = () => {
 
             <div>
               <label className="block text-xs text-neutral-400 mb-1.5">Business / Delivery Address</label>
-              <div className="relative">
-                <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-neutral-500" />
-                <input
-                  type="text"
-                  required
-                  placeholder="Full Address"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50"
-                />
+              <div className="space-y-3">
+                <div className="relative">
+                  <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-neutral-500" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="Full Address (Street, Building)"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    placeholder="PIN Code"
+                    value={postalCode}
+                    onChange={(e) => setPostalCode(e.target.value.replace(/[^0-9]/g, ''))}
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50 transition-colors"
+                  />
+                  <input
+                    type="text"
+                    required
+                    placeholder="City"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className={`w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50 transition-colors ${city ? 'border-[#d4a373]/50' : ''}`}
+                  />
+                </div>
+                {state && (
+                  <div className="text-xs text-neutral-400 px-1">
+                    State: <span className="text-[#d4a373]">{state}</span>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -197,13 +197,17 @@ class VerifyOTPAndRegisterView(APIView):
             
             profile = CustomerProfile.objects.create(user=user)
             address_text = serializer.validated_data.get('address', '').strip()
-            if address_text:
+            city = serializer.validated_data.get('city', '').strip()
+            state = serializer.validated_data.get('state', '').strip()
+            postal_code = serializer.validated_data.get('postal_code', '').strip()
+            
+            if address_text or city or postal_code:
                 Address.objects.create(
                     customer=profile,
                     address_line_1=address_text,
-                    city='',
-                    state='',
-                    postal_code='',
+                    city=city,
+                    state=state,
+                    postal_code=postal_code,
                     country='India',
                     is_default=True
                 )
