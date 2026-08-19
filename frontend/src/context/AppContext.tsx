@@ -258,8 +258,80 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, [isAuthModalOpen, isCartOpen, isRetailCheckoutOpen]);
 
-    // URL Hash Routing - Sync State to URL
+    // Ref to prevent the State-to-URL effect from wiping the hash on initial mount
+    const hasInitialized = React.useRef(false);
+
+    // URL Hash Routing - Sync URL to State (on load and on browser back/forward)
+    // This MUST run before the State-to-URL effect so it can read the hash first
     useEffect(() => {
+      const handleHashChange = () => {
+        const hash = window.location.hash.replace('#', '');
+        const basePortal = hash.split('-')[0];
+        
+        setIsAuthModalOpen(false);
+        setIsCartOpen(false);
+        setIsRetailCheckoutOpen(false);
+
+        if (hash === 'signin' || hash === 'signup') {
+          setAuthModalTab(hash as 'signin' | 'signup');
+          setIsAuthModalOpen(true);
+        } else if (hash === 'cart') {
+          setIsCartOpen(true);
+        } else if (hash === 'checkout') {
+          setIsRetailCheckoutOpen(true);
+        } else if (basePortal === 'admin' || basePortal === 'sales' || basePortal === 'customer') {
+          try {
+            const storedUser = localStorage.getItem('madhav_user');
+            if (storedUser) {
+              const u = JSON.parse(storedUser);
+              if (basePortal === 'admin' && u.role === 'Admin') {
+                setPortal('admin');
+              } else if (basePortal === 'sales' && u.role === 'Sales') {
+                setPortal('sales');
+              } else if (basePortal === 'customer' && (u.role === 'Customer' || !u.role)) {
+                setPortal('customer');
+              } else {
+                setPortal('storefront');
+                window.history.replaceState(null, '', window.location.pathname + window.location.search);
+              }
+            } else {
+              // Not logged in, redirect to sign in
+              setPortal('storefront');
+              setAuthModalTab('signin');
+              setIsAuthModalOpen(true);
+              window.history.replaceState(null, '', '#signin');
+            }
+          } catch (e) {
+            setPortal('storefront');
+          }
+        } else {
+          setPortal('storefront');
+        }
+      };
+
+      handleHashChange();
+      // Mark as initialized AFTER we've read the hash
+      hasInitialized.current = true;
+
+      window.addEventListener('hashchange', handleHashChange);
+      // Overriding pushState/replaceState so the component knows when the app itself changes the URL programmatically without a hashchange event
+      const originalPushState = window.history.pushState;
+    window.history.pushState = function (...args) {
+      originalPushState.apply(this, args);
+      // Wait for React to process, though we handle State->URL in the other hook anyway
+    };
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.history.pushState = originalPushState;
+    };
+  }, []);
+
+    // URL Hash Routing - Sync State to URL (runs AFTER URL-to-State on subsequent changes only)
+    useEffect(() => {
+      // Skip the very first render — the URL-to-State effect above handles initial load
+      if (!hasInitialized.current) return;
+
       let newHash = '';
       if (isAuthModalOpen) {
         newHash = authModalTab === 'signup' ? '#signup' : '#signin';
@@ -280,74 +352,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const currentBase = currentHash.replace('#', '').split('-')[0];
         const newBase = newHash.replace('#', '').split('-')[0];
         
+        // Only update if we're switching to a different portal/modal entirely
         if (currentBase !== newBase) {
           window.history.pushState(null, '', newHash);
         }
       }
     }, [isAuthModalOpen, authModalTab, isCartOpen, isRetailCheckoutOpen, currentPortal]);
-
-  // URL Hash Routing - Sync URL to State (on load and on browser back/forward)
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '');
-      const basePortal = hash.split('-')[0];
-      
-      setIsAuthModalOpen(false);
-      setIsCartOpen(false);
-      setIsRetailCheckoutOpen(false);
-
-      if (hash === 'signin' || hash === 'signup') {
-        setAuthModalTab(hash as 'signin' | 'signup');
-        setIsAuthModalOpen(true);
-      } else if (hash === 'cart') {
-        setIsCartOpen(true);
-      } else if (hash === 'checkout') {
-        setIsRetailCheckoutOpen(true);
-      } else if (basePortal === 'admin' || basePortal === 'sales' || basePortal === 'customer') {
-        try {
-          const storedUser = localStorage.getItem('madhav_user');
-          if (storedUser) {
-            const u = JSON.parse(storedUser);
-            if (basePortal === 'admin' && u.role === 'Admin') {
-              setPortal('admin');
-            } else if (basePortal === 'sales' && u.role === 'Sales') {
-              setPortal('sales');
-            } else if (basePortal === 'customer' && (u.role === 'Customer' || !u.role)) {
-              setPortal('customer');
-            } else {
-              setPortal('storefront');
-              window.history.replaceState(null, '', window.location.pathname + window.location.search);
-            }
-          } else {
-            // Not logged in, redirect to sign in
-            setPortal('storefront');
-            setAuthModalTab('signin');
-            setIsAuthModalOpen(true);
-            window.history.replaceState(null, '', '#signin');
-          }
-        } catch (e) {
-          setPortal('storefront');
-        }
-      } else {
-        setPortal('storefront');
-      }
-    };
-
-    handleHashChange();
-
-    window.addEventListener('hashchange', handleHashChange);
-    // Overriding pushState/replaceState so the component knows when the app itself changes the URL programmatically without a hashchange event
-    const originalPushState = window.history.pushState;
-    window.history.pushState = function (...args) {
-      originalPushState.apply(this, args);
-      // Wait for React to process, though we handle State->URL in the other hook anyway
-    };
-
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-      window.history.pushState = originalPushState;
-    };
-  }, []);
 
   const login = (userData: UserProfile, tokenStr?: string) => {
     setUser(userData);
