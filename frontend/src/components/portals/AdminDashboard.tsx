@@ -196,12 +196,22 @@ export const AdminDashboard: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [editForm, setEditForm] = useState({ b2bPrice: '', retailPrice: '', moq: '' });
 
-  const [products, setProducts] = useState([
-    { id: 1, codeId: 'cumin-seed-oil', name: 'Pure Cumin Seed Oil (Jeera Oil)', moq: '5 KG', price: '₹120/KG', availability: 'In Stock', active: true },
-    { id: 2, codeId: 'fennel-seed-oil', name: 'Natural Fennel Seed Oil', moq: '10 KG', price: '₹85/KG', availability: 'In Stock', active: true },
-    { id: 3, codeId: 'ajwain-seed-oil', name: 'Pure Ajwain Seed Oil', moq: '5 KG', price: '₹95/KG', availability: 'In Stock', active: true },
-    { id: 4, codeId: 'coriander-oil', name: 'Organic Coriander Essential Oil', moq: '5 KG', price: '₹110/KG', availability: 'In Stock', active: true },
-  ]);
+  const [products, setProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (allProducts && allProducts.length > 0) {
+      setProducts(allProducts.map((p, i) => ({
+        id: i + 1,
+        codeId: p.id,
+        name: p.name,
+        moq: p.moq || '5 KG',
+        price: `₹${p.unitPrice}/KG`,
+        availability: p.availability || 'In Stock',
+        active: true
+      })));
+    }
+  }, [allProducts]);
+
   const [salesUsers, setSalesUsers] = useState<any[]>([]);
   const [isAddingSalesPerson, setIsAddingSalesPerson] = useState(false);
   const [newSalesPerson, setNewSalesPerson] = useState({ email: '', phone: '', password: '', confirmPassword: '' });

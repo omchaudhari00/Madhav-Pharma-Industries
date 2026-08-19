@@ -534,16 +534,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [allProducts, setAllProducts] = useState<ProductShowcaseItem[]>(() => {
     try {
-      const stored = localStorage.getItem('madhav_custom_products');
+      const stored = localStorage.getItem('madhav_all_products');
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const customList = parsed.filter((cp: ProductShowcaseItem) => !DEFAULT_PRODUCTS.some(dp => dp.id === cp.id));
-          return [...DEFAULT_PRODUCTS, ...customList];
+          // If we have saved products, use them (they contain price edits + custom products)
+          return parsed;
         }
       }
     } catch (e) {
-      console.error('Failed to load custom products from localStorage:', e);
+      console.error('Failed to load products from localStorage:', e);
     }
     return DEFAULT_PRODUCTS;
   });
@@ -552,8 +552,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAllProducts(prev => {
       const updated = [...prev, newProduct];
       try {
-        const customOnly = updated.filter(p => !DEFAULT_PRODUCTS.some(dp => dp.id === p.id));
-        localStorage.setItem('madhav_custom_products', JSON.stringify(customOnly));
+        localStorage.setItem('madhav_all_products', JSON.stringify(updated));
       } catch (e) {
         console.error('Failed to save product to localStorage:', e);
       }
@@ -565,8 +564,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAllProducts(prev => {
       const updated = prev.filter(p => p.id !== productId);
       try {
-        const customOnly = updated.filter(p => !DEFAULT_PRODUCTS.some(dp => dp.id === p.id));
-        localStorage.setItem('madhav_custom_products', JSON.stringify(customOnly));
+        localStorage.setItem('madhav_all_products', JSON.stringify(updated));
       } catch (e) {
         console.error('Failed to update localStorage after delete:', e);
       }
@@ -580,8 +578,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         p.id === id ? { ...p, unitPrice: b2bPrice, retailPrice: retailPrice } : p
       );
       try {
-        const customOnly = updated.filter(p => !DEFAULT_PRODUCTS.some(dp => dp.id === p.id && dp.unitPrice === p.unitPrice && dp.retailPrice === p.retailPrice));
-        localStorage.setItem('madhav_custom_products', JSON.stringify(customOnly));
+        localStorage.setItem('madhav_all_products', JSON.stringify(updated));
       } catch (e) {
         console.error('Failed to update localStorage after price edit:', e);
       }
