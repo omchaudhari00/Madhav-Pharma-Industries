@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Briefcase, FileText, Users, ShoppingBag, Bell, 
   PhoneCall, DollarSign, Send, ArrowLeft, MessageSquare,
-  CheckCircle2, Clock, AlertCircle, TrendingUp,
+  CheckCircle2, Clock, AlertCircle, TrendingUp, Sparkles,
   Truck, MapPin, PackageCheck, User, CheckCircle, ExternalLink, LogOut
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
@@ -210,72 +210,32 @@ export const SalesDashboard: React.FC = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen bg-neutral-950 text-white font-display pb-20 relative selection:bg-neutral-800 selection:text-white"
-    >
+    <div className="flex h-screen bg-neutral-50 font-display selection:bg-black/10 selection:text-black">
       
-      
-      
-      <div className="relative z-10">
-        {/* Sales Top Banner Header */}
-      <div className="border-b border-white/10 bg-neutral-950 border-b border-white/5 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[5rem] py-3 flex-wrap sm:flex-nowrap gap-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setPortal('storefront')}
-              className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold uppercase tracking-wider transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Storefront</span>
-            </button>
-
-            <div className="h-6 w-px bg-white/10 hidden sm:block" />
-
-            <div className="flex items-center gap-2">
-              <img 
-                src="/images/favicon-circle.png" 
-                alt="Madhav Pharma Logo"
-                className="w-10 h-10 object-contain"
-              />
-              <div>
-                <h1 className="text-base sm:text-lg font-extrabold text-white leading-none">
-                  Madhav Pharma <span className="text-blue-400 font-normal font-serif">Sales Portal</span>
-                </h1>
-                <p className="text-xs text-neutral-400 mt-0.5">
-                  Assigned Quotes • Negotiations • Lead & Customer Outreach
-                </p>
-              </div>
-            </div>
+      {/* LEFT SIDEBAR */}
+      <aside className="w-64 bg-[#d4a373] flex flex-col shadow-xl z-20">
+        <button 
+          onClick={() => setPortal('storefront')}
+          className="p-6 border-b border-black/10 flex items-center gap-3 text-left hover:bg-black/5 transition-colors cursor-pointer focus:outline-none"
+          title="Return to Storefront"
+        >
+          <img src="/images/favicon-circle.png" alt="Logo" className="w-10 h-10 object-contain" />
+          <div>
+            <h1 className="text-black font-extrabold leading-none font-serif">Madhav Pharma</h1>
+            <p className="text-xs text-neutral-800 font-bold mt-1">Sales Portal</p>
           </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400 uppercase tracking-wider">
-              SALES AGENT
-            </span>
-            <span className="text-sm text-neutral-300 hidden md:block">
-              {user?.email || 'sales@madhavpharma.com'}
-            </span>
-            <button onClick={logout} className="flex items-center gap-1.5 text-red-400 hover:text-red-300 font-bold underline underline-offset-2 transition-colors text-xs ml-1">
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        {/* Tabs */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-4 mb-8">
+        </button>
+        
+        <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
           {[
-            { id: 'quotes', label: 'My Quotes & Negotiations', icon: FileText, badge: myQuotes.length },
+            { id: 'quotes', label: 'Quotes & Negotiations', icon: FileText, badge: myQuotes.length > 0 ? myQuotes.length.toString() : undefined },
             { 
               id: 'retail_orders', 
-              label: 'Retail B2C Orders & Fulfillment', 
+              label: 'Retail Orders', 
               icon: Truck, 
-              badge: retailOrders.filter(o => !['Out for Express Delivery', 'Delivered to Doorstep'].includes(o.deliveryStatus || '')).length 
+              badge: retailOrders.filter(o => !['Out for Express Delivery', 'Delivered to Doorstep'].includes(o.deliveryStatus || '')).length > 0 ? retailOrders.filter(o => !['Out for Express Delivery', 'Delivered to Doorstep'].includes(o.deliveryStatus || '')).length.toString() : undefined
             },
-            { id: 'customers', label: 'Assigned Customers & Leads', icon: Users, badge: assignedCustomers.length },
+            { id: 'customers', label: 'Assigned Leads', icon: Users, badge: assignedCustomers.length > 0 ? assignedCustomers.length.toString() : undefined },
             { id: 'orders', label: 'B2B Bulk Orders', icon: ShoppingBag },
             { id: 'notifications', label: 'Send Reminders', icon: Bell },
           ].map((tab) => {
@@ -285,17 +245,19 @@ export const SalesDashboard: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all ${
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${
                   isActive
-                    ? 'bg-blue-500 text-neutral-950 shadow-[0_4px_16px_rgba(59,130,246,0.3)]'
-                    : 'bg-neutral-900/50 text-neutral-300 border border-white/10 hover:bg-neutral-800/80 hover:text-white'
+                    ? 'bg-black text-white shadow-lg'
+                    : 'text-black hover:bg-black/10'
                 }`}
               >
-                <Icon className="w-4 h-4" />
-                <span>{tab.label}</span>
+                <div className="flex items-center gap-3 text-left">
+                  <Icon className="w-5 h-5 shrink-0" />
+                  <span className="leading-tight">{tab.label}</span>
+                </div>
                 {tab.badge !== undefined && (
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                    isActive ? 'bg-neutral-950 text-white' : 'bg-blue-500/20 text-blue-400'
+                    isActive ? 'bg-[#d4a373] text-black' : 'bg-black text-white'
                   }`}>
                     {tab.badge}
                   </span>
@@ -304,19 +266,53 @@ export const SalesDashboard: React.FC = () => {
             );
           })}
         </div>
+        
+        <div className="p-4 border-t border-black/10">
+            <div className="mb-4 px-2">
+              <p className="text-[10px] text-neutral-700 font-bold uppercase tracking-wider mb-1">Logged In As</p>
+              <p className="text-black font-semibold truncate text-sm">{user?.first_name} {user?.last_name}</p>
+              <p className="text-xs text-neutral-800 truncate">{user?.email}</p>
+            </div>
+            <button onClick={() => setPortal('storefront')} className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-black/20 text-black hover:bg-black/5 text-xs font-bold uppercase transition-colors mb-2">
+            <ArrowLeft className="w-4 h-4" /> Back to Storefront
+          </button>
+          <button onClick={logout} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-black text-white hover:bg-neutral-800 text-xs font-bold uppercase transition-colors">
+            <LogOut className="w-4 h-4" /> Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* RIGHT MAIN PANEL */}
+      <main className="flex-1 overflow-y-auto relative text-black bg-neutral-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-between mb-8">
+             <h2 className="text-2xl sm:text-3xl font-serif font-extrabold text-neutral-900">
+               {activeTab === 'quotes' && 'Quotes & Negotiations'}
+               {activeTab === 'retail_orders' && 'Retail Fulfillment'}
+               {activeTab === 'customers' && 'Customers & Leads'}
+               {activeTab === 'orders' && 'B2B Bulk Orders'}
+               {activeTab === 'notifications' && 'Send Reminders'}
+             </h2>
+             <div className="flex items-center gap-3">
+               <span className="text-xs font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-sm bg-blue-100 text-blue-700 border border-blue-200">
+                 <Sparkles className="w-3.5 h-3.5" />
+                 <span>SALES CRM</span>
+               </span>
+             </div>
+          </div>
 
         {/* Tab 1: QUOTES & NEGOTIATIONS */}
         {activeTab === 'quotes' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left List of Quotes */}
             <div className={`${selectedQuote ? 'lg:col-span-7' : 'lg:col-span-12'} space-y-4`}>
-              <h3 className="text-xl font-serif font-bold text-white mb-4">Assigned Quotations ({myQuotes.length})</h3>
+              <h3 className="text-xl font-serif font-bold text-neutral-900 mb-4">Assigned Quotations ({myQuotes.length})</h3>
               {myQuotes.map((q) => (
                 <div 
                   key={q.id}
                   onClick={() => setSelectedQuote(q)}
-                  className={`p-6 rounded-3xl bg-neutral-900/40  border transition-all cursor-pointer ${
-                    selectedQuote?.id === q.id ? 'border-blue-400 bg-neutral-900/70 shadow-lg' : 'border-white/10 hover:border-white/30'
+                  className={`p-6 rounded-3xl bg-white shadow-sm  border transition-all cursor-pointer ${
+                    selectedQuote?.id === q.id ? 'border-blue-400 bg-neutral-100 shadow-md shadow-lg' : 'border-neutral-200 hover:border-neutral-300'
                   }`}
                 >
                   <div className="flex flex-wrap items-center justify-between gap-4">
@@ -329,15 +325,15 @@ export const SalesDashboard: React.FC = () => {
                           {q.stage}
                         </span>
                       </div>
-                      <h4 className="text-lg font-bold text-white mt-1">{q.customer}</h4>
+                      <h4 className="text-lg font-bold text-neutral-900 mt-1">{q.customer}</h4>
                       <div className="mt-1 space-y-1">
                         {getIndividualItems(q).map((item: any, idx: number) => (
-                          <div key={idx} className="flex flex-wrap items-center justify-between gap-1 text-xs text-neutral-300 py-0.5 border-b border-white/5 last:border-0">
+                          <div key={idx} className="flex flex-wrap items-center justify-between gap-1 text-xs text-neutral-600 py-0.5 border-b border-neutral-100 last:border-0">
                             <div className="flex items-center gap-1.5">
                               <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
                               <span className="font-mono font-bold text-amber-200">{item.quantityKg} kg</span>
-                              <span className="text-neutral-400">of</span>
-                              <span className="font-semibold text-white">{item.name}</span>
+                              <span className="text-neutral-500">of</span>
+                              <span className="font-semibold text-neutral-900">{item.name}</span>
                             </div>
                             {item.expectedPrice && (
                               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
@@ -350,7 +346,7 @@ export const SalesDashboard: React.FC = () => {
                     </div>
 
                     <div className="text-right">
-                      <div className="text-xs text-neutral-400">Requested: <span className="font-mono text-white">{q.requestedPrice}</span></div>
+                      <div className="text-xs text-neutral-500">Requested: <span className="font-mono text-neutral-900">{q.requestedPrice}</span></div>
                       <div className="text-sm font-bold text-[#d4a373]">Offered: {q.targetPrice}</div>
                       <div className={`inline-flex items-center justify-center mt-1 px-3 py-1 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${
                         q.status === 'Approved by Sales'
@@ -359,16 +355,16 @@ export const SalesDashboard: React.FC = () => {
                           ? 'bg-amber-500/15 border-amber-500/30 text-amber-300'
                           : q.status === 'Accepted by Customer'
                           ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
-                          : 'bg-white/10 border-white/20 text-neutral-200'
+                          : 'bg-white/10 border-white/20 text-neutral-700'
                       }`}>
                         {q.status}
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs text-neutral-400">
+                  <div className="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between text-xs text-neutral-500">
                     <span className="italic">"{q.customerNote}"</span>
-                    <button className="px-3 py-1 rounded-lg bg-blue-500/20 hover:bg-blue-500 text-blue-300 hover:text-neutral-950 font-bold transition-all">
+                    <button className="px-3 py-1 rounded-lg bg-blue-500/20 hover:bg-blue-500 text-blue-300 hover:text-white font-bold transition-all">
                       Negotiate & Reply →
                     </button>
                   </div>
@@ -378,12 +374,12 @@ export const SalesDashboard: React.FC = () => {
 
             {/* Right Negotiation Panel */}
             {selectedQuote && (
-              <div className="lg:col-span-5 p-6 rounded-3xl bg-neutral-900/60 backdrop-blur-2xl border border-blue-500/40 shadow-2xl space-y-5">
-                <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                  <h4 className="text-lg font-bold text-white">Negotiate Price: {selectedQuote.id}</h4>
+              <div className="lg:col-span-5 p-6 rounded-3xl bg-white shadow-sm backdrop-blur-2xl border border-blue-500/40 shadow-2xl space-y-5">
+                <div className="flex items-center justify-between border-b border-neutral-200 pb-4">
+                  <h4 className="text-lg font-bold text-neutral-900">Negotiate Price: {selectedQuote.id}</h4>
                   <button 
                     onClick={() => setSelectedQuote(null)}
-                    className="text-xs text-neutral-400 hover:text-white"
+                    className="text-xs text-neutral-500 hover:text-neutral-900"
                   >
                     Close ✕
                   </button>
@@ -391,25 +387,25 @@ export const SalesDashboard: React.FC = () => {
 
                 <div className="space-y-3 text-sm">
                   <div>
-                    <span className="text-neutral-400 text-xs block">Customer/Lead Name:</span>
-                    <span className="font-bold text-white">{selectedQuote.customer} ({selectedQuote.stage})</span>
+                    <span className="text-neutral-500 text-xs block">Customer/Lead Name:</span>
+                    <span className="font-bold text-neutral-900">{selectedQuote.customer} ({selectedQuote.stage})</span>
                   </div>
                   <div>
-                    <span className="text-neutral-400 text-xs block mb-1.5">Products & Volume:</span>
+                    <span className="text-neutral-500 text-xs block mb-1.5">Products & Volume:</span>
                     <div className="space-y-1">
                       {getIndividualItems(selectedQuote).map((item: any, idx: number) => (
-                        <div key={idx} className="flex items-center gap-2 text-xs text-neutral-200">
+                        <div key={idx} className="flex items-center gap-2 text-xs text-neutral-700">
                           <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
                           <span className="font-mono font-bold text-amber-200">{item.quantityKg} kg</span>
-                          <span className="text-neutral-400">of</span>
-                          <span className="font-semibold text-white">{item.name}</span>
+                          <span className="text-neutral-500">of</span>
+                          <span className="font-semibold text-neutral-900">{item.name}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <span className="text-neutral-400 text-xs block">Customer Note:</span>
-                    <p className="text-neutral-300 italic bg-white/5 p-3 rounded-xl mt-1">"{selectedQuote.customerNote}"</p>
+                    <span className="text-neutral-500 text-xs block">Customer Note:</span>
+                    <p className="text-neutral-600 italic bg-white/5 p-3 rounded-xl mt-1">"{selectedQuote.customerNote}"</p>
                   </div>
                 </div>
 
@@ -424,22 +420,22 @@ export const SalesDashboard: React.FC = () => {
                   className="space-y-4 pt-2"
                 >
                   <div>
-                    <label className="text-xs font-bold text-neutral-300 block mb-1">Update Target Price (₹ per KG)</label>
+                    <label className="text-xs font-bold text-neutral-600 block mb-1">Update Target Price (₹ per KG)</label>
                     <input 
                       name="price" 
                       type="text" 
                       defaultValue={selectedQuote.targetPrice} 
-                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-800 border border-white/10 text-white font-mono focus:border-blue-400 focus:outline-none" 
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-100 border border-neutral-200 text-neutral-900 font-mono focus:border-blue-400 focus:outline-none" 
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-neutral-300 block mb-1">Sales Agent Remarks</label>
+                    <label className="text-xs font-bold text-neutral-600 block mb-1">Sales Agent Remarks</label>
                     <textarea 
                       name="remarks" 
                       rows={3} 
                       defaultValue={selectedQuote.salesRemarks} 
-                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-800 border border-white/10 text-white text-sm focus:border-blue-400 focus:outline-none" 
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-100 border border-neutral-200 text-neutral-900 text-sm focus:border-blue-400 focus:outline-none" 
                       placeholder="Add negotiation note..."
                     />
                   </div>
@@ -455,27 +451,27 @@ export const SalesDashboard: React.FC = () => {
                     <button 
                       type="button"
                       onClick={() => handleQuoteAction(selectedQuote.id, 'approve')}
-                      className="py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-neutral-950 font-extrabold text-xs uppercase tracking-wider shadow-lg transition-colors"
+                      className="py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg transition-colors"
                     >
                       Approve Deal
                     </button>
                     <button 
                       type="submit"
-                      className="py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-neutral-950 font-extrabold text-xs uppercase tracking-wider shadow-lg transition-colors"
+                      className="py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg transition-colors"
                     >
                       Send Offer
                     </button>
                     <button 
                       type="button"
                       onClick={() => handleQuoteAction(selectedQuote.id, 'out_of_stock')}
-                      className="py-3 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-neutral-950 font-extrabold text-xs uppercase tracking-wider shadow-lg transition-colors"
+                      className="py-3 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-white font-extrabold text-xs uppercase tracking-wider shadow-lg transition-colors"
                     >
                       No Stock (Turn Off)
                     </button>
                     <button 
                       type="button"
                       onClick={() => handleQuoteAction(selectedQuote.id, 'reject')}
-                      className="py-3 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-neutral-950 font-extrabold text-xs uppercase tracking-wider shadow-lg transition-colors"
+                      className="py-3 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white font-extrabold text-xs uppercase tracking-wider shadow-lg transition-colors"
                     >
                       Reject Deal
                     </button>
@@ -488,14 +484,14 @@ export const SalesDashboard: React.FC = () => {
 
         {/* Tab 2: RETAIL B2C ORDERS & FULFILLMENT DESK */}
         {activeTab === 'retail_orders' && (
-          <div className="p-8 rounded-3xl bg-neutral-900 border border-white/10 shadow-xl space-y-6">
-            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 border-b border-white/10 pb-6">
+          <div className="p-8 rounded-3xl bg-white shadow-sm border border-neutral-200 shadow-xl space-y-6">
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 border-b border-neutral-200 pb-6">
               <div>
-                <h3 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
+                <h3 className="text-2xl font-serif font-bold text-neutral-900 flex items-center gap-2">
                   <Truck className="w-7 h-7 text-[#d4a373]" />
                   <span>Retail B2C Orders &amp; Fulfillment Desk</span>
                 </h3>
-                <p className="text-sm text-neutral-400 mt-1">
+                <p className="text-sm text-neutral-500 mt-1">
                   Manage Express Courier dispatches, verify customer delivery addresses, and update live tracking status for 50ml retail bottle orders.
                 </p>
               </div>
@@ -505,14 +501,14 @@ export const SalesDashboard: React.FC = () => {
                   placeholder="Search ID, Name, Phone, Email..."
                   value={retailSearch}
                   onChange={(e) => setRetailSearch(e.target.value)}
-                  className="px-4 py-2.5 rounded-xl bg-neutral-900/50 border border-white/10 text-white text-xs focus:outline-none focus:border-[#d4a373] w-full xl:w-64 shadow-inner"
+                  className="px-4 py-2.5 rounded-xl bg-white shadow-sm border border-neutral-200 text-neutral-900 text-xs focus:outline-none focus:border-[#d4a373] w-full xl:w-64 shadow-inner"
                 />
                 <div className="flex items-center gap-2 w-full xl:w-auto">
                   <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider shrink-0">Filter:</span>
                   <select
                     value={retailFilter}
                     onChange={(e) => setRetailFilter(e.target.value)}
-                    className="flex-1 xl:flex-none px-4 py-2.5 rounded-xl bg-neutral-900/50 border border-white/10 text-white font-bold text-xs focus:outline-none focus:border-[#d4a373] cursor-pointer shadow-inner appearance-none"
+                    className="flex-1 xl:flex-none px-4 py-2.5 rounded-xl bg-white shadow-sm border border-neutral-200 text-neutral-900 font-bold text-xs focus:outline-none focus:border-[#d4a373] cursor-pointer shadow-inner appearance-none"
                   >
                     <option value="All">All Orders</option>
                     <option value="Preparing in Stock">Just Received (Preparing)</option>
@@ -558,14 +554,14 @@ export const SalesDashboard: React.FC = () => {
                     return matchFilter && matchSearch;
                   })
                   .map((ord) => (
-                  <div key={ord.id} className="p-6 sm:p-8 rounded-3xl bg-neutral-900/60 border border-white/10 hover:border-white/20 transition-all shadow-xl space-y-6">
+                  <div key={ord.id} className="p-6 sm:p-8 rounded-3xl bg-white shadow-sm border border-neutral-200 hover:border-white/20 transition-all shadow-xl space-y-6">
                     {/* Top Row: Invoice ID, Date, Payment Badge */}
-                    <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10">
+                    <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-neutral-200">
                       <div className="flex items-center gap-3">
                         <span className="px-3 py-1 rounded-xl bg-[#d4a373]/15 text-[#d4a373] border border-[#d4a373]/30 text-xs font-bold font-mono">
                           Invoice: {ord.id}
                         </span>
-                        <span className="text-xs text-neutral-400">Date: {ord.date}</span>
+                        <span className="text-xs text-neutral-500">Date: {ord.date}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-extrabold flex items-center gap-1.5">
@@ -579,21 +575,21 @@ export const SalesDashboard: React.FC = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                       {/* Customer Contact & Delivery Address Box */}
                       <div className="lg:col-span-5 space-y-3">
-                        <div className="p-5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+                        <div className="p-5 rounded-2xl bg-black/40 border border-neutral-200 space-y-3">
                           <div className="flex items-center gap-2 text-xs font-bold text-[#d4a373] uppercase tracking-wider">
                             <User className="w-3.5 h-3.5" />
                             <span>Who to send to</span>
                           </div>
-                          <div className="text-sm font-bold text-white">{ord.customerName || 'Valued Customer'}</div>
-                          <div className="text-xs text-neutral-300">{ord.phone || '+91 98765 43210'}</div>
-                          <div className="text-xs text-neutral-400">{ord.email || 'customer@example.com'}</div>
+                          <div className="text-sm font-bold text-neutral-900">{ord.customerName || 'Valued Customer'}</div>
+                          <div className="text-xs text-neutral-600">{ord.phone || '+91 98765 43210'}</div>
+                          <div className="text-xs text-neutral-500">{ord.email || 'customer@example.com'}</div>
 
-                          <div className="pt-3 border-t border-white/10 mt-2">
+                          <div className="pt-3 border-t border-neutral-200 mt-2">
                             <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">
                               <MapPin className="w-3.5 h-3.5" />
                               <span>Delivery Address ("Where to send")</span>
                             </div>
-                            <p className="text-xs text-white font-medium leading-relaxed">
+                            <p className="text-xs text-neutral-900 font-medium leading-relaxed">
                               {ord.deliveryAddress || '402, Sunset Heights, MG Road, Mumbai, Maharashtra - 400001'}
                             </p>
                           </div>
@@ -607,24 +603,24 @@ export const SalesDashboard: React.FC = () => {
                             <PackageCheck className="w-3.5 h-3.5" />
                             <span>What to send on delivery (Items to pack)</span>
                           </h5>
-                          <span className="text-sm font-extrabold text-white">Total: {ord.totalAmount || '₹837.00'}</span>
+                          <span className="text-sm font-extrabold text-neutral-900">Total: {ord.totalAmount || '₹837.00'}</span>
                         </div>
 
                         <div className="space-y-2">
                           {(ord.items || []).map((item: any, idx: number) => (
-                            <div key={idx} className="p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between text-xs">
+                            <div key={idx} className="p-3.5 rounded-2xl bg-white/5 border border-neutral-200 flex items-center justify-between text-xs">
                               <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 rounded-lg bg-black/50 flex items-center justify-center text-[#d4a373] font-bold">
                                   50ml
                                 </div>
                                 <div>
-                                  <span className="font-bold text-white block">{item.name}</span>
-                                  <span className="text-neutral-400">{item.sizeLabel || '50ml Bottle'} • Pharma Grade</span>
+                                  <span className="font-bold text-neutral-900 block">{item.name}</span>
+                                  <span className="text-neutral-500">{item.sizeLabel || '50ml Bottle'} • Pharma Grade</span>
                                 </div>
                               </div>
                               <div className="text-right">
-                                <span className="font-mono text-white font-bold">Qty: {item.quantity}</span>
-                                <span className="block text-neutral-400">₹{(item.unitPrice || 299) * item.quantity}</span>
+                                <span className="font-mono text-neutral-900 font-bold">Qty: {item.quantity}</span>
+                                <span className="block text-neutral-500">₹{(item.unitPrice || 299) * item.quantity}</span>
                               </div>
                             </div>
                           ))}
@@ -633,15 +629,15 @@ export const SalesDashboard: React.FC = () => {
                     </div>
 
                     {/* Bottom Row: Logistics Delivery Status Selector */}
-                    <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="pt-4 border-t border-neutral-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
+                        <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
                           Update Logistics Status:
                         </span>
                         <select
                           value={ord.deliveryStatus || 'Preparing in Stock'}
                           onChange={(e) => handleUpdateDeliveryStatus(ord.id, e.target.value)}
-                          className="px-4 py-2.5 rounded-xl bg-neutral-800 border border-white/20 text-white font-bold text-xs focus:outline-none focus:border-[#d4a373] cursor-pointer"
+                          className="px-4 py-2.5 rounded-xl bg-neutral-100 border border-white/20 text-neutral-900 font-bold text-xs focus:outline-none focus:border-[#d4a373] cursor-pointer"
                         >
                           <option value="Preparing in Stock">Preparing in Stock</option>
                           <option value="Packed & Purity Verified">Packed &amp; Purity Verified</option>
@@ -666,17 +662,17 @@ export const SalesDashboard: React.FC = () => {
 
         {/* Tab 3: ASSIGNED CUSTOMERS & LEADS */}
         {activeTab === 'customers' && (
-          <div className="p-8 rounded-3xl bg-neutral-900 border border-white/10 shadow-xl space-y-6">
+          <div className="p-8 rounded-3xl bg-white shadow-sm border border-neutral-200 shadow-xl space-y-6">
             <div>
-              <h3 className="text-2xl font-serif font-bold text-white">My Assigned Customers & Leads</h3>
-              <p className="text-sm text-neutral-400 mt-1">Sales agents can contact leads and track negotiation history (Cannot delete or deactivate users).</p>
+              <h3 className="text-2xl font-serif font-bold text-neutral-900">My Assigned Customers & Leads</h3>
+              <p className="text-sm text-neutral-500 mt-1">Sales agents can contact leads and track negotiation history (Cannot delete or deactivate users).</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {assignedCustomers.map((c) => (
-                <div key={c.id} className="p-6 rounded-3xl bg-neutral-900/50 border border-white/10 space-y-4">
+                <div key={c.id} className="p-6 rounded-3xl bg-white shadow-sm border border-neutral-200 space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-lg font-bold text-white">{c.name}</h4>
+                    <h4 className="text-lg font-bold text-neutral-900">{c.name}</h4>
                     <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold uppercase ${
                       c.stage === 'Lead' ? 'bg-amber-500/15 text-amber-300' : 'bg-emerald-500/15 text-emerald-400'
                     }`}>
@@ -684,21 +680,21 @@ export const SalesDashboard: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="text-xs text-neutral-300 space-y-1">
+                  <div className="text-xs text-neutral-600 space-y-1">
                     <div><span className="text-neutral-500">Contact:</span> {c.contactPerson}</div>
                     <div><span className="text-neutral-500">Phone:</span> {c.phone}</div>
                     <div><span className="text-neutral-500">Active Orders:</span> {c.activeOrders}</div>
                   </div>
 
-                  <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+                  <div className="pt-3 border-t border-neutral-200 flex items-center justify-between">
                     <a 
                       href={`tel:${c.phone}`}
-                      className="px-4 py-2 rounded-xl bg-blue-500/20 hover:bg-blue-500 text-blue-300 hover:text-neutral-950 font-bold text-xs flex items-center gap-2 transition-all"
+                      className="px-4 py-2 rounded-xl bg-blue-500/20 hover:bg-blue-500 text-blue-300 hover:text-white font-bold text-xs flex items-center gap-2 transition-all"
                     >
                       <PhoneCall className="w-4 h-4" />
                       <span>Call Customer</span>
                     </a>
-                    <span className="text-xs text-neutral-400 font-medium">Read-Only Profile</span>
+                    <span className="text-xs text-neutral-500 font-medium">Read-Only Profile</span>
                   </div>
                 </div>
               ))}
@@ -708,11 +704,11 @@ export const SalesDashboard: React.FC = () => {
 
         {/* Tab 3: ORDERS TRACKING */}
         {activeTab === 'orders' && (
-          <div className="p-8 rounded-3xl bg-neutral-900 border border-white/10 shadow-xl space-y-6">
-            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 border-b border-white/10 pb-6">
+          <div className="p-8 rounded-3xl bg-white shadow-sm border border-neutral-200 shadow-xl space-y-6">
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 border-b border-neutral-200 pb-6">
               <div>
-                <h3 className="text-2xl font-serif font-bold text-white">Track Orders & Payments</h3>
-                <p className="text-sm text-neutral-400 mt-1">View active orders generated from your quotes (Sales agents cannot cancel or delete orders).</p>
+                <h3 className="text-2xl font-serif font-bold text-neutral-900">Track Orders & Payments</h3>
+                <p className="text-sm text-neutral-500 mt-1">View active orders generated from your quotes (Sales agents cannot cancel or delete orders).</p>
               </div>
               <div className="flex flex-col xl:flex-row xl:items-center gap-3 w-full sm:w-auto">
                 <input
@@ -720,14 +716,14 @@ export const SalesDashboard: React.FC = () => {
                   placeholder="Search ID, Name, Phone..."
                   value={b2bSearch}
                   onChange={(e) => setB2bSearch(e.target.value)}
-                  className="px-4 py-2.5 rounded-xl bg-neutral-900/50 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-400 w-full xl:w-64 shadow-inner"
+                  className="px-4 py-2.5 rounded-xl bg-white shadow-sm border border-neutral-200 text-neutral-900 text-xs focus:outline-none focus:border-blue-400 w-full xl:w-64 shadow-inner"
                 />
                 <div className="flex items-center gap-2 w-full xl:w-auto">
                   <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider shrink-0">Filter:</span>
                   <select
                     value={b2bFilter}
                     onChange={(e) => setB2bFilter(e.target.value)}
-                    className="flex-1 xl:flex-none px-4 py-2.5 rounded-xl bg-neutral-900/50 border border-white/10 text-white font-bold text-xs focus:outline-none focus:border-blue-400 cursor-pointer shadow-inner appearance-none"
+                    className="flex-1 xl:flex-none px-4 py-2.5 rounded-xl bg-white shadow-sm border border-neutral-200 text-neutral-900 font-bold text-xs focus:outline-none focus:border-blue-400 cursor-pointer shadow-inner appearance-none"
                   >
                     <option value="All">All Orders</option>
                     <option value="Processing">New (Processing)</option>
@@ -741,7 +737,7 @@ export const SalesDashboard: React.FC = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-white/10 text-neutral-400 text-xs uppercase tracking-wider font-semibold">
+                  <tr className="border-b border-neutral-200 text-neutral-500 text-xs uppercase tracking-wider font-semibold">
                     <th className="py-3 px-4">Order ID</th>
                     <th className="py-3 px-4">Customer</th>
                     <th className="py-3 px-4">Product details</th>
@@ -765,9 +761,9 @@ export const SalesDashboard: React.FC = () => {
                     .map((ord) => (
                     <tr key={ord.id} className="hover:bg-white/5 transition-colors">
                       <td className="py-4 px-4 font-bold text-blue-400">{ord.id}</td>
-                      <td className="py-4 px-4 font-bold text-white">{ord.customer}</td>
-                      <td className="py-4 px-4 text-neutral-300">{ord.product}</td>
-                      <td className="py-4 px-4 font-mono text-white">{ord.amount}</td>
+                      <td className="py-4 px-4 font-bold text-neutral-900">{ord.customer}</td>
+                      <td className="py-4 px-4 text-neutral-600">{ord.product}</td>
+                      <td className="py-4 px-4 font-mono text-neutral-900">{ord.amount}</td>
                       <td className="py-4 px-4">
                         <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${
                           ord.status === 'Delivered'
@@ -796,39 +792,39 @@ export const SalesDashboard: React.FC = () => {
 
         {/* Tab 4: NOTIFICATIONS */}
         {activeTab === 'notifications' && (
-          <div className="p-8 rounded-3xl bg-neutral-900 border border-white/10 shadow-xl space-y-6">
+          <div className="p-8 rounded-3xl bg-white shadow-sm border border-neutral-200 shadow-xl space-y-6">
             <div>
-              <h3 className="text-2xl font-serif font-bold text-white">Send Quote Reminders & Outreach</h3>
-              <p className="text-sm text-neutral-400 mt-1">Quickly dispatch SMS or email notifications to leads when quotations are expiring.</p>
+              <h3 className="text-2xl font-serif font-bold text-neutral-900">Send Quote Reminders & Outreach</h3>
+              <p className="text-sm text-neutral-500 mt-1">Quickly dispatch SMS or email notifications to leads when quotations are expiring.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-6 rounded-3xl bg-neutral-900/50 border border-white/10 flex flex-col justify-between">
+              <div className="p-6 rounded-3xl bg-white shadow-sm border border-neutral-200 flex flex-col justify-between">
                 <div>
-                  <h4 className="font-bold text-white">Quote Ready Alert</h4>
-                  <p className="text-xs text-neutral-400 mt-1">Notify customer that their custom GC-MS quote is ready for download.</p>
+                  <h4 className="font-bold text-neutral-900">Quote Ready Alert</h4>
+                  <p className="text-xs text-neutral-500 mt-1">Notify customer that their custom GC-MS quote is ready for download.</p>
                 </div>
-                <button className="mt-4 px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-neutral-950 font-bold text-xs uppercase">
+                <button className="mt-4 px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs uppercase">
                   Send Notification
                 </button>
               </div>
 
-              <div className="p-6 rounded-3xl bg-neutral-900/50 border border-white/10 flex flex-col justify-between">
+              <div className="p-6 rounded-3xl bg-white shadow-sm border border-neutral-200 flex flex-col justify-between">
                 <div>
-                  <h4 className="font-bold text-white">Payment Reminder</h4>
-                  <p className="text-xs text-neutral-400 mt-1">Send polite reminder for pending order payment completion.</p>
+                  <h4 className="font-bold text-neutral-900">Payment Reminder</h4>
+                  <p className="text-xs text-neutral-500 mt-1">Send polite reminder for pending order payment completion.</p>
                 </div>
-                <button className="mt-4 px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-neutral-950 font-bold text-xs uppercase">
+                <button className="mt-4 px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs uppercase">
                   Send Notification
                 </button>
               </div>
 
-              <div className="p-6 rounded-3xl bg-neutral-900/50 border border-white/10 flex flex-col justify-between">
+              <div className="p-6 rounded-3xl bg-white shadow-sm border border-neutral-200 flex flex-col justify-between">
                 <div>
-                  <h4 className="font-bold text-white">Quote Expiring Reminder</h4>
-                  <p className="text-xs text-neutral-400 mt-1">Alert lead that their special discounted quote expires in 48 hours.</p>
+                  <h4 className="font-bold text-neutral-900">Quote Expiring Reminder</h4>
+                  <p className="text-xs text-neutral-500 mt-1">Alert lead that their special discounted quote expires in 48 hours.</p>
                 </div>
-                <button className="mt-4 px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-neutral-950 font-bold text-xs uppercase">
+                <button className="mt-4 px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs uppercase">
                   Send Notification
                 </button>
               </div>
@@ -836,11 +832,7 @@ export const SalesDashboard: React.FC = () => {
           </div>
         )}
       </div>
-      </div>
-    </div>
+    </main>
+  </div>
   );
 };
-
-
-
-

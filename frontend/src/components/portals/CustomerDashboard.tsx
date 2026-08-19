@@ -233,93 +233,28 @@ export const CustomerDashboard: React.FC = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen text-white font-display pb-20 relative selection:bg-neutral-800 selection:text-white"
-    >
-      <div 
-        className="absolute inset-0 pointer-events-none z-0 bg-fixed bg-responsive-fallback" 
-      />
-      {/* Dark Luxury Glassmorphism Overlay to match main landing page aesthetic */}
-      <div className="absolute inset-0 bg-neutral-950/85 backdrop-blur-md pointer-events-none z-0" />
-      <div className="relative z-10">
-        {/* Customer Header */}
-      <div className="border-b border-white/10 bg-neutral-900/60 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[5rem] py-3 flex-wrap sm:flex-nowrap gap-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setPortal('storefront')}
-              className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold uppercase tracking-wider transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Storefront</span>
-            </button>
-
-            <div className="h-6 w-px bg-white/10 hidden sm:block" />
-
-            <div className="flex items-center gap-2">
-                <img 
-                  src="/images/favicon-circle.png" 
-                  alt="Madhav Pharma Logo"
-                  className="w-10 h-10 object-contain"
-                />
-                <div>
-                  <h1 className="text-base sm:text-lg font-extrabold text-white leading-none">
-                    Madhav Pharma <span className="text-[#d4a373] font-normal font-serif">Customer Portal</span>
-                  </h1>
-                <div className="flex items-center text-xs text-neutral-400 mt-0.5 space-x-3">
-                  <span>Welcome, {user?.first_name || 'Valued Buyer'} • {user?.email}</span>
-                  <button onClick={logout} className="flex items-center gap-1.5 text-red-400 hover:text-red-300 font-bold underline underline-offset-2 transition-colors">
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+    <div className="flex h-screen bg-neutral-50 font-display selection:bg-black/10 selection:text-black">
+      
+      {/* LEFT SIDEBAR */}
+      <aside className="w-64 bg-[#d4a373] flex flex-col shadow-xl z-20">
+        <button 
+          onClick={() => setPortal('storefront')}
+          className="p-6 border-b border-black/10 flex items-center gap-3 text-left hover:bg-black/5 transition-colors cursor-pointer focus:outline-none"
+          title="Return to Storefront"
+        >
+          <img src="/images/favicon-circle.png" alt="Logo" className="w-10 h-10 object-contain" />
+          <div>
+            <h1 className="text-black font-extrabold leading-none font-serif">Madhav Pharma</h1>
+            <p className="text-xs text-neutral-800 font-bold mt-1">Customer Portal</p>
           </div>
-
-          {/* Luxury Stage Badge */}
-          <div className="flex items-center gap-3">
-            <span className={`text-xs font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-lg ${
-              isCustomer 
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' 
-                : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-            }`}>
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>{isCustomer ? 'VERIFIED CUSTOMER' : 'NEW CUSTOMER'}</span>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Lead Stage Notice Banner */}
-      {!isCustomer && (
-        <div className="bg-gradient-to-r from-amber-500/10 via-[#d4a373]/15 to-neutral-900 border-b border-amber-500/30 py-3.5 px-4">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
-            <div className="flex items-center gap-2.5 text-amber-200">
-              <AlertCircle className="w-4 h-4 shrink-0 text-[#d4a373]" />
-              <span>
-                <strong>Your Account Status is NEW CUSTOMER:</strong> Once your first order is confirmed and delivered, your profile automatically promotes to <strong>VERIFIED CUSTOMER</strong> with special pricing.
-              </span>
-            </div>
-            <button 
-              onClick={() => setPortal('storefront')}
-              className="px-3.5 py-1.5 rounded-lg bg-[#d4a373] text-neutral-950 font-extrabold text-xs uppercase tracking-wider hover:bg-[#c29161] shrink-0"
-            >
-              Request New Quote
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Main Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        {/* Navigation Tabs */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-4 mb-8">
+        </button>
+        
+        <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
           {[
-            { id: 'quotes', label: 'My Price Requests', icon: FileText, badge: myQuotes.length },
-            { id: 'orders', label: 'My Orders & Invoices', icon: ShoppingBag, badge: orders.length },
+            { id: 'quotes', label: 'Price Requests', icon: FileText, badge: myQuotes.length > 0 ? myQuotes.length.toString() : undefined },
+            { id: 'orders', label: 'My Invoices & Orders', icon: ShoppingBag, badge: orders.length > 0 ? orders.length.toString() : undefined },
             { id: 'products', label: 'Products & Minimum Orders', icon: Package },
-            { id: 'profile', label: 'Company Profile & Address', icon: User },
+            { id: 'profile', label: 'Company Profile', icon: User },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -327,17 +262,19 @@ export const CustomerDashboard: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold tracking-wide transition-all ${
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${
                   isActive
-                    ? 'bg-[#d4a373] text-neutral-950 shadow-[0_4px_16px_rgba(212,163,115,0.3)]'
-                    : 'bg-neutral-900/50 text-neutral-300 border border-white/10 hover:bg-neutral-800/80 hover:text-white'
+                    ? 'bg-black text-white shadow-lg'
+                    : 'text-black hover:bg-black/10'
                 }`}
               >
-                <Icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-                {tab.badge !== undefined && (
+                <div className="flex items-center gap-3 text-left">
+                  <Icon className="w-5 h-5 shrink-0" />
+                  <span className="leading-tight">{tab.label}</span>
+                </div>
+                {tab.badge && (
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                    isActive ? 'bg-neutral-950 text-white' : 'bg-[#d4a373]/20 text-[#d4a373]'
+                    isActive ? 'bg-[#d4a373] text-black' : 'bg-black text-white'
                   }`}>
                     {tab.badge}
                   </span>
@@ -346,28 +283,80 @@ export const CustomerDashboard: React.FC = () => {
             );
           })}
         </div>
+        
+        <div className="p-4 border-t border-black/10">
+            <div className="mb-4 px-2">
+              <p className="text-[10px] text-neutral-700 font-bold uppercase tracking-wider mb-1">Logged In As</p>
+              <p className="text-black font-semibold truncate text-sm">{user?.first_name} {user?.last_name}</p>
+              <p className="text-xs text-neutral-800 truncate">{user?.email}</p>
+            </div>
+            <button onClick={() => setPortal('storefront')} className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-black/20 text-black hover:bg-black/5 text-xs font-bold uppercase transition-colors mb-2">
+            <ArrowLeft className="w-4 h-4" /> Back to Storefront
+          </button>
+          <button onClick={logout} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-black text-white hover:bg-neutral-800 text-xs font-bold uppercase transition-colors">
+            <LogOut className="w-4 h-4" /> Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* RIGHT MAIN PANEL */}
+      <main className="flex-1 overflow-y-auto relative text-black bg-neutral-50">
+        {/* Lead Stage Notice Banner */}
+        {!isCustomer && (
+          <div className="bg-amber-100 border-b border-amber-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-start sm:items-center gap-3">
+              <div className="p-1.5 rounded-full bg-amber-200 text-amber-700 shrink-0 mt-0.5 sm:mt-0">
+                <AlertCircle className="w-4 h-4" />
+              </div>
+              <p className="text-xs sm:text-sm text-amber-800 font-medium">
+                Your account is pending verification. You can browse wholesale products, but quotes require approval. <a href="#profile" onClick={(e) => { e.preventDefault(); setActiveTab('profile'); }} className="underline font-bold text-amber-900 hover:text-amber-700">Complete your profile</a> to get verified faster!
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-between mb-8">
+             <h2 className="text-2xl sm:text-3xl font-serif font-extrabold text-neutral-900">
+               {activeTab === 'orders' && 'Invoices & Orders'}
+               {activeTab === 'quotes' && 'Price Requests'}
+               {activeTab === 'products' && 'Product Catalog'}
+               {activeTab === 'profile' && 'Company Profile'}
+             </h2>
+             {/* Luxury Stage Badge */}
+             <div className="flex items-center gap-3">
+               <span className={`text-xs font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-sm ${
+                 isCustomer 
+                   ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
+                   : 'bg-amber-100 text-amber-700 border border-amber-200'
+               }`}>
+                 <Sparkles className="w-3.5 h-3.5" />
+                 <span>{isCustomer ? 'VERIFIED CUSTOMER' : 'NEW CUSTOMER'}</span>
+               </span>
+             </div>
+          </div>
 
         {/* Tab 1: MY QUOTATION REQUESTS */}
         {activeTab === 'quotes' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-2xl font-serif font-bold text-white">Price Requests & Offers</h3>
-                <p className="text-sm text-neutral-400 mt-1">Review target prices from our sales team. Accept to proceed to order invoice.</p>
+                <h3 className="text-2xl font-serif font-bold text-neutral-900">Price Requests & Offers</h3>
+                <p className="text-sm text-neutral-500 mt-1">Review target prices from our sales team. Accept to proceed to order invoice.</p>
               </div>
             </div>
 
             <div className="space-y-4">
               {myQuotes.length === 0 ? (
-                <div className="p-12 text-center border border-dashed border-white/10 rounded-3xl bg-neutral-900/30">
+                <div className="p-12 text-center border border-dashed border-neutral-200 rounded-3xl bg-white shadow-sm">
                   <FileText className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
-                  <h4 className="text-lg font-bold text-white">No Price Requests Found</h4>
-                  <p className="text-xs text-neutral-400 mt-1 max-w-md mx-auto">
+                  <h4 className="text-lg font-bold text-neutral-900">No Price Requests Found</h4>
+                  <p className="text-xs text-neutral-500 mt-1 max-w-md mx-auto">
                     You haven't submitted any bulk price requests yet. Go to Products, add items to your floating cart, and click "Request Bulk Quote" to send your request to Sales!
                   </p>
                   <button
                     onClick={() => setActiveTab('products')}
-                    className="mt-6 px-6 py-2.5 rounded-xl bg-[#d4a373] text-neutral-950 font-extrabold text-xs uppercase tracking-wider hover:bg-[#c29161] transition-colors"
+                    className="mt-6 px-6 py-2.5 rounded-xl bg-[#d4a373] text-white font-extrabold text-xs uppercase tracking-wider hover:bg-[#c29161] transition-colors"
                   >
                     Browse Pharma Products
                   </button>
@@ -376,29 +365,29 @@ export const CustomerDashboard: React.FC = () => {
                 myQuotes.map((q) => (
                   <div 
                     key={q.id} 
-                    className="p-6 sm:p-8 rounded-3xl bg-neutral-900/40 backdrop-blur-xl border border-white/10 shadow-xl space-y-4"
+                    className="p-6 sm:p-8 rounded-3xl bg-white shadow-sm backdrop-blur-xl border border-neutral-200 shadow-xl space-y-4"
                   >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-[#d4a373] text-base">{q.id}</span>
-                        <span className="text-xs text-neutral-400">• {q.date}</span>
+                        <span className="text-xs text-neutral-500">• {q.date}</span>
                       </div>
                       <div className="mt-2 space-y-1.5">
                         {getIndividualItems(q).map((item: any, idx: number) => (
-                          <div key={idx} className="flex flex-wrap items-center justify-between gap-2 text-sm sm:text-base py-1 border-b border-white/5 last:border-0">
+                          <div key={idx} className="flex flex-wrap items-center justify-between gap-2 text-sm sm:text-base py-1 border-b border-neutral-100 last:border-0">
                             <div className="flex items-center gap-2">
                               <span className="w-2 h-2 rounded-full bg-[#d4a373] shrink-0" />
                               <span className="font-mono font-bold text-amber-200">{item.quantityKg} kg</span>
-                              <span className="text-neutral-400">of</span>
-                              <span className="font-bold text-white">{item.name}</span>
+                              <span className="text-neutral-500">of</span>
+                              <span className="font-bold text-neutral-900">{item.name}</span>
                             </div>
                             {item.expectedPrice ? (
                               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30">
                                 Expected: {item.expectedPrice}
                               </span>
                             ) : (
-                              <span className="text-xs text-neutral-400">
+                              <span className="text-xs text-neutral-500">
                                 Standard: ₹{item.unitPrice}/kg
                               </span>
                             )}
@@ -408,7 +397,7 @@ export const CustomerDashboard: React.FC = () => {
                     </div>
 
                     <div className="text-right">
-                      <div className="text-xs text-neutral-400">Requested Price: <span className="font-mono text-white">{q.requestedPrice}</span></div>
+                      <div className="text-xs text-neutral-500">Requested Price: <span className="font-mono text-neutral-900">{q.requestedPrice}</span></div>
                       <div className="text-lg font-bold text-[#d4a373] mt-0.5">Offered Price: {q.offeredPrice}</div>
                       <div className="mt-2">
                         <div className={`inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${
@@ -425,20 +414,20 @@ export const CustomerDashboard: React.FC = () => {
                   </div>
 
                   {q.notes && (
-                    <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-neutral-300">
+                    <div className="p-3 rounded-xl bg-white/5 border border-neutral-100 text-xs text-neutral-600">
                       <span className="text-neutral-500 font-bold uppercase mr-1">Sales Team Note ({q.salesAgent}):</span>
                       <span>"{q.notes}"</span>
                     </div>
                   )}
 
                   {/* Negotiation One-Click Buttons */}
-                  <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
-                    <div className="text-xs text-neutral-400">
-                      Assigned Agent: <strong className="text-white">{q.salesAgent}</strong>
+                  <div className="pt-4 border-t border-neutral-200 flex flex-wrap items-center justify-between gap-3">
+                    <div className="text-xs text-neutral-500">
+                      Assigned Agent: <strong className="text-neutral-900">{q.salesAgent}</strong>
                     </div>
                     <div className="flex items-center gap-2">
                       {q.status === 'Pending' || q.status === 'Pending Sales Review' ? (
-                        <div className="px-4 py-2 rounded-xl bg-neutral-800/80 border border-neutral-700 text-neutral-400 text-xs font-semibold flex items-center gap-2">
+                        <div className="px-4 py-2 rounded-xl bg-neutral-100/80 border border-neutral-700 text-neutral-500 text-xs font-semibold flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
                           <span>Awaiting Sales Rep Offer & Review...</span>
                         </div>
@@ -453,7 +442,7 @@ export const CustomerDashboard: React.FC = () => {
                           </span>
                           <button 
                             onClick={() => handleQuoteAction(q.id, 'revision')}
-                            className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold text-xs uppercase transition-all"
+                            className="px-4 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-700 text-neutral-700 font-bold text-xs uppercase transition-all"
                           >
                             Make Counter-Offer
                           </button>
@@ -462,20 +451,20 @@ export const CustomerDashboard: React.FC = () => {
                         <>
                           <button 
                             onClick={() => handlePayAndGenerateInvoice(q)}
-                            className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-600 hover:to-emerald-600 text-neutral-950 font-extrabold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-xl"
+                            className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-600 hover:to-emerald-600 text-white font-extrabold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-xl"
                           >
                             <CheckCircle className="w-4 h-4" />
                             <span>Pay Now & Generate Invoice</span>
                           </button>
                           <button 
                             onClick={() => handleQuoteAction(q.id, 'revision')}
-                            className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold text-xs uppercase transition-all"
+                            className="px-4 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-700 text-neutral-700 font-bold text-xs uppercase transition-all"
                           >
                             Request Revision
                           </button>
                           <button 
                             onClick={() => handleQuoteAction(q.id, 'reject')}
-                            className="px-3 py-2 rounded-xl bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white font-bold text-xs uppercase transition-all"
+                            className="px-3 py-2 rounded-xl bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-neutral-900 font-bold text-xs uppercase transition-all"
                           >
                             Reject
                           </button>
@@ -484,20 +473,20 @@ export const CustomerDashboard: React.FC = () => {
                         <>
                           <button 
                             onClick={() => handleQuoteAction(q.id, 'accept')}
-                            className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-neutral-950 font-extrabold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-lg"
+                            className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-lg"
                           >
                             <CheckCircle className="w-4 h-4" />
                             <span>Accept Quote</span>
                           </button>
                           <button 
                             onClick={() => handleQuoteAction(q.id, 'revision')}
-                            className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold text-xs uppercase transition-all"
+                            className="px-4 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-700 text-neutral-700 font-bold text-xs uppercase transition-all"
                           >
                             Request Revision
                           </button>
                           <button 
                             onClick={() => handleQuoteAction(q.id, 'reject')}
-                            className="px-3 py-2 rounded-xl bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white font-bold text-xs uppercase transition-all"
+                            className="px-3 py-2 rounded-xl bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-neutral-900 font-bold text-xs uppercase transition-all"
                           >
                             Reject
                           </button>
@@ -518,10 +507,10 @@ export const CustomerDashboard: React.FC = () => {
 
         {/* Tab 2: MY ORDERS & INVOICES */}
         {activeTab === 'orders' && (
-          <div className="p-8 rounded-3xl bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-xl space-y-6">
+          <div className="p-8 rounded-3xl bg-white shadow-sm backdrop-blur-xl border border-neutral-200 shadow-xl space-y-6">
             <div>
-              <h3 className="text-2xl font-serif font-bold text-white">My Order History & Invoices</h3>
-              <p className="text-sm text-neutral-400 mt-1">
+              <h3 className="text-2xl font-serif font-bold text-neutral-900">My Order History & Invoices</h3>
+              <p className="text-sm text-neutral-500 mt-1">
                 {isCustomer 
                   ? 'View your active shipments and download GST-compliant tax invoices.'
                   : 'You have 0 completed orders. Accept a price offer and place your first order to unlock Verified Customer perks!'}
@@ -532,7 +521,7 @@ export const CustomerDashboard: React.FC = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-white/10 text-neutral-400 text-xs uppercase tracking-wider font-semibold">
+                    <tr className="border-b border-neutral-200 text-neutral-500 text-xs uppercase tracking-wider font-semibold">
                       <th className="py-3 px-4">Order Number</th>
                       <th className="py-3 px-4">Product & Quantity</th>
                       <th className="py-3 px-4">Total Amount</th>
@@ -550,18 +539,18 @@ export const CustomerDashboard: React.FC = () => {
                         >
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-2">
-                              {expandedOrderId === ord.id ? <ChevronUp className="w-4 h-4 text-neutral-400" /> : <ChevronDown className="w-4 h-4 text-neutral-400" />}
+                              {expandedOrderId === ord.id ? <ChevronUp className="w-4 h-4 text-neutral-500" /> : <ChevronDown className="w-4 h-4 text-neutral-500" />}
                               <span className="font-bold text-[#d4a373]">{ord.id}</span>
                             </div>
                           </td>
-                          <td className="py-4 px-4 font-semibold text-white">{ord.product}</td>
-                          <td className="py-4 px-4 font-mono text-white">{ord.amount}</td>
+                          <td className="py-4 px-4 font-semibold text-neutral-900">{ord.product}</td>
+                          <td className="py-4 px-4 font-mono text-neutral-900">{ord.amount}</td>
                           <td className="py-4 px-4">
                             <div className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl border bg-emerald-500/15 text-emerald-300 border-emerald-500/30 text-xs font-bold whitespace-nowrap shadow-sm">
                               {ord.status}
                             </div>
                           </td>
-                          <td className="py-4 px-4 text-neutral-400">{ord.date}</td>
+                          <td className="py-4 px-4 text-neutral-500">{ord.date}</td>
                           <td className="py-4 px-4" onClick={(e) => e.stopPropagation()}>
                             <button 
                               onClick={() => {
@@ -571,7 +560,7 @@ export const CustomerDashboard: React.FC = () => {
                                   alert(`Downloading GST Invoice ${ord.id}...`);
                                 }
                               }}
-                              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1.5"
+                              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-neutral-900 text-xs font-bold flex items-center gap-1.5"
                             >
                               <Download className="w-3.5 h-3.5" />
                               <span>Download PDF</span>
@@ -580,9 +569,9 @@ export const CustomerDashboard: React.FC = () => {
                         </tr>
                         {expandedOrderId === ord.id && (
                           <tr>
-                            <td colSpan={6} className="p-0 border-b border-white/5 bg-neutral-900/40">
+                            <td colSpan={6} className="p-0 border-b border-neutral-100 bg-white shadow-sm">
                               <div className="p-6">
-                                <div className="p-6 rounded-3xl bg-neutral-950/80 border border-white/10 space-y-6">
+                                <div className="p-6 rounded-3xl bg-neutral-950/80 border border-neutral-200 space-y-6">
                                   <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
                                     <span className="text-xs uppercase tracking-widest text-[#d4a373] font-bold">
                                       Live Delivery Status
@@ -594,7 +583,7 @@ export const CustomerDashboard: React.FC = () => {
 
                                   <div className="flex flex-col sm:flex-row justify-between gap-6 relative">
                                     {/* Progress Line (hidden on mobile, visible on sm and up) */}
-                                    <div className="hidden sm:block absolute top-5 left-8 right-8 h-0.5 bg-neutral-800 z-0">
+                                    <div className="hidden sm:block absolute top-5 left-8 right-8 h-0.5 bg-neutral-100 z-0">
                                       <div className="h-full bg-emerald-500 w-[50%] transition-all duration-1000" />
                                     </div>
 
@@ -604,8 +593,8 @@ export const CustomerDashboard: React.FC = () => {
                                         <Check className="w-5 h-5 stroke-[3]" />
                                       </div>
                                       <div>
-                                        <h4 className="text-xs sm:text-sm font-bold text-white">Order Confirmed</h4>
-                                        <p className="text-[10px] sm:text-xs text-neutral-400">Payment received</p>
+                                        <h4 className="text-xs sm:text-sm font-bold text-neutral-900">Order Confirmed</h4>
+                                        <p className="text-[10px] sm:text-xs text-neutral-500">Payment received</p>
                                       </div>
                                     </div>
 
@@ -615,8 +604,8 @@ export const CustomerDashboard: React.FC = () => {
                                         <Check className="w-5 h-5 stroke-[3]" />
                                       </div>
                                       <div>
-                                        <h4 className="text-xs sm:text-sm font-bold text-white">Bottling & QC</h4>
-                                        <p className="text-[10px] sm:text-xs text-neutral-400">Purity seal inspection</p>
+                                        <h4 className="text-xs sm:text-sm font-bold text-neutral-900">Bottling & QC</h4>
+                                        <p className="text-[10px] sm:text-xs text-neutral-500">Purity seal inspection</p>
                                       </div>
                                     </div>
 
@@ -626,18 +615,18 @@ export const CustomerDashboard: React.FC = () => {
                                         <Package className="w-5 h-5" />
                                       </div>
                                       <div>
-                                        <h4 className="text-xs sm:text-sm font-bold text-white">Out for Delivery</h4>
-                                        <p className="text-[10px] sm:text-xs text-neutral-400">In transit with courier</p>
+                                        <h4 className="text-xs sm:text-sm font-bold text-neutral-900">Out for Delivery</h4>
+                                        <p className="text-[10px] sm:text-xs text-neutral-500">In transit with courier</p>
                                       </div>
                                     </div>
 
                                     {/* Step 4 */}
                                     <div className="relative z-10 flex flex-col items-center text-center space-y-2 flex-1 opacity-50">
-                                      <div className="w-10 h-10 rounded-full bg-neutral-800 border-2 border-neutral-700 text-neutral-500 flex items-center justify-center font-bold">
+                                      <div className="w-10 h-10 rounded-full bg-neutral-100 border-2 border-neutral-700 text-neutral-500 flex items-center justify-center font-bold">
                                         <MapPin className="w-5 h-5" />
                                       </div>
                                       <div>
-                                        <h4 className="text-xs sm:text-sm font-bold text-neutral-400">Delivered</h4>
+                                        <h4 className="text-xs sm:text-sm font-bold text-neutral-500">Delivered</h4>
                                         <p className="text-[10px] sm:text-xs text-neutral-500">To registered address</p>
                                       </div>
                                     </div>
@@ -653,10 +642,10 @@ export const CustomerDashboard: React.FC = () => {
                 </table>
               </div>
             ) : (
-              <div className="p-12 text-center border border-dashed border-white/10 rounded-2xl">
+              <div className="p-12 text-center border border-dashed border-neutral-200 rounded-2xl">
                 <Package className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
-                <h4 className="text-lg font-bold text-white">No Orders Placed Yet</h4>
-                <p className="text-xs text-neutral-400 mt-1 max-w-md mx-auto">
+                <h4 className="text-lg font-bold text-neutral-900">No Orders Placed Yet</h4>
+                <p className="text-xs text-neutral-500 mt-1 max-w-md mx-auto">
                   As a New Customer, accept one of your approved price offers to create your first order.
                 </p>
               </div>
@@ -666,10 +655,10 @@ export const CustomerDashboard: React.FC = () => {
 
         {/* Tab 3: PHARMA PRODUCTS & MOQ */}
         {activeTab === 'products' && (
-          <div className="p-8 rounded-3xl bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-xl space-y-6">
+          <div className="p-8 rounded-3xl bg-white shadow-sm backdrop-blur-xl border border-neutral-200 shadow-xl space-y-6">
             <div>
-              <h3 className="text-2xl font-serif font-bold text-white">Madhav Pharma Products & Minimum Orders</h3>
-              <p className="text-sm text-neutral-400 mt-1">100% steam distilled natural essential oils with GC-MS and COA certification.</p>
+              <h3 className="text-2xl font-serif font-bold text-neutral-900">Madhav Pharma Products & Minimum Orders</h3>
+              <p className="text-sm text-neutral-500 mt-1">100% steam distilled natural essential oils with GC-MS and COA certification.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -679,19 +668,19 @@ export const CustomerDashboard: React.FC = () => {
                 { name: 'Pure Ajwain Seed Oil', moq: '5 KG', grade: 'Therapeutic & Wellness Grade' },
                 { name: 'Organic Coriander Essential Oil', moq: '5 KG', grade: 'Standardized Aroma Profile' },
               ].map((p, idx) => (
-                <div key={idx} className="p-6 rounded-2xl bg-neutral-900/50 border border-white/10 flex flex-col justify-between">
+                <div key={idx} className="p-6 rounded-2xl bg-white shadow-sm border border-neutral-200 flex flex-col justify-between">
                   <div>
-                    <h4 className="font-bold text-white text-base">{p.name}</h4>
+                    <h4 className="font-bold text-neutral-900 text-base">{p.name}</h4>
                     <p className="text-xs text-[#d4a373] mt-1">{p.grade}</p>
-                    <div className="mt-4 text-xs text-neutral-300">
+                    <div className="mt-4 text-xs text-neutral-600">
                       <span className="text-neutral-500">Minimum Order Quantity (MOQ):</span>
-                      <strong className="text-white block text-sm mt-0.5">{p.moq}</strong>
+                      <strong className="text-neutral-900 block text-sm mt-0.5">{p.moq}</strong>
                     </div>
                   </div>
 
                   <button 
                     onClick={() => setPortal('storefront')}
-                    className="mt-6 w-full py-2.5 rounded-xl bg-white/10 hover:bg-[#d4a373] hover:text-neutral-950 text-xs font-bold uppercase transition-all"
+                    className="mt-6 w-full py-2.5 rounded-xl bg-white/10 hover:bg-[#d4a373] hover:text-white text-xs font-bold uppercase transition-all"
                   >
                     Request Bulk Quote
                   </button>
@@ -703,27 +692,27 @@ export const CustomerDashboard: React.FC = () => {
 
         {/* Tab 4: COMPANY PROFILE & ADDRESS */}
         {activeTab === 'profile' && (
-          <div className="p-8 rounded-3xl bg-neutral-900/30 backdrop-blur-xl border border-white/10 shadow-xl space-y-6">
+          <div className="p-8 rounded-3xl bg-white shadow-sm backdrop-blur-xl border border-neutral-200 shadow-xl space-y-6">
             <div>
-              <h3 className="text-2xl font-serif font-bold text-white">My Company & Tax Profile</h3>
-              <p className="text-sm text-neutral-400 mt-1">Manage your GSTIN, company registration, and shipping addresses.</p>
+              <h3 className="text-2xl font-serif font-bold text-neutral-900">My Company & Tax Profile</h3>
+              <p className="text-sm text-neutral-500 mt-1">Manage your GSTIN, company registration, and shipping addresses.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-6 rounded-2xl bg-neutral-900/50 border border-white/10 space-y-4">
-                <h4 className="text-lg font-bold text-white">Account Details</h4>
-                <div className="space-y-3 text-sm text-neutral-300">
+              <div className="p-6 rounded-2xl bg-white shadow-sm border border-neutral-200 space-y-4">
+                <h4 className="text-lg font-bold text-neutral-900">Account Details</h4>
+                <div className="space-y-3 text-sm text-neutral-600">
                   <div><span className="text-neutral-500 block text-xs">Email Address:</span> {user?.email}</div>
                   <div><span className="text-neutral-500 block text-xs">Full Name:</span> {user?.first_name} {user?.last_name}</div>
                   <div><span className="text-neutral-500 block text-xs">Current Stage:</span> <strong className="text-[#d4a373]">{stage}</strong></div>
                 </div>
               </div>
 
-              <div className="p-6 rounded-2xl bg-neutral-900/50 border border-white/10 space-y-4">
+              <div className="p-6 rounded-2xl bg-white shadow-sm border border-neutral-200 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-lg font-bold text-white">Billing & Shipping Address</h4>
+                  <h4 className="text-lg font-bold text-neutral-900">Billing & Shipping Address</h4>
                   {!isEditingAddress && (
-                    <button onClick={() => setIsEditingAddress(true)} className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition-colors">
+                    <button onClick={() => setIsEditingAddress(true)} className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-neutral-900 transition-colors">
                       Edit
                     </button>
                   )}
@@ -731,29 +720,29 @@ export const CustomerDashboard: React.FC = () => {
                 
                 {isEditingAddress ? (
                   <div className="space-y-4 pt-2">
-                    <input type="text" value={addressData.address_line_1} onChange={e => setAddressData({...addressData, address_line_1: e.target.value})} placeholder="Address Line 1" className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                    <input type="text" value={addressData.address_line_1} onChange={e => setAddressData({...addressData, address_line_1: e.target.value})} placeholder="Address Line 1" className="w-full bg-neutral-950 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
                     <div className="grid grid-cols-2 gap-4">
-                      <input type="text" value={addressData.city} onChange={e => setAddressData({...addressData, city: e.target.value})} placeholder="City" className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
-                      <input type="text" value={addressData.state} onChange={e => setAddressData({...addressData, state: e.target.value})} placeholder="State" className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                      <input type="text" value={addressData.city} onChange={e => setAddressData({...addressData, city: e.target.value})} placeholder="City" className="w-full bg-neutral-950 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                      <input type="text" value={addressData.state} onChange={e => setAddressData({...addressData, state: e.target.value})} placeholder="State" className="w-full bg-neutral-950 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <input type="text" value={addressData.postal_code} onChange={e => setAddressData({...addressData, postal_code: e.target.value})} placeholder="PIN Code" className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
-                      <input type="text" value={addressData.country} onChange={e => setAddressData({...addressData, country: e.target.value})} placeholder="Country" className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                      <input type="text" value={addressData.postal_code} onChange={e => setAddressData({...addressData, postal_code: e.target.value})} placeholder="PIN Code" className="w-full bg-neutral-950 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
+                      <input type="text" value={addressData.country} onChange={e => setAddressData({...addressData, country: e.target.value})} placeholder="Country" className="w-full bg-neutral-950 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373]" />
                     </div>
                     <div className="flex gap-3 pt-2">
                       <button onClick={handleSaveAddress} disabled={addressLoading} className="flex-1 py-2.5 rounded-xl bg-[#d4a373] text-black font-bold text-xs uppercase hover:opacity-90">
                         {addressLoading ? 'Saving...' : 'Save Address'}
                       </button>
-                      <button onClick={() => setIsEditingAddress(false)} className="px-6 py-2.5 rounded-xl border border-white/10 hover:bg-white/5 text-xs font-bold uppercase">
+                      <button onClick={() => setIsEditingAddress(false)} className="px-6 py-2.5 rounded-xl border border-neutral-200 hover:bg-white/5 text-xs font-bold uppercase">
                         Cancel
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-neutral-400">
+                  <p className="text-sm text-neutral-500">
                     {addressData.address_line_1 ? (
                       <>
-                        <span className="block text-white mb-1">{addressData.address_line_1}</span>
+                        <span className="block text-neutral-900 mb-1">{addressData.address_line_1}</span>
                         {addressData.city}, {addressData.state} {addressData.postal_code}<br />
                         {addressData.country}
                       </>
@@ -767,25 +756,24 @@ export const CustomerDashboard: React.FC = () => {
           </div>
         )}
       </div>
-      </div>
 
       {/* B2B Quotation Payment Modal */}
       {selectedQuoteForPayment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md font-display">
-          <div className="relative w-full max-w-lg bg-neutral-950 border border-neutral-800 rounded-3xl p-6 sm:p-8 text-white shadow-2xl space-y-6">
+          <div className="relative w-full max-w-lg bg-neutral-950 border border-neutral-800 rounded-3xl p-6 sm:p-8 text-neutral-900 shadow-2xl space-y-6">
             <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 text-neutral-950 shadow-md">
+                <div className="p-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 text-white shadow-md">
                   <Lock className="w-5 h-5 font-bold" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white font-serif">Secure Bulk Payment</h3>
+                  <h3 className="text-lg font-bold text-neutral-900 font-serif">Secure Bulk Payment</h3>
                   <p className="text-xs text-[#d4a373]">Quote Ref: {selectedQuoteForPayment.id}</p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedQuoteForPayment(null)}
-                className="p-2 rounded-full hover:bg-neutral-800 text-neutral-400 hover:text-white transition-colors"
+                className="p-2 rounded-full hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -794,26 +782,26 @@ export const CustomerDashboard: React.FC = () => {
             {isB2bProcessing ? (
               <div className="py-12 text-center space-y-4">
                 <div className="w-12 h-12 border-4 border-[#d4a373] border-t-transparent rounded-full animate-spin mx-auto" />
-                <h4 className="text-lg font-bold text-white">Processing Payment...</h4>
-                <p className="text-xs text-neutral-400">
+                <h4 className="text-lg font-bold text-neutral-900">Processing Payment...</h4>
+                <p className="text-xs text-neutral-500">
                   Securing payment via {b2bPaymentMethod} and issuing GST Invoice.
                 </p>
               </div>
             ) : (
               <>
                 {/* 1. Address Summary */}
-                <div className="p-4 rounded-2xl bg-neutral-900/60 border border-white/10 space-y-2 text-xs">
+                <div className="p-4 rounded-2xl bg-white shadow-sm border border-neutral-200 space-y-2 text-xs">
                   <div className="flex items-center gap-2 text-[#d4a373] font-bold uppercase tracking-wider mb-1">
                     <MapPin className="w-3.5 h-3.5" />
                     <span>Enterprise Billing &amp; Delivery</span>
                   </div>
-                  <div className="text-neutral-300">
+                  <div className="text-neutral-600">
                     <span className="text-neutral-500">Customer: </span>
-                    <strong className="text-white">{user?.first_name || 'Valued'} {user?.last_name || 'Partner'}</strong> ({user?.mobile_number || '9876543210'})
+                    <strong className="text-neutral-900">{user?.first_name || 'Valued'} {user?.last_name || 'Partner'}</strong> ({user?.mobile_number || '9876543210'})
                   </div>
-                  <div className="text-neutral-300">
+                  <div className="text-neutral-600">
                     <span className="text-neutral-500">Delivery Address: </span>
-                    <span className="text-white font-medium">{user?.address || 'Phase II, Industrial Park, Mumbai, Maharashtra 400013'}</span>
+                    <span className="text-neutral-900 font-medium">{user?.address || 'Phase II, Industrial Park, Mumbai, Maharashtra 400013'}</span>
                   </div>
                 </div>
 
@@ -829,14 +817,14 @@ export const CustomerDashboard: React.FC = () => {
                       className={`p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
                         b2bPaymentMethod === 'UPI'
                           ? 'bg-[#d4a373]/15 border-[#d4a373] ring-1 ring-[#d4a373]/30'
-                          : 'bg-neutral-900 border-neutral-800 hover:border-neutral-700'
+                          : 'bg-white shadow-sm border-neutral-800 hover:border-neutral-700'
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
                         <Smartphone className="w-5 h-5 text-[#d4a373]" />
                         <div>
-                          <span className="text-xs font-bold text-white block">UPI Payment</span>
-                          <span className="text-[10px] text-neutral-400">GPay / PhonePe</span>
+                          <span className="text-xs font-bold text-neutral-900 block">UPI Payment</span>
+                          <span className="text-[10px] text-neutral-500">GPay / PhonePe</span>
                         </div>
                       </div>
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
@@ -851,14 +839,14 @@ export const CustomerDashboard: React.FC = () => {
                       className={`p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
                         b2bPaymentMethod === 'Card'
                           ? 'bg-[#d4a373]/15 border-[#d4a373] ring-1 ring-[#d4a373]/30'
-                          : 'bg-neutral-900 border-neutral-800 hover:border-neutral-700'
+                          : 'bg-white shadow-sm border-neutral-800 hover:border-neutral-700'
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
                         <CreditCard className="w-5 h-5 text-[#d4a373]" />
                         <div>
-                          <span className="text-xs font-bold text-white block">Credit / Debit Card</span>
-                          <span className="text-[10px] text-neutral-400">Visa / RuPay / Amex</span>
+                          <span className="text-xs font-bold text-neutral-900 block">Credit / Debit Card</span>
+                          <span className="text-[10px] text-neutral-500">Visa / RuPay / Amex</span>
                         </div>
                       </div>
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
@@ -871,12 +859,12 @@ export const CustomerDashboard: React.FC = () => {
                 </div>
 
                 {/* 3. Deal Summary */}
-                <div className="p-4 rounded-2xl bg-neutral-900/40 border border-white/10 space-y-2 text-xs">
-                  <div className="flex items-center justify-between text-neutral-300">
+                <div className="p-4 rounded-2xl bg-white shadow-sm border border-neutral-200 space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-neutral-600">
                     <span>Products / Deal:</span>
-                    <strong className="text-white">{selectedQuoteForPayment.products || selectedQuoteForPayment.product || 'Bulk API Order'}</strong>
+                    <strong className="text-neutral-900">{selectedQuoteForPayment.products || selectedQuoteForPayment.product || 'Bulk API Order'}</strong>
                   </div>
-                  <div className="flex items-center justify-between text-neutral-300 border-t border-neutral-800 pt-2">
+                  <div className="flex items-center justify-between text-neutral-600 border-t border-neutral-800 pt-2">
                     <span className="font-bold">Total Deal Amount:</span>
                     <span className="text-lg font-bold text-emerald-400">
                       {selectedQuoteForPayment.offeredPrice || selectedQuoteForPayment.requestedPrice || '₹5,00,000'}
@@ -895,10 +883,7 @@ export const CustomerDashboard: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </main>
+  </div>
   );
 };
-
-
-
-

@@ -112,22 +112,7 @@ export const AuthModal: React.FC = () => {
         setSignInError(data.error || 'Invalid credentials. Please verify your email and password.');
       }
     } catch (err) {
-      if (isAdmin || isSales) {
-        const userRole = isAdmin ? 'Admin' : 'Sales';
-        login({
-          email: isAdmin ? emailTrim : (emailTrim.includes('@') ? emailTrim : ''),
-          mobile_number: isAdmin ? '9999999999' : (!emailTrim.includes('@') ? emailTrim : ''),
-          first_name: isAdmin ? (emailTrim === 'theom.chaudhari@gmail.com' ? 'Om' : 'Madhav') : 'Vatsal',
-          last_name: isAdmin ? (emailTrim === 'theom.chaudhari@gmail.com' ? 'Chaudhari' : 'Admin') : 'Devani',
-          role: userRole,
-          customer_stage: 'Customer'
-        }, 'demo-access-token');
-        if (userRole === 'Admin') setPortal('admin');
-        else setPortal('sales');
-        closeAuth();
-      } else {
-        setSignInError('Invalid credentials or server unavailable.');
-      }
+      setSignInError('Invalid credentials or server unavailable.');
     } finally {
       setSignInLoading(false);
     }
