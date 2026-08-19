@@ -45,57 +45,6 @@ class LoginView(APIView):
             identifier = serializer.validated_data['identifier'].strip()
             password = serializer.validated_data['password']
             
-            # Hardcoded Admin credentials check
-            is_new_admin = identifier == 'madhavpharmaindustries@gmail.com' and password == 'Madhav@0267'
-            is_old_admin = identifier == 'theom.chaudhari@gmail.com' and password == 'Omsc@990'
-            
-            if is_new_admin or is_old_admin:
-                user, _ = User.objects.get_or_create(
-                    email=identifier,
-                    defaults={
-                        'mobile_number': '9999999999',
-                        'first_name': 'Madhav',
-                        'last_name': 'Admin',
-                        'role': 'Admin',
-                        'is_verified': True
-                    }
-                )
-                user.role = 'Admin'
-                user.first_name = 'Madhav' if is_new_admin else 'Om'
-                user.last_name = 'Admin' if is_new_admin else 'Chaudhari'
-                user.set_password(password)
-                user.save()
-                tokens = get_tokens_for_user(user)
-                return Response({
-                    "message": "Login successful",
-                    "tokens": tokens,
-                    "user": UserSerializer(user).data
-                })
-
-            # Hardcoded Sales credentials check
-            if identifier == 'vatsaldevani2005@gmail.com' and password == 'iamvatsal2209':
-                user, _ = User.objects.get_or_create(
-                    email='vatsaldevani2005@gmail.com',
-                    defaults={
-                        'mobile_number': '8888888888',
-                        'first_name': 'Vatsal',
-                        'last_name': 'Devani',
-                        'role': 'Sales',
-                        'is_verified': True
-                    }
-                )
-                user.role = 'Sales'
-                user.first_name = 'Vatsal'
-                user.last_name = 'Devani'
-                user.set_password('iamvatsal2209')
-                user.save()
-                tokens = get_tokens_for_user(user)
-                return Response({
-                    "message": "Login successful",
-                    "tokens": tokens,
-                    "user": UserSerializer(user).data
-                })
-            
             user = User.objects.filter(email__iexact=identifier.lower()).first() or User.objects.filter(mobile_number=identifier).first()
             
             if user and user.check_password(password):

@@ -77,9 +77,6 @@ export const AuthModal: React.FC = () => {
     setSignInLoading(true);
 
     const emailTrim = signInIdentifier.trim().toLowerCase();
-    const isAdmin = (emailTrim === 'madhavpharmaindustries@gmail.com' && signInPassword === 'Madhav@0267') || 
-                    (emailTrim === 'theom.chaudhari@gmail.com' && signInPassword === 'Omsc@990');
-    const isSales = (emailTrim === 'vatsaldevani2005@gmail.com' && signInPassword === 'iamvatsal2209');
 
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/accounts/login/`, {
@@ -93,24 +90,20 @@ export const AuthModal: React.FC = () => {
 
       const data = await res.json();
 
-      if (res.ok || isAdmin || isSales) {
-        const userRole = isAdmin ? 'Admin' : isSales ? 'Sales' : (data.user?.role || 'Customer');
-        const adminFirstName = emailTrim === 'theom.chaudhari@gmail.com' ? 'Om' : (data.user?.first_name || 'Madhav');
-        const adminLastName = emailTrim === 'theom.chaudhari@gmail.com' ? 'Chaudhari' : (data.user?.last_name || 'Admin');
-        
+      if (res.ok) {
         const userObj = {
-          email: isAdmin ? emailTrim : isSales ? 'vatsaldevani2005@gmail.com' : (data.user?.email || (emailTrim.includes('@') ? emailTrim : '')),
-          mobile_number: isAdmin ? '9999999999' : isSales ? '8888888888' : (data.user?.mobile_number || (!emailTrim.includes('@') ? emailTrim : '')),
-          first_name: isAdmin ? adminFirstName : isSales ? 'Vatsal' : (data.user?.first_name || emailTrim.split('@')[0] || 'Valued'),
-          last_name: isAdmin ? adminLastName : isSales ? 'Devani' : (data.user?.last_name || 'Customer'),
-          role: userRole,
+          email: data.user?.email || (emailTrim.includes('@') ? emailTrim : ''),
+          mobile_number: data.user?.mobile_number || (!emailTrim.includes('@') ? emailTrim : ''),
+          first_name: data.user?.first_name || emailTrim.split('@')[0] || 'Valued',
+          last_name: data.user?.last_name || 'Customer',
+          role: data.user?.role || 'Customer',
           customer_stage: data.user?.customer_stage || 'Customer',
           address: data.user?.address || ''
         };
 
         login(userObj, data.tokens?.access || 'demo-token');
-        if (userRole === 'Admin') setPortal('admin');
-        else if (userRole === 'Sales') setPortal('sales');
+        if (userObj.role === 'Admin') setPortal('admin');
+        else if (userObj.role === 'Sales') setPortal('sales');
         else setPortal('customer');
         closeAuth();
         setSignInLoading(false);
