@@ -74,8 +74,43 @@ export const SalesDashboard: React.FC = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    const loadRetailOrders = () => {
+    const loadRetailOrders = async () => {
+      let backendOrders: any[] = [];
       try {
+        const token = localStorage.getItem('madhav_token');
+        const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/orders/orders/`, {
+          headers: {
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            backendOrders = data.map((o: any) => ({
+              id: o.order_number,
+              rawId: o.id,
+              date: o.created_at ? new Date(o.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              customerName: o.customer_name || (o.customer_details ? `${o.customer_details.first_name} ${o.customer_details.last_name}` : 'Retail Customer'),
+              phone: o.customer_phone || (o.customer_details?.mobile_number || 'Not provided'),
+              email: o.customer_email || (o.customer_details?.email || 'customer@madhavpharma.com'),
+              deliveryAddress: o.delivery_address || (o.shipping_address_details?.address_line_1 || 'Standard Delivery'),
+              paymentMethod: 'Razorpay (Verified)',
+              paymentStatus: o.payment_status || 'PAID',
+              deliveryStatus: o.status || 'Preparing in Stock',
+              totalAmount: `₹${Number(o.total_amount).toLocaleString()}.00`,
+              items: o.items_data && o.items_data.length > 0 ? o.items_data : [
+                { name: '100% Pure Cumin Seed Essential Oil (Jeera Oil)', sizeLabel: '50ml Bottle', quantity: 2, unitPrice: 299 }
+              ]
+            }));
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching backend retail orders:', e);
+      }
+
+      if (backendOrders.length > 0) {
+        setRetailOrders(backendOrders);
+      } else {
         const stored = localStorage.getItem('madhav_retail_orders_list');
         if (stored) {
           const parsed = JSON.parse(stored);
@@ -84,79 +119,67 @@ export const SalesDashboard: React.FC = () => {
             return;
           }
         }
-        const demoOrders = [
-          {
-            id: 'MP-RET-58192',
-            date: '2026-08-03',
-            customerName: 'Ananya Sharma',
-            phone: '+91 98765 43210',
-            email: 'ananya.sharma@example.com',
-            deliveryAddress: '402, Sunset Heights, MG Road, Mumbai, Maharashtra - 400001',
-            paymentMethod: 'UPI (GPay Verified)',
-            paymentStatus: 'PAID',
-            deliveryStatus: 'Preparing in Stock',
-            totalAmount: '₹837.00',
-            items: [
-              { name: '100% Pure Cumin Seed Essential Oil (Jeera Oil)', sizeLabel: '50ml Bottle', quantity: 2, unitPrice: 299 },
-              { name: 'Ajwain Seed Essential Oil', sizeLabel: '50ml Bottle', quantity: 1, unitPrice: 239 }
-            ]
-          },
-          {
-            id: 'MP-RET-40291',
-            date: '2026-08-02',
-            customerName: 'Vikramaditya Rao',
-            phone: '+91 94221 88900',
-            email: 'v.rao@wellnessclinic.in',
-            deliveryAddress: '12/B, Green Valley Enclave, Koramangala 4th Block, Bengaluru, Karnataka - 560034',
-            paymentMethod: 'Credit Card (Visa)',
-            paymentStatus: 'PAID',
-            deliveryStatus: 'Ready to Dispatch',
-            totalAmount: '₹1,047.00',
-            items: [
-              { name: 'Pure Black Seed Oil (Kalonji Oil)', sizeLabel: '50ml Bottle', quantity: 3, unitPrice: 349 }
-            ]
-          }
-        ];
-        setRetailOrders(demoOrders);
-        localStorage.setItem('madhav_retail_orders_list', JSON.stringify(demoOrders));
-      } catch (e) {
-        console.error('Error loading retail orders:', e);
       }
     };
     loadRetailOrders();
-  }, []);
+  }, [activeTab]);
 
-  const handleUpdateDeliveryStatus = (orderId: string, newStatus: string) => {
+  const handleUpdateDeliveryStatus = async (orderId: string, newStatus: string) => {
     setRetailOrders(prev => {
       const updated = prev.map(o => o.id === orderId ? { ...o, deliveryStatus: newStatus } : o);
       localStorage.setItem('madhav_retail_orders_list', JSON.stringify(updated));
       return updated;
     });
+
+    const target = retailOrders.find(o => o.id === orderId);
+    if (target && target.rawId) {
+      try {
+        const token = localStorage.getItem('madhav_token');
+        await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/orders/orders/${target.rawId}/`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+      } catch (e) {
+        console.error('Failed to sync delivery status with backend:', e);
+      }
+    }
   };
 
   useEffect(() => {
     const loadQuotes = async () => {
       let backendQuotes: any[] = [];
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/quotations/quotations/`);
+        const token = localStorage.getItem('madhav_token');
+        const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/quotations/quotations/`, {
+          headers: {
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          }
+        });
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data)) {
             backendQuotes = data.map((item: any) => ({
               id: item.quotation_number || `QT-${item.id}`,
               rawId: item.id,
-              date: item.created_at ? new Date(item.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              customer: item.customer_details ? `${item.customer_details.first_name} ${item.customer_details.last_name}` : (item.snapshot_customer_name || 'Enterprise Client'),
+              phone: item.snapshot_customer_phone || item.customer_details?.mobile_number || '+91 98765 43210',
+              email: item.customer_details?.email || 'client@pharma.com',
+              stage: item.customer_details?.customer_stage || 'Lead',
               product: item.items && item.items.length > 0 ? item.items.map((i: any) => i.product_details?.name || 'Bulk Pharma API').join(', ') : 'Bulk Pharma API',
-              quantity: item.items && item.items.length > 0 ? `${item.items.reduce((sum: number, i: any) => sum + (i.quantity || 0), 0)} KG` : '100 KG',
-              requestedPrice: `₹${item.items && item.items.length > 0 ? item.items[0].requested_price : '1,500'} / KG`,
-              targetPrice: item.final_price ? `₹${item.final_price}` : '₹1,500',
+              quantity: item.items && item.items.length > 0 ? item.items.map((i: any) => `${i.quantityKg || i.quantity || 50} KG`).join(', ') : '50 KG',
+              requestedPrice: item.final_price ? `₹${item.final_price}` : `₹${item.items && item.items.length > 0 ? item.items[0].requested_price || item.items[0].target_price || '1,500' : '1,500'}`,
+              offeredPrice: item.final_price ? `₹${item.final_price}` : `₹${item.items && item.items.length > 0 ? item.items[0].requested_price : '1,500'}`,
               status: item.status || 'Pending',
-              customer: item.snapshot_customer_name || (item.customer_details ? `${item.customer_details.first_name} ${item.customer_details.last_name}` : 'Enterprise Client'),
               customerNote: item.customer_notes || 'Quotation submitted for review',
               customerAddress: item.customer_address || '123 Pharma Estate, Ahmedabad',
               salesRemarks: '',
-              phone: item.snapshot_customer_phone || (item.customer_details?.mobile_number || '9000000000'),
-              stage: item.customer_details?.customer_stage || 'Lead'
+              date: item.created_at ? new Date(item.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              salesAgent: item.sales_agent_details ? `${item.sales_agent_details.first_name} ${item.sales_agent_details.last_name}` : 'Assigned to You',
+              notes: item.customer_notes || 'Requires standard COA and batch certificate.'
             }));
           }
         }

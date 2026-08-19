@@ -6,11 +6,16 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = '__all__'
+        read_only_fields = [
+            'payment_id', 'amount', 'status', 'payment_method',
+            'signature_verified', 'transaction_reference', 'payment_date'
+        ]
 
 class InvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = '__all__'
+        read_only_fields = ['invoice_number', 'total_amount', 'invoice_date']
 
 class OrderSerializer(serializers.ModelSerializer):
     customer_details = UserSerializer(source='customer', read_only=True)
@@ -19,3 +24,8 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
+        read_only_fields = [
+            'order_number', 'customer', 'quotation', 'payment', 'invoice',
+            'total_amount', 'created_at', 'updated_at'
+        ]
+

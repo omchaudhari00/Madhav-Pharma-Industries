@@ -33,14 +33,14 @@ socket.getaddrinfo = getaddrinfo_ipv4_only
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-goop*^=t4-!!=tp9#j)x6h8v)0bpq+vz5&^h_@9k4aq9evit3('
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-goop*^=t4-!!=tp9#j)x6h8v)0bpq+vz5&^h_@9k4aq9evit3(')
 
 import dj_database_url
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
 
-ALLOWED_HOSTS = ['*']  # Allow Vercel and Render dynamic domains
+ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '*').split(',') if h.strip()]
 
 
 # Application definition
@@ -162,6 +162,16 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '300/day',
+        'user': '2000/day',
+        'auth': '15/min',
+    }
 }
 
 from datetime import timedelta

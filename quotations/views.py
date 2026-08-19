@@ -76,6 +76,14 @@ class QuotationViewSet(viewsets.ModelViewSet):
             return Quotation.objects.filter(Q(sales_agent=user) | Q(sales_agent__isnull=True))
         return Quotation.objects.filter(customer=user)
 
+    def perform_update(self, serializer):
+        user = self.request.user
+        if user.role in ['Admin', 'Sales']:
+            serializer.save()
+        else:
+            # Customers can only update notes, not status or pricing
+            serializer.save(customer_notes=serializer.validated_data.get('customer_notes', serializer.instance.customer_notes))
+
     @action(detail=False, methods=['post'])
     def create_from_cart(self, request):
         user = request.user
@@ -100,23 +108,26 @@ class QuotationViewSet(viewsets.ModelViewSet):
                 snapshot_customer_address=address_line
             )
             for item in items_data:
-                product_name = item.get('name')
-                product = Product.objects.filter(name__icontains=product_name).first() if product_name else None
+                product_id = item.get('id') or item.get('productId')
+                product_name = str(item.get('name', '')).strip()
+                
+                product = None
+                if product_id:
+                    product = Product.objects.filter(id=product_id).first()
                 if not product and product_name:
-                    product = Product.objects.create(
-                        name=product_name,
-                        specifications=item.get('grade', 'Standard'),
-                        price=item.get('unitPrice', 100),
-                        minimum_order_quantity=5,
-                        availability_status='In Stock'
-                    )
+                    product = Product.objects.filter(name__iexact=product_name).first()
+                if not product and product_name:
+                    product = Product.objects.filter(name__icontains=product_name, is_active=True).first()
+                if not product:
+                    product = Product.objects.filter(is_active=True).first()
+
                 if product:
                     QuotationItem.objects.create(
                         quotation=quotation,
                         product=product,
-                        quantity=item.get('quantityKg', 1),
+                        quantity=item.get('quantityKg', item.get('quantity', 1)),
                         unit='KG',
-                        requested_price=item.get('unitPrice', 100)
+                        requested_price=item.get('unitPrice', product.price or 100)
                     )
         serializer = self.get_serializer(quotation)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

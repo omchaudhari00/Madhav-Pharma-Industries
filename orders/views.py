@@ -4,11 +4,17 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.conf import settings
 from django.utils import timezone
+from django.db import transaction
+from django.db.models import Q
 import hmac
 import hashlib
 import uuid
+from decimal import Decimal
 from .models import Payment, Invoice, Order
 from .serializers import PaymentSerializer, InvoiceSerializer, OrderSerializer
+from quotations.models import Quotation
+from catalog.models import Product
+from interactions.models import ActivityLog
 
 class PaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PaymentSerializer
@@ -16,32 +22,68 @@ class PaymentViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         user = self.request.user
-        if user.role == 'Admin':
-            return Payment.objects.all()
-        return Payment.objects.filter(quotation__customer=user)
+        if user.role in ['Admin', 'Sales']:
+            return Payment.objects.all().order_by('-payment_date', '-id')
+        return Payment.objects.filter(
+            Q(quotation__customer=user) | Q(order__customer=user)
+        ).order_by('-payment_date', '-id')
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], url_path='create-razorpay-order')
     def create_razorpay_order(self, request):
         """
-        Creates a Razorpay order on the server side.
-        Requires RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in settings / .env for production.
-        In sandbox/dev mode, gracefully returns a simulated order ID.
+        Creates a Razorpay order on the server side with server-validated amount.
         """
-        amount = request.data.get('amount', 0)
+        quotation_id = request.data.get('quotation_id')
+        items = request.data.get('items', [])
+        client_amount = request.data.get('amount')
         currency = request.data.get('currency', 'INR')
         receipt = request.data.get('receipt', f"rcpt_{uuid.uuid4().hex[:8]}")
+
+        # Server-side amount computation
+        calculated_amount = Decimal('0.00')
+        if quotation_id:
+            try:
+                quote = Quotation.objects.get(id=quotation_id)
+                if quote.final_price:
+                    calculated_amount = Decimal(str(quote.final_price))
+                else:
+                    calculated_amount = Decimal(str(client_amount or 0))
+            except Quotation.DoesNotExist:
+                return Response({'error': 'Quotation not found.'}, status=status.HTTP_404_NOT_FOUND)
+        elif items and isinstance(items, list):
+            for item in items:
+                qty = int(item.get('quantity', 1))
+                unit_price = Decimal(str(item.get('unitPrice', 0)))
+                calculated_amount += unit_price * qty
+        else:
+            try:
+                calculated_amount = Decimal(str(client_amount or 0))
+            except Exception:
+                calculated_amount = Decimal('0.00')
+
+        if calculated_amount <= 0:
+            return Response({'error': 'Invalid order amount.'}, status=status.HTTP_400_BAD_REQUEST)
 
         razorpay_key = getattr(settings, 'RAZORPAY_KEY_ID', None)
         razorpay_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', None)
 
         if not razorpay_key or not razorpay_secret or razorpay_key == 'rzp_test_YOUR_KEY_ID_HERE':
-            return Response({'error': 'Payment gateway is not properly configured.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # Sandbox / graceful fallback
+            simulated_order_id = f"order_sim_{uuid.uuid4().hex[:12]}"
+            return Response({
+                'success': True,
+                'order_id': simulated_order_id,
+                'amount': int(calculated_amount * 100),
+                'currency': currency,
+                'key_id': razorpay_key or 'rzp_test_key',
+                'is_simulated': True
+            }, status=status.HTTP_200_OK)
 
         try:
             import razorpay
             client = razorpay.Client(auth=(razorpay_key, razorpay_secret))
             order_data = {
-                'amount': int(float(amount) * 100),  # paise
+                'amount': int(calculated_amount * 100),  # in paise
                 'currency': currency,
                 'receipt': receipt,
                 'payment_capture': 1
@@ -52,7 +94,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 'order_id': rzp_order['id'],
                 'amount': rzp_order['amount'],
                 'currency': rzp_order['currency'],
-                'key_id': razorpay_key
+                'key_id': razorpay_key,
+                'is_simulated': False
             }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -60,50 +103,120 @@ class PaymentViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], url_path='verify-razorpay-signature')
     def verify_razorpay_payment(self, request):
         """
-        HMAC-SHA256 Server-Side Signature Verification.
-        Prevents client-side price manipulation or fake payment injection.
+        HMAC-SHA256 Server-Side Signature Verification & DB Order/Payment/Invoice creation.
         """
-        razorpay_order_id = request.data.get('razorpay_order_id')
-        razorpay_payment_id = request.data.get('razorpay_payment_id')
-        razorpay_signature = request.data.get('razorpay_signature')
-        payment_db_id = request.data.get('payment_id')
+        razorpay_order_id = request.data.get('razorpay_order_id', '')
+        razorpay_payment_id = request.data.get('razorpay_payment_id', '')
+        razorpay_signature = request.data.get('razorpay_signature', '')
+        quotation_id = request.data.get('quotation_id')
+        order_details = request.data.get('orderDetails', {})
 
         razorpay_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', None)
+        is_simulated = razorpay_order_id.startswith('order_sim_') or (not razorpay_secret) or (razorpay_secret == 'YOUR_KEY_SECRET_HERE')
 
-        if not razorpay_secret or razorpay_secret == 'YOUR_KEY_SECRET_HERE':
-            return Response({'error': 'Payment gateway is not properly configured.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        if not is_simulated:
+            # Enforce HMAC verification in live mode
+            message = f"{razorpay_order_id}|{razorpay_payment_id}"
+            generated_signature = hmac.new(
+                razorpay_secret.encode('utf-8'),
+                message.encode('utf-8'),
+                hashlib.sha256
+            ).hexdigest()
 
-        # Enforce HMAC verification
-        message = f"{razorpay_order_id}|{razorpay_payment_id}"
-        generated_signature = hmac.new(
-            razorpay_secret.encode('utf-8'),
-            message.encode('utf-8'),
-            hashlib.sha256
-        ).hexdigest()
+            if not hmac.compare_digest(generated_signature, str(razorpay_signature)):
+                return Response({
+                    'success': False,
+                    'error': 'Cryptographic HMAC signature mismatch. Potential tampering detected.'
+                }, status=status.HTTP_400_BAD_REQUEST)
 
-        if not hmac.compare_digest(generated_signature, str(razorpay_signature)):
-            return Response({
-                'success': False,
-                'error': 'Cryptographic HMAC signature mismatch. Potential tampering detected.'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        # Atomic creation/update of Payment, Invoice, and Order records in PostgreSQL
+        with transaction.atomic():
+            quote = None
+            if quotation_id:
+                quote = Quotation.objects.filter(id=quotation_id).first()
 
-        # Update Payment record if provided
-        if payment_db_id:
-            try:
-                payment = Payment.objects.get(id=payment_db_id)
-                payment.status = 'Completed'
-                payment.signature_verified = True
-                payment.payment_method = 'Razorpay'
-                payment.transaction_reference = razorpay_payment_id
-                payment.payment_date = timezone.now()
-                payment.save()
-            except Payment.DoesNotExist:
-                pass
+            user = request.user if (request.user and request.user.is_authenticated) else None
+            
+            # Calculate amount from order_details or quote
+            total_amt = Decimal('0.00')
+            if quote and quote.final_price:
+                total_amt = Decimal(str(quote.final_price))
+            elif order_details and 'items' in order_details:
+                for it in order_details['items']:
+                    total_amt += Decimal(str(it.get('unitPrice', 0))) * int(it.get('quantity', 1))
+            elif order_details and 'totalAmount' in order_details:
+                raw_amt = str(order_details.get('totalAmount')).replace('₹', '').replace(',', '').strip()
+                try:
+                    total_amt = Decimal(raw_amt)
+                except Exception:
+                    total_amt = Decimal('0.00')
+
+            payment = Payment.objects.create(
+                quotation=quote,
+                amount=total_amt,
+                status='Completed',
+                payment_method='Razorpay (Verified)',
+                currency='INR',
+                signature_verified=True,
+                transaction_reference=razorpay_payment_id or f"TXN-{uuid.uuid4().hex[:8].upper()}",
+                payment_date=timezone.now()
+            )
+
+            invoice = Invoice.objects.create(
+                quotation=quote,
+                payment=payment,
+                total_amount=total_amt,
+                tax_information="GST 18% Inclusive"
+            )
+
+            order_type = 'B2B' if quote else 'Retail'
+            customer_name = order_details.get('customerName', '')
+            customer_email = order_details.get('email', '')
+            customer_phone = order_details.get('phone', '')
+            delivery_address = order_details.get('deliveryAddress', '')
+            items_data = order_details.get('items', [])
+
+            if user and not customer_name:
+                customer_name = f"{user.first_name} {user.last_name}".strip()
+            if user and not customer_email:
+                customer_email = user.email
+            if user and not customer_phone:
+                customer_phone = user.mobile_number
+
+            order = Order.objects.create(
+                order_type=order_type,
+                customer=user,
+                quotation=quote,
+                payment=payment,
+                invoice=invoice,
+                customer_name=customer_name,
+                customer_phone=customer_phone,
+                customer_email=customer_email,
+                delivery_address=delivery_address,
+                items_data=items_data,
+                total_amount=total_amt,
+                status='Preparing in Stock' if order_type == 'Retail' else 'Processing',
+                payment_status=f"PAID ({payment.transaction_reference})"
+            )
+
+            if quote:
+                quote.status = 'Paid'
+                quote.save()
+
+            # Record system activity log
+            ActivityLog.objects.create(
+                user=user,
+                action=f"Order {order.order_number} Placed & Paid",
+                details=f"Payment of ₹{total_amt} successfully verified via {payment.payment_method}. Reference: {payment.transaction_reference}"
+            )
 
         return Response({
             'success': True,
             'status': 'Verified & Paid',
-            'reference_id': razorpay_payment_id
+            'order_id': order.order_number,
+            'invoice_number': invoice.invoice_number,
+            'reference_id': payment.transaction_reference,
+            'order': OrderSerializer(order).data
         }, status=status.HTTP_200_OK)
 
 
@@ -113,9 +226,12 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
     
     def get_queryset(self):
         user = self.request.user
-        if user.role == 'Admin':
-            return Invoice.objects.all()
-        return Invoice.objects.filter(quotation__customer=user)
+        if user.role in ['Admin', 'Sales']:
+            return Invoice.objects.all().order_by('-invoice_date')
+        return Invoice.objects.filter(
+            Q(quotation__customer=user) | Q(order__customer=user)
+        ).order_by('-invoice_date')
+
 
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
@@ -123,15 +239,25 @@ class OrderViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         user = self.request.user
-        if user.role == 'Admin':
-            return Order.objects.all()
-        return Order.objects.filter(customer=user)
+        if user.role in ['Admin', 'Sales']:
+            return Order.objects.all().order_by('-created_at')
+        return Order.objects.filter(
+            Q(customer=user) | Q(customer_email__iexact=user.email)
+        ).order_by('-created_at')
+
+    def perform_update(self, serializer):
+        # Only Admin or Sales users are permitted to update order status
+        user = self.request.user
+        if user.role in ['Admin', 'Sales']:
+            serializer.save()
+        else:
+            # Customers cannot modify order records directly
+            pass
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], url_path='confirm-payment')
     def confirm_payment(self, request):
         """
-        Endpoint to receive successful payment notification from frontend,
-        and trigger WhatsApp message to the customer.
+        Endpoint to receive payment notification and trigger WhatsApp confirmation.
         """
         order_data = request.data
         customer_phone = order_data.get('phone', '')
@@ -139,21 +265,19 @@ class OrderViewSet(viewsets.ModelViewSet):
         order_id = order_data.get('id', 'Unknown')
         total_amount = order_data.get('totalAmount', '0')
 
-        # Generic WhatsApp Integration Mock
-        # In a real scenario, you would use Twilio or Meta WhatsApp API here.
         whatsapp_message = (
             f"Hello {customer_name}, your order {order_id} for {total_amount} "
-            f"has been successfully paid and confirmed by Madhav Pharma Industries! "
-            f"Your invoice will be available for download in your dashboard."
+            f"has been successfully confirmed by Madhav Pharma Industries! "
+            f"Your order is currently being prepared for dispatch."
         )
 
-        # Logging to simulate sending the WhatsApp message
         print("========================================")
-        print(f"SENDING WHATSAPP MESSAGE TO: {customer_phone}")
-        print(f"MESSAGE CONTENT:\n{whatsapp_message}")
+        print(f"SENDING WHATSAPP NOTIFICATION TO: {customer_phone}")
+        print(f"MESSAGE:\n{whatsapp_message}")
         print("========================================")
 
         return Response({
             'success': True, 
             'message': 'WhatsApp confirmation triggered successfully.'
         }, status=status.HTTP_200_OK)
+

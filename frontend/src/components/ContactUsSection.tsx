@@ -3,7 +3,7 @@ import { Phone, Mail, MessageSquare, MapPin, Play, Facebook, Twitter, Instagram,
 import { useApp } from '../context/AppContext';
 
 export const ContactUsSection: React.FC = () => {
-  const { openCart } = useApp();
+  const { openCart, openLegalModal } = useApp();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -316,8 +316,9 @@ export const ContactUsSection: React.FC = () => {
             <span> by elite community</span>
           </div>
           <div className="flex items-center space-x-6">
-            <a href="#privacy" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#terms" className="hover:text-white transition-colors">Terms of Service</a>
+            <button onClick={() => openLegalModal('privacy')} className="hover:text-white transition-colors cursor-pointer bg-transparent border-0 p-0 text-xs text-neutral-400">Privacy Policy</button>
+            <button onClick={() => openLegalModal('terms')} className="hover:text-white transition-colors cursor-pointer bg-transparent border-0 p-0 text-xs text-neutral-400">Terms of Service</button>
+            <button onClick={() => openLegalModal('refund')} className="hover:text-white transition-colors cursor-pointer bg-transparent border-0 p-0 text-xs text-neutral-400">Refund & Return Policy</button>
           </div>
         </div>
       </footer>

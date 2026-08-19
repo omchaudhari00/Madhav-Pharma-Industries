@@ -9,6 +9,7 @@ import { AppProvider, useApp } from './context/AppContext';
 import { CartModal } from './components/CartModal';
 import { AuthModal } from './components/AuthModal';
 import { RetailCheckoutModal } from './components/RetailCheckoutModal';
+import { LegalModals } from './components/LegalModals';
 import { AdminDashboard } from './components/portals/AdminDashboard';
 import { SalesDashboard } from './components/portals/SalesDashboard';
 import { CustomerDashboard } from './components/portals/CustomerDashboard';
@@ -111,9 +112,11 @@ const AppContent: React.FC = () => {
             <CartModal />
             <RetailCheckoutModal />
             <AuthModal />
+            <LegalModals />
           </div>
         </SmoothScroll>
       )}
+      <LegalModals />
     </>
   );
 };

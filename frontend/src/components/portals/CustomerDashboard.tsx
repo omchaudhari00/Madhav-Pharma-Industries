@@ -176,16 +176,53 @@ export const CustomerDashboard: React.FC = () => {
       setMyQuotes(combined);
     };
 
-    const loadOrders = () => {
-      const retailOrders = JSON.parse(localStorage.getItem('madhav_retail_orders_list') || '[]');
-      const formattedRetailOrders = retailOrders.map((ro: any) => ({
-        ...ro,
-        product: ro.items?.map((i: any) => `${i.quantity}x ${i.name}`).join(', ') || 'Retail Products',
-        amount: ro.totalAmount,
-        status: ro.deliveryStatus || 'Processing',
-        isRetail: true
-      }));
-      setOrders(formattedRetailOrders);
+    const loadOrders = async () => {
+      let backendOrders: any[] = [];
+      try {
+        if (token) {
+          const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/orders/orders/`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) {
+              backendOrders = data.map((o: any) => ({
+                id: o.order_number,
+                date: o.created_at ? new Date(o.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                customerName: o.customer_name || `${user?.first_name} ${user?.last_name}`,
+                phone: o.customer_phone || user?.mobile_number,
+                email: o.customer_email || user?.email,
+                deliveryAddress: o.delivery_address || 'Standard Delivery',
+                paymentMethod: 'Razorpay (Verified)',
+                paymentStatus: o.payment_status || 'PAID',
+                deliveryStatus: o.status || 'Preparing in Stock',
+                totalAmount: `₹${Number(o.total_amount).toLocaleString()}.00`,
+                product: o.items_data?.map((i: any) => `${i.quantity || 1}x ${i.name}`).join(', ') || 'Wholesale Order',
+                amount: `₹${Number(o.total_amount).toLocaleString()}.00`,
+                status: o.status || 'Preparing in Stock',
+                isRetail: o.order_type === 'Retail',
+                items: o.items_data || []
+              }));
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load orders from backend:', e);
+      }
+
+      if (backendOrders.length > 0) {
+        setOrders(backendOrders);
+      } else {
+        const retailOrders = JSON.parse(localStorage.getItem('madhav_retail_orders_list') || '[]');
+        const formattedRetailOrders = retailOrders.map((ro: any) => ({
+          ...ro,
+          product: ro.items?.map((i: any) => `${i.quantity}x ${i.name}`).join(', ') || 'Retail Products',
+          amount: ro.totalAmount,
+          status: ro.deliveryStatus || 'Processing',
+          isRetail: true
+        }));
+        setOrders(formattedRetailOrders);
+      }
     };
 
     loadQuotes();

@@ -41,7 +41,12 @@ class QuotationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quotation
         fields = '__all__'
-        read_only_fields = ['quotation_number', 'customer', 'status', 'created_at', 'updated_at']
+        read_only_fields = [
+            'quotation_number', 'customer', 'status', 'final_price',
+            'discount', 'sales_agent', 'snapshot_customer_name',
+            'snapshot_customer_phone', 'snapshot_customer_address',
+            'created_at', 'updated_at'
+        ]
 
     def get_customer_address(self, obj):
         if obj.snapshot_customer_address:

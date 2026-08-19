@@ -149,20 +149,76 @@ export const AdminDashboard: React.FC = () => {
 
 
 
+  const [stats, setStats] = useState({
+    total_revenue: 0,
+    total_transactions: 0,
+    total_orders: 0,
+    active_orders: 0,
+    pending_quotes: 0,
+    conversion_rate: 0,
+    leads_count: 0,
+    customers_count: 0,
+    sales_count: 0
+  });
+
+  const loadStats = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/accounts/dashboard-stats/`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch (e) {
+      console.error('Failed to load dashboard stats', e);
+    }
+  };
+
+  const loadOrders = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/orders/orders/`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setOrders(data.map((o: any) => ({
+            id: o.order_number,
+            customer: o.customer_name || (o.customer_details ? `${o.customer_details.first_name} ${o.customer_details.last_name}` : 'Direct Customer'),
+            amount: `₹${Number(o.total_amount).toLocaleString()}`,
+            status: o.status,
+            payment: o.payment_status || 'Completed',
+            date: o.created_at ? new Date(o.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            items: o.items_data || []
+          })));
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch backend orders:', e);
+    }
+  };
+
   const [quotes, setQuotes] = useState<any[]>([]);
 
   useEffect(() => {
     const loadQuotes = async () => {
       let backendQuotes: any[] = [];
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/quotations/quotations/`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/quotations/quotations/`, {
+          headers: {
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          }
+        });
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data)) {
             backendQuotes = data.map((item: any) => ({
               id: item.quotation_number || `QT-${item.id}`,
               rawId: item.id,
-              customer: item.customer_details ? `${item.customer_details.first_name} ${item.customer_details.last_name}` : 'Enterprise Client',
+              customer: item.customer_details ? `${item.customer_details.first_name} ${item.customer_details.last_name}` : (item.snapshot_customer_name || 'Enterprise Client'),
               product: item.items && item.items.length > 0 ? item.items.map((i: any) => i.product_details?.name || 'Bulk Pharma API').join(', ') : 'Bulk Pharma API',
               quantity: item.items && item.items.length > 0 ? item.items.map((i: any) => `${i.quantityKg || i.quantity || 50} KG`).join(', ') : '50 KG',
               requestedPrice: item.final_price ? `₹${item.final_price}` : `₹${item.items && item.items.length > 0 ? item.items[0].requested_price || item.items[0].target_price || '1,500' : '1,500'}`,
@@ -191,7 +247,9 @@ export const AdminDashboard: React.FC = () => {
       setQuotes(combined);
     };
     loadQuotes();
-  }, [activeTab]);
+    loadStats();
+    loadOrders();
+  }, [activeTab, token]);
 
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [editForm, setEditForm] = useState({ b2bPrice: '', retailPrice: '', moq: '' });
@@ -451,9 +509,9 @@ export const AdminDashboard: React.FC = () => {
                       <span className="text-xs font-bold uppercase tracking-wider text-neutral-600">Total Revenue</span>
                       <IndianRupee className="w-4 h-4 text-[#d4a373]" />
                     </div>
-                    <div className="text-3xl font-serif font-extrabold text-neutral-900">₹0</div>
+                    <div className="text-3xl font-serif font-extrabold text-neutral-900">₹{stats.total_revenue.toLocaleString()}</div>
                     <p className="text-xs text-neutral-600 mt-1">
-                      0.0% change • 0 transactions
+                      {stats.total_transactions} verified transactions
                     </p>
                   </div>
 
@@ -463,10 +521,10 @@ export const AdminDashboard: React.FC = () => {
                       <Users className="w-4 h-4 text-[#d4a373]" />
                     </div>
                     <div className="text-3xl font-serif font-extrabold text-neutral-900">
-                      0 <span className="text-sm text-neutral-600 font-sans">Leads</span> / 0 <span className="text-sm text-[#d4a373] font-sans">Customers</span>
+                      {stats.leads_count} <span className="text-sm text-neutral-600 font-sans">Leads</span> / {stats.customers_count} <span className="text-sm text-[#d4a373] font-sans">Customers</span>
                     </div>
                     <p className="text-xs text-neutral-600 mt-1">
-                      0% conversion rate
+                      {stats.conversion_rate}% conversion rate
                     </p>
                   </div>
 
@@ -475,9 +533,9 @@ export const AdminDashboard: React.FC = () => {
                       <span className="text-xs font-bold uppercase tracking-wider text-neutral-600">Pending Quotes</span>
                       <FileText className="w-4 h-4 text-[#d4a373]" />
                     </div>
-                    <div className="text-3xl font-serif font-extrabold text-neutral-900">0</div>
+                    <div className="text-3xl font-serif font-extrabold text-neutral-900">{stats.pending_quotes || quotes.filter(q => q.status === 'Pending').length}</div>
                     <p className="text-xs text-neutral-600 mt-1">
-                      0 require sales agent assignment
+                      {quotes.filter(q => q.salesAgent === 'Unassigned').length} require sales agent assignment
                     </p>
                   </div>
 
@@ -486,9 +544,9 @@ export const AdminDashboard: React.FC = () => {
                       <span className="text-xs font-bold uppercase tracking-wider text-neutral-600">Active Orders</span>
                       <ShoppingBag className="w-4 h-4 text-[#d4a373]" />
                     </div>
-                    <div className="text-3xl font-serif font-extrabold text-neutral-900">0</div>
+                    <div className="text-3xl font-serif font-extrabold text-neutral-900">{stats.active_orders || orders.length}</div>
                     <p className="text-xs text-neutral-600 mt-1">
-                      0 in processing • 0 shipped
+                      {orders.filter(o => o.status === 'Processing' || o.status === 'Preparing in Stock').length} in processing • {orders.filter(o => o.status === 'Shipped').length} shipped
                     </p>
                   </div>
                 </div>

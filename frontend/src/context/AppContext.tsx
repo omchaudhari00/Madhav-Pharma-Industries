@@ -132,6 +132,9 @@ interface AppContextType {
   isRetailCheckoutOpen: boolean;
   openRetailCheckout: () => void;
   closeRetailCheckout: () => void;
+  legalModalTab: 'privacy' | 'terms' | 'refund' | null;
+  openLegalModal: (tab?: 'privacy' | 'terms' | 'refund') => void;
+  closeLegalModal: () => void;
   user: UserProfile | null;
   token: string | null;
   login: (userData: UserProfile, tokenStr?: string) => void;
@@ -184,6 +187,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [shopMode, setShopMode] = useState<'retail' | 'bulk'>('retail');
   const [retailCartItems, setRetailCartItems] = useState<RetailCartItem[]>([]);
   const [isRetailCheckoutOpen, setIsRetailCheckoutOpen] = useState(false);
+  const [legalModalTab, setLegalModalTab] = useState<'privacy' | 'terms' | 'refund' | null>(null);
+
+  const openLegalModal = (tab: 'privacy' | 'terms' | 'refund' = 'privacy') => {
+    setLegalModalTab(tab);
+  };
+
+  const closeLegalModal = () => {
+    setLegalModalTab(null);
+    if (window.location.hash === '#privacy' || window.location.hash === '#terms' || window.location.hash === '#refund') {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  };
 
   const switchDemoRole = (role: 'Admin' | 'Sales' | 'Customer', stage: 'Lead' | 'Customer' = 'Lead') => {
     const demoUser: UserProfile = {
@@ -244,7 +259,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Lock background website scrolling whenever ANY modal or cart drawer is open
   useEffect(() => {
-    const anyModalOpen = isAuthModalOpen || isCartOpen || isRetailCheckoutOpen;
+    const anyModalOpen = isAuthModalOpen || isCartOpen || isRetailCheckoutOpen || !!legalModalTab;
     if (anyModalOpen) {
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
@@ -256,7 +271,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
     };
-  }, [isAuthModalOpen, isCartOpen, isRetailCheckoutOpen]);
+  }, [isAuthModalOpen, isCartOpen, isRetailCheckoutOpen, legalModalTab]);
 
     // Ref to prevent the State-to-URL effect from wiping the hash on initial mount
     const hasInitialized = React.useRef(false);
@@ -279,6 +294,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setIsCartOpen(true);
         } else if (hash === 'checkout') {
           setIsRetailCheckoutOpen(true);
+        } else if (hash === 'privacy' || hash === 'terms' || hash === 'refund') {
+          setLegalModalTab(hash as any);
         } else if (basePortal === 'admin' || basePortal === 'sales' || basePortal === 'customer') {
           try {
             const storedUser = localStorage.getItem('madhav_user');
@@ -333,7 +350,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (!hasInitialized.current) return;
 
       let newHash = '';
-      if (isAuthModalOpen) {
+      if (legalModalTab) {
+        newHash = `#${legalModalTab}`;
+      } else if (isAuthModalOpen) {
         newHash = authModalTab === 'signup' ? '#signup' : '#signin';
       } else if (isCartOpen) {
         newHash = '#cart';
@@ -650,6 +669,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isRetailCheckoutOpen,
         openRetailCheckout,
         closeRetailCheckout,
+        legalModalTab,
+        openLegalModal,
+        closeLegalModal,
       }}
     >
       {children}

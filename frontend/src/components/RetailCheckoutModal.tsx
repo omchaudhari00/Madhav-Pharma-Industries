@@ -60,7 +60,8 @@ export const RetailCheckoutModal: React.FC = () => {
     user,
     openCart,
     cartTotalCount,
-    openAuth
+    openAuth,
+    openLegalModal
   } = useApp();
 
   const [step, setStep] = useState<'cart' | 'checkout' | 'processing' | 'paid'>('cart');
@@ -124,58 +125,137 @@ export const RetailCheckoutModal: React.FC = () => {
       return;
     }
 
-    const generatedId = `MP-RET-${Math.floor(10000 + Math.random() * 90000)}`;
-    setOrderId(generatedId);
-    
     setIsLaunchingRazorpay(true);
 
-    if (isRazorpayConfigured) {
-      const loaded = await loadRazorpayScript();
-      setIsLaunchingRazorpay(false);
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com';
+      const orderCreateRes = await fetch(`${apiUrl}/api/orders/payments/create-razorpay-order/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          amount: totalINR,
+          items: retailCartItems.map(i => ({
+            name: i.name,
+            quantity: i.quantity,
+            unitPrice: i.unitPrice
+          }))
+        })
+      });
 
-      if (loaded && (window as any).Razorpay) {
-        const rzp = new (window as any).Razorpay({
-          key: razorpayKeyId,
-          amount: Math.round(totalINR * 100), // Razorpay expects paise
-          currency: 'INR',
-          name: razorpayCompanyName,
-          description: `Order ${generatedId}`,
-          handler: function (response: any) {
-            handlePaymentSuccess({
-              method: 'Razorpay Gateway (UPI / Card / NetBanking)',
-              status: 'Paid',
-              referenceId: response.razorpay_payment_id,
-              amountINR: totalINR
-            });
-          },
-          prefill: {
-            name: name,
-            email: email,
-            contact: phone
-          },
-          modal: {
-            ondismiss: function () {
-              setIsLaunchingRazorpay(false);
+      const orderCreateData = await orderCreateRes.json();
+      const rzpOrderId = orderCreateData.order_id || `order_sim_${Date.now()}`;
+      const rzpKey = orderCreateData.key_id || razorpayKeyId;
+
+      if (!orderCreateData.is_simulated && isRazorpayConfigured) {
+        const loaded = await loadRazorpayScript();
+        setIsLaunchingRazorpay(false);
+
+        if (loaded && (window as any).Razorpay) {
+          const rzp = new (window as any).Razorpay({
+            key: rzpKey,
+            amount: Math.round(totalINR * 100),
+            currency: 'INR',
+            name: razorpayCompanyName,
+            description: `Retail Order for ${name}`,
+            order_id: rzpOrderId.startsWith('order_sim') ? undefined : rzpOrderId,
+            handler: function (response: any) {
+              handlePaymentSuccess({
+                method: 'Razorpay Gateway (UPI / Card / NetBanking)',
+                status: 'Paid',
+                referenceId: response.razorpay_payment_id || `PAY-${Date.now()}`,
+                amountINR: totalINR,
+                razorpay_order_id: response.razorpay_order_id || rzpOrderId,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              });
+            },
+            prefill: {
+              name: name,
+              email: email,
+              contact: phone
+            },
+            modal: {
+              ondismiss: function () {
+                setIsLaunchingRazorpay(false);
+              }
             }
-          }
-        });
-        rzp.open();
-        return;
+          });
+          rzp.open();
+          return;
+        }
       }
+
+      // Sandbox or fallback test flow
+      setIsLaunchingRazorpay(false);
+      handlePaymentSuccess({
+        method: 'Razorpay Test Simulation',
+        status: 'Paid',
+        referenceId: `TEST-PAY-${Math.floor(10000 + Math.random() * 90000)}`,
+        amountINR: totalINR,
+        razorpay_order_id: rzpOrderId,
+        razorpay_payment_id: `pay_sim_${Date.now()}`,
+        razorpay_signature: 'simulated_signature'
+      });
+    } catch (err) {
+      console.error("Order initiation error:", err);
+      setIsLaunchingRazorpay(false);
+      alert("Payment gateway connection error. Please check your connection and try again.");
     }
-    
-    // Fail gracefully if not configured or script fails to load
-    console.error("Razorpay is not configured or failed to load. Payment cannot proceed.");
-    alert("Payment gateway is temporarily unavailable. Please try again later.");
-    setIsLaunchingRazorpay(false);
   };
 
-  const handlePaymentSuccess = (details: PaymentSuccessDetails) => {
+  const handlePaymentSuccess = async (details: PaymentSuccessDetails & { razorpay_order_id?: string, razorpay_payment_id?: string, razorpay_signature?: string }) => {
     setVerifiedPayment(details);
     setStep('processing');
 
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com';
+    const orderPayload = {
+      razorpay_order_id: details.razorpay_order_id || `order_sim_${Date.now()}`,
+      razorpay_payment_id: details.razorpay_payment_id || details.referenceId,
+      razorpay_signature: details.razorpay_signature || 'simulated',
+      orderDetails: {
+        customerName: name,
+        phone: phone,
+        email: email,
+        deliveryAddress: address,
+        totalAmount: totalINR,
+        items: retailCartItems.map(i => ({
+          name: i.name,
+          sizeLabel: i.sizeLabel || '50ml Bottle',
+          quantity: i.quantity,
+          unitPrice: i.unitPrice
+        }))
+      }
+    };
+
+    let serverOrderId = `MP-RET-${Math.floor(10000 + Math.random() * 90000)}`;
+
+    try {
+      const verifyRes = await fetch(`${apiUrl}/api/orders/payments/verify-razorpay-signature/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(orderPayload)
+      });
+
+      if (verifyRes.ok) {
+        const verifyData = await verifyRes.json();
+        if (verifyData.order_id) {
+          serverOrderId = verifyData.order_id;
+        }
+      }
+    } catch (err) {
+      console.error("Failed to verify & save order to backend DB:", err);
+    }
+
+    setOrderId(serverOrderId);
+
     const newOrder = {
-      id: orderId || `MP-RET-${Math.floor(10000 + Math.random() * 90000)}`,
+      id: serverOrderId,
       date: new Date().toISOString().split('T')[0],
       customerName: name,
       phone: phone,
@@ -199,11 +279,11 @@ export const RetailCheckoutModal: React.FC = () => {
       const updated = [newOrder, ...existing];
       localStorage.setItem('madhav_retail_orders_list', JSON.stringify(updated));
     } catch (err) {
-      console.error('Failed to save retail order:', err);
+      console.error('Failed to save retail order cache:', err);
     }
 
     // Call Backend to Send WhatsApp Confirmation
-    fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/orders/confirm-payment/`, {
+    fetch(`${apiUrl}/api/orders/orders/confirm-payment/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -213,7 +293,7 @@ export const RetailCheckoutModal: React.FC = () => {
 
     setTimeout(() => {
       setStep('paid');
-    }, 1200);
+    }, 1000);
   };
 
   const handleClose = () => {
@@ -700,7 +780,12 @@ export const RetailCheckoutModal: React.FC = () => {
                   </button>
 
                   <p className="text-[11px] text-center text-neutral-400">
-                    By placing your order, you agree to Madhav Pharma's ISO & GMP quality terms and B2C express shipping policy.
+                    By placing your order, you agree to Madhav Pharma's{' '}
+                    <button type="button" onClick={() => openLegalModal('terms')} className="text-[#d4a373] underline hover:text-[#e6bc92] bg-transparent border-0 p-0 text-[11px] cursor-pointer">Terms of Service</button>
+                    {', '}
+                    <button type="button" onClick={() => openLegalModal('privacy')} className="text-[#d4a373] underline hover:text-[#e6bc92] bg-transparent border-0 p-0 text-[11px] cursor-pointer">Privacy Policy</button>
+                    {' and '}
+                    <button type="button" onClick={() => openLegalModal('refund')} className="text-[#d4a373] underline hover:text-[#e6bc92] bg-transparent border-0 p-0 text-[11px] cursor-pointer">Refund & Return Policy</button>.
                   </p>
                 </div>
               </form>

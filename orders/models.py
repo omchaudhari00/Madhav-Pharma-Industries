@@ -11,7 +11,7 @@ class Payment(models.Model):
         ('Pending Verification', 'Pending Verification'),
     )
     payment_id = models.CharField(max_length=50, unique=True, blank=True)
-    quotation = models.OneToOneField(Quotation, on_delete=models.CASCADE, related_name='payment')
+    quotation = models.ForeignKey(Quotation, on_delete=models.SET_NULL, null=True, blank=True, related_name='payments')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='Pending', db_index=True)
     payment_method = models.CharField(max_length=50, default='Razorpay', blank=True, null=True)
@@ -30,8 +30,8 @@ class Payment(models.Model):
 
 class Invoice(models.Model):
     invoice_number = models.CharField(max_length=50, unique=True, blank=True)
-    quotation = models.OneToOneField(Quotation, on_delete=models.CASCADE, related_name='invoice')
-    payment = models.OneToOneField(Payment, on_delete=models.CASCADE, related_name='invoice')
+    quotation = models.ForeignKey(Quotation, on_delete=models.SET_NULL, null=True, blank=True, related_name='invoices')
+    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True, related_name='invoices')
     tax_information = models.TextField(blank=True, null=True)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     invoice_date = models.DateTimeField(auto_now_add=True)
@@ -45,29 +45,48 @@ class Invoice(models.Model):
         return self.invoice_number
 
 class Order(models.Model):
+    ORDER_TYPES = (
+        ('B2B', 'B2B Wholesale Quote'),
+        ('Retail', 'Retail Consumer Order'),
+    )
     STATUS_CHOICES = (
         ('Pending', 'Pending'),
         ('Confirmed', 'Confirmed'),
         ('Processing', 'Processing'),
+        ('Preparing in Stock', 'Preparing in Stock'),
         ('Shipped', 'Shipped'),
         ('Delivered', 'Delivered'),
         ('Cancelled', 'Cancelled'),
     )
     
     order_number = models.CharField(max_length=50, unique=True, blank=True)
-    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders', db_index=True)
-    quotation = models.OneToOneField(Quotation, on_delete=models.CASCADE, related_name='order')
-    payment = models.OneToOneField(Payment, on_delete=models.CASCADE, related_name='order')
-    invoice = models.OneToOneField(Invoice, on_delete=models.CASCADE, related_name='order')
-    shipping_address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, related_name='orders_shipped')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending', db_index=True)
+    order_type = models.CharField(max_length=20, choices=ORDER_TYPES, default='Retail')
+    customer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders', db_index=True)
+    quotation = models.ForeignKey(Quotation, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
+    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
+    invoice = models.ForeignKey(Invoice, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
+    shipping_address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders_shipped')
+    
+    # Customer snapshot data
+    customer_name = models.CharField(max_length=255, blank=True)
+    customer_phone = models.CharField(max_length=50, blank=True)
+    customer_email = models.CharField(max_length=255, blank=True)
+    delivery_address = models.TextField(blank=True)
+    
+    # Item data stored as structured JSON list [{name, sizeLabel, quantity, unitPrice}]
+    items_data = models.JSONField(default=list, blank=True)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='Processing', db_index=True)
+    payment_status = models.CharField(max_length=50, default='PAID')
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
         if not self.order_number:
-            self.order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
+            prefix = "MP-RET" if self.order_type == 'Retail' else "ORD"
+            self.order_number = f"{prefix}-{uuid.uuid4().hex[:8].upper()}"
         super().save(*args, **kwargs)
 
     def __str__(self):

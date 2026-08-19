@@ -38,6 +38,7 @@ class CheckUserView(APIView):
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
+    throttle_scope = 'auth'
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -59,6 +60,7 @@ class LoginView(APIView):
 
 class RequestOTPView(APIView):
     permission_classes = [AllowAny]
+    throttle_scope = 'auth'
 
     def post(self, request):
         serializer = RegistrationRequestSerializer(data=request.data)
@@ -106,6 +108,7 @@ class RequestOTPView(APIView):
 
 class ResendOTPView(APIView):
     permission_classes = [AllowAny]
+    throttle_scope = 'auth'
 
     def post(self, request):
         email = request.data.get('email', '').strip().lower()
@@ -157,6 +160,7 @@ class ResendOTPView(APIView):
 
 class VerifyOTPAndRegisterView(APIView):
     permission_classes = [AllowAny]
+    throttle_scope = 'auth'
 
     def post(self, request):
         serializer = OTPVerificationSerializer(data=request.data)
@@ -227,16 +231,40 @@ class AdminDashboardStatsView(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request):
+        from django.db.models import Sum
+        from orders.models import Order, Payment
+        from quotations.models import Quotation
+
         total_customers = User.objects.filter(role='Customer').count()
         leads_count = CustomerProfile.objects.filter(customer_stage='Lead').count()
         customers_count = CustomerProfile.objects.filter(customer_stage='Customer').count()
         sales_count = User.objects.filter(role='Sales').count()
+
+        # Real Financial & Order Analytics from Database
+        total_revenue_result = Payment.objects.filter(status='Completed').aggregate(total=Sum('amount'))
+        total_revenue = float(total_revenue_result['total'] or 0)
+
+        total_transactions = Payment.objects.filter(status='Completed').count()
+        total_orders = Order.objects.exclude(status='Cancelled').count()
+        active_orders = Order.objects.filter(status__in=['Pending', 'Processing', 'Preparing in Stock', 'Confirmed', 'Shipped']).count()
+        pending_quotes = Quotation.objects.filter(status__in=['Pending', 'Under Negotiation']).count()
+        
+        conversion_rate = 0.0
+        if total_customers > 0:
+            conversion_rate = round((customers_count / total_customers) * 100, 1)
+
         return Response({
+            "total_revenue": total_revenue,
+            "total_transactions": total_transactions,
+            "total_orders": total_orders,
+            "active_orders": active_orders,
+            "pending_quotes": pending_quotes,
+            "conversion_rate": conversion_rate,
             "total_users": total_customers,
             "leads_count": leads_count,
             "customers_count": customers_count,
             "sales_count": sales_count,
-            "message": "Admin dashboard statistics retrieved"
+            "message": "Live admin dashboard statistics calculated successfully"
         })
 
 class UserListView(APIView):
@@ -244,9 +272,9 @@ class UserListView(APIView):
 
     def get(self, request):
         role_filter = request.query_params.get('role', None)
-        queryset = User.objects.all()
+        queryset = User.objects.all().order_by('-id')
         if role_filter:
-            queryset = queryset.filter(role=role_filter)
+            queryset = queryset.filter(role__iexact=role_filter.strip())
         data = UserSerializer(queryset, many=True).data
         return Response(data)
 
@@ -254,18 +282,27 @@ class ManageSalesUserView(APIView):
     permission_classes = [IsAdminUser]
 
     def post(self, request):
-        email = request.data.get('email')
-        mobile = request.data.get('mobile_number')
-        password = request.data.get('password', 'Sales@1234')
-        first_name = request.data.get('first_name', '')
-        last_name = request.data.get('last_name', '')
+        email = request.data.get('email', '').strip()
+        mobile = request.data.get('mobile_number', '').strip()
+        password = request.data.get('password', '').strip()
+        first_name = request.data.get('first_name', '').strip()
+        last_name = request.data.get('last_name', '').strip()
         
-        if User.objects.filter(email__iexact=email.strip().lower()).exists() or User.objects.filter(mobile_number=mobile.strip()).exists():
-            return Response({"error": "User with email or mobile already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        if not email or not mobile:
+            return Response({"error": "Email and mobile number are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not password or len(password) < 8:
+            return Response({"error": "A secure password of at least 8 characters is required for Sales accounts."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if User.objects.filter(email__iexact=email.lower()).exists():
+            return Response({"error": "A user with this email address already exists."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(mobile_number=mobile).exists():
+            return Response({"error": "A user with this mobile number already exists."}, status=status.HTTP_400_BAD_REQUEST)
             
         user = User.objects.create_user(
-            email=email.strip().lower(),
-            mobile_number=mobile.strip(),
+            email=email.lower(),
+            mobile_number=mobile,
             password=password,
             first_name=first_name,
             last_name=last_name,
@@ -280,6 +317,7 @@ class ForgotPasswordRequestOTPView(APIView):
     A 6-digit OTP is generated and emailed to them.
     """
     permission_classes = [AllowAny]
+    throttle_scope = 'auth'
 
     def post(self, request):
         identifier = request.data.get('identifier', '').strip().lower()
@@ -337,6 +375,7 @@ class ForgotPasswordResetView(APIView):
     If the OTP is valid, the password is updated.
     """
     permission_classes = [AllowAny]
+    throttle_scope = 'auth'
 
     def post(self, request):
         identifier = request.data.get('identifier', '').strip().lower()
