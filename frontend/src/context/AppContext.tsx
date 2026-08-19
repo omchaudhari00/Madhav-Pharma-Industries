@@ -258,28 +258,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, [isAuthModalOpen, isCartOpen, isRetailCheckoutOpen]);
 
-  // URL Hash Routing - Sync State to URL
-  useEffect(() => {
-    let newHash = '';
-    if (isAuthModalOpen) {
-      newHash = authModalTab === 'signup' ? '#signup' : '#signin';
-    } else if (isCartOpen) {
-      newHash = '#cart';
-    } else if (isRetailCheckoutOpen) {
-      newHash = '#checkout';
-    } else if (currentPortal !== 'storefront') {
-      newHash = `#${currentPortal}`;
-    }
-    
-    // Only update if it's different to prevent loops
-    if (window.location.hash !== newHash) {
-      if (newHash === '') {
-        window.history.replaceState(null, '', window.location.pathname + window.location.search);
-      } else {
-        window.history.pushState(null, '', newHash);
+    // URL Hash Routing - Sync State to URL
+    useEffect(() => {
+      let newHash = '';
+      if (isAuthModalOpen) {
+        newHash = authModalTab === 'signup' ? '#signup' : '#signin';
+      } else if (isCartOpen) {
+        newHash = '#cart';
+      } else if (isRetailCheckoutOpen) {
+        newHash = '#checkout';
+      } else if (currentPortal !== 'storefront') {
+        newHash = `#${currentPortal}`;
       }
-    }
-  }, [isAuthModalOpen, authModalTab, isCartOpen, isRetailCheckoutOpen, currentPortal]);
+      
+      if (newHash === '') {
+        if (window.location.hash !== '') {
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+      } else {
+        const currentHash = window.location.hash;
+        const currentBase = currentHash.replace('#', '').split('-')[0];
+        const newBase = newHash.replace('#', '').split('-')[0];
+        
+        if (currentBase !== newBase) {
+          window.history.pushState(null, '', newHash);
+        }
+      }
+    }, [isAuthModalOpen, authModalTab, isCartOpen, isRetailCheckoutOpen, currentPortal]);
 
   // URL Hash Routing - Sync URL to State (on load and on browser back/forward)
   useEffect(() => {
