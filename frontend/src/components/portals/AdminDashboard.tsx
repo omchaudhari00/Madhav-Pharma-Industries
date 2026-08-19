@@ -48,6 +48,7 @@ export const AdminDashboard: React.FC = () => {
     allProducts,
     addProduct,
     deleteProduct,
+    updateProductPrice,
     token,
     logout,
   } = useApp();
@@ -466,7 +467,7 @@ export const AdminDashboard: React.FC = () => {
 
               {/* Quick Activity Table */}
               <div className="p-8 rounded-3xl bg-white border border-neutral-200 shadow-sm border border-neutral-200">
-                <h3 className="text-xl font-serif font-bold text-neutral-900 mb-6">Recent Price Requests & New Customers</h3>
+                <h3 className="text-xl font-serif font-bold text-neutral-900">Recent Price Requests & New Customers</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
@@ -1242,13 +1243,21 @@ export const AdminDashboard: React.FC = () => {
               </button>
               <button 
                 onClick={() => {
-                  setProducts(prev => prev.map(prod => prod.id === editingProduct.id ? { 
-                    ...prod, 
-                    price: `₹${editForm.b2bPrice}/KG`,
-                    moq: editForm.moq 
-                  } : prod));
-                  setEditingProduct(null);
-                }}
+                    const parsedB2b = Number(editForm.b2bPrice);
+                    const parsedRetail = Number(editForm.retailPrice);
+                    
+                    // Update Admin UI state
+                    setProducts(prev => prev.map(prod => prod.id === editingProduct.id ? { 
+                      ...prod, 
+                      price: `₹${editForm.b2bPrice}/KG`,
+                      moq: editForm.moq 
+                    } : prod));
+                    
+                    // Update global AppContext state
+                    updateProductPrice(editingProduct.codeId, parsedB2b, parsedRetail);
+                    
+                    setEditingProduct(null);
+                  }}
                 className="flex-1 py-3.5 rounded-xl bg-[#d4a373] hover:bg-[#c29161] text-black text-xs font-bold uppercase tracking-wider transition-colors"
               >
                 Save New Prices

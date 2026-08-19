@@ -165,6 +165,7 @@ interface AppContextType {
   allProducts: ProductShowcaseItem[];
   addProduct: (product: ProductShowcaseItem) => void;
   deleteProduct: (id: string) => void;
+  updateProductPrice: (id: string, b2bPrice: number, retailPrice: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -573,6 +574,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  const updateProductPrice = (id: string, b2bPrice: number, retailPrice: number) => {
+    setAllProducts(prev => {
+      const updated = prev.map(p => 
+        p.id === id ? { ...p, unitPrice: b2bPrice, retailPrice: retailPrice } : p
+      );
+      try {
+        const customOnly = updated.filter(p => !DEFAULT_PRODUCTS.some(dp => dp.id === p.id && dp.unitPrice === p.unitPrice && dp.retailPrice === p.retailPrice));
+        localStorage.setItem('madhav_custom_products', JSON.stringify(customOnly));
+      } catch (e) {
+        console.error('Failed to update localStorage after price edit:', e);
+      }
+      return updated;
+    });
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -609,6 +625,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         allProducts,
         addProduct,
         deleteProduct,
+        updateProductPrice,
         shopMode,
         setShopMode: handleSetShopMode,
         retailCartItems,
