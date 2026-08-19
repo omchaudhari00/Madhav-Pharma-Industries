@@ -333,46 +333,45 @@ class ForgotPasswordRequestOTPView(APIView):
         if not user:
             return Response({'error': 'No account found with this email address or mobile number.'}, status=status.HTTP_404_NOT_FOUND)
 
+        if not user.email:
+            return Response({
+                'error': 'Password reset is currently only available for accounts with a registered email address. For phone-only accounts, please contact support at contact@madhavpharmaindustries.com or call +91 90233 85917.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         # Generate OTP
         otp = str(random.randint(100000, 999999))
         OTPRecord.objects.create(
-            email=user.email or '',
+            email=user.email,
             mobile_number=user.mobile_number or '',
             otp=otp,
             expires_at=timezone.now() + timedelta(minutes=10)
         )
 
-        if user.email:
-            # Send OTP email
-            subject = "Madhav Pharma Industries - Password Reset OTP"
-            message = (
-                f"Hello {user.first_name or 'Valued Customer'},\n\n"
-                f"Your password reset verification code is: {otp}\n\n"
-                f"This OTP is valid for 10 minutes. Do not share this code with anyone.\n"
-                f"If you did not request a password reset, please ignore this email.\n\n"
-                f"Regards,\nMadhav Pharma Industries"
+        # Send OTP email
+        subject = "Madhav Pharma Industries - Password Reset OTP"
+        message = (
+            f"Hello {user.first_name or 'Valued Customer'},\n\n"
+            f"Your password reset verification code is: {otp}\n\n"
+            f"This OTP is valid for 10 minutes. Do not share this code with anyone.\n"
+            f"If you did not request a password reset, please ignore this email.\n\n"
+            f"Regards,\nMadhav Pharma Industries"
+        )
+        try:
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
             )
-            try:
-                send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[user.email],
-                    fail_silently=False,
-                )
-            except Exception as e:
-                print(f"[Email Error] Failed to send password reset OTP to {user.email}: {e}")
-                return Response({'error': f'Failed to send OTP email. Server error: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            print(f"[Email Error] Failed to send password reset OTP to {user.email}: {e}")
+            return Response({'error': f'Failed to send OTP email. Server error: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            return Response({
-                'message': 'A password reset OTP has been sent to your registered email address.',
-                'email_hint': user.email[:3] + '***' + user.email[user.email.index('@'):]
-            })
-        else:
-            return Response({
-                'message': 'A password reset OTP has been generated for your registered mobile number.',
-                'mobile_hint': '******' + (user.mobile_number[-4:] if user.mobile_number and len(user.mobile_number) >= 4 else '')
-            })
+        return Response({
+            'message': 'A password reset OTP has been sent to your registered email address.',
+            'email_hint': user.email[:3] + '***' + user.email[user.email.index('@'):]
+        })
 
 
 class ForgotPasswordResetView(APIView):

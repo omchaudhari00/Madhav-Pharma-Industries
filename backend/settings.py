@@ -32,6 +32,8 @@ socket.getaddrinfo = getaddrinfo_ipv4_only
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+from django.core.exceptions import ImproperlyConfigured
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
 
@@ -41,23 +43,16 @@ if not SECRET_KEY:
     if DEBUG:
         SECRET_KEY = 'django-insecure-dev-only-fallback-key-for-local-testing'
     else:
-        SECRET_KEY = 'django-insecure-goop*^=t4-!!=tp9#j)x6h8v)0bpq+vz5&^h_@9k4aq9evit3('
+        raise ImproperlyConfigured("The SECRET_KEY environment variable must be set in production mode (DEBUG=False).")
 
 import dj_database_url
 
 allowed_hosts_env = os.getenv('ALLOWED_HOSTS', '')
+base_hosts = ['localhost', '127.0.0.1', '0.0.0.0', 'testserver', '.onrender.com', '.vercel.app', 'madhav-pharma-industries.onrender.com', 'madhav-pharma-industries.vercel.app']
 if allowed_hosts_env:
-    ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
+    ALLOWED_HOSTS = list(set(base_hosts + [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]))
 else:
-    ALLOWED_HOSTS = [
-        'localhost',
-        '127.0.0.1',
-        '0.0.0.0',
-        '.onrender.com',
-        '.vercel.app',
-        'madhav-pharma-industries.onrender.com',
-        'madhav-pharma-industries.vercel.app',
-    ]
+    ALLOWED_HOSTS = base_hosts
 
 
 # Application definition

@@ -56,10 +56,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 p_name = item.get('name', '').strip()
                 qty = int(item.get('quantity', 1))
                 prod = Product.objects.filter(name__iexact=p_name, is_active=True).first()
-                if prod and prod.retail_price:
-                    unit_price = Decimal(str(prod.retail_price))
-                elif prod and prod.base_price:
-                    unit_price = Decimal(str(prod.base_price))
+                if prod and prod.price:
+                    unit_price = Decimal(str(prod.price))
                 else:
                     unit_price = Decimal(str(item.get('unitPrice', 0)))
                 calculated_amount += unit_price * qty
@@ -74,9 +72,15 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
         razorpay_key = getattr(settings, 'RAZORPAY_KEY_ID', None)
         razorpay_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', None)
+        has_configured_keys = bool(
+            razorpay_key and 
+            razorpay_secret and 
+            razorpay_key != 'rzp_test_YOUR_KEY_ID_HERE' and 
+            razorpay_secret != 'YOUR_KEY_SECRET_HERE'
+        )
 
-        if not razorpay_key or not razorpay_secret or razorpay_key == 'rzp_test_YOUR_KEY_ID_HERE':
-            # Sandbox / graceful fallback
+        if not has_configured_keys:
+            # Sandbox fallback only when server keys are not configured
             simulated_order_id = f"order_sim_{uuid.uuid4().hex[:12]}"
             return Response({
                 'success': True,
@@ -120,6 +124,24 @@ class PaymentViewSet(viewsets.ModelViewSet):
         quotation_id = request.data.get('quotation_id')
         order_details = request.data.get('orderDetails', {})
 
+        razorpay_key = getattr(settings, 'RAZORPAY_KEY_ID', None)
+        razorpay_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', None)
+        has_configured_keys = bool(
+            razorpay_key and 
+            razorpay_secret and 
+            razorpay_key != 'rzp_test_YOUR_KEY_ID_HERE' and 
+            razorpay_secret != 'YOUR_KEY_SECRET_HERE'
+        )
+
+        # Disallow simulated orders when real keys are configured on the server
+        if has_configured_keys and str(razorpay_order_id).startswith('order_sim_'):
+            return Response({
+                'success': False,
+                'error': 'Simulated payments are rejected on live payment environments.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        is_simulated = not has_configured_keys
+
         # Idempotency check: prevent replay attacks with the same payment reference
         if razorpay_payment_id and Payment.objects.filter(transaction_reference=razorpay_payment_id).exists():
             existing_order = Order.objects.filter(payment__transaction_reference=razorpay_payment_id).first()
@@ -136,10 +158,6 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 'success': False,
                 'error': 'This transaction reference has already been recorded.'
             }, status=status.HTTP_400_BAD_REQUEST)
-
-        razorpay_key = getattr(settings, 'RAZORPAY_KEY_ID', None)
-        razorpay_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', None)
-        is_simulated = razorpay_order_id.startswith('order_sim_') or (not razorpay_secret) or (razorpay_secret == 'YOUR_KEY_SECRET_HERE')
 
         if not is_simulated:
             # Enforce cryptographic HMAC verification in live mode
@@ -174,10 +192,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
                     p_name = it.get('name', '').strip()
                     qty = int(it.get('quantity', 1))
                     prod = Product.objects.filter(name__iexact=p_name, is_active=True).first()
-                    if prod and prod.retail_price:
-                        unit_price = Decimal(str(prod.retail_price))
-                    elif prod and prod.base_price:
-                        unit_price = Decimal(str(prod.base_price))
+                    if prod and prod.price:
+                        unit_price = Decimal(str(prod.price))
                     else:
                         unit_price = Decimal(str(it.get('unitPrice', 0)))
                     
