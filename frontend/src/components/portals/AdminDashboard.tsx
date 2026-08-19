@@ -48,7 +48,7 @@ export const AdminDashboard: React.FC = () => {
     allProducts,
     addProduct,
     deleteProduct,
-    updateProductPrice,
+    updateProductDetails,
     token,
     logout,
   } = useApp();
@@ -1264,7 +1264,7 @@ export const AdminDashboard: React.FC = () => {
                     } : prod));
                     
                     // Update global AppContext state
-                    updateProductPrice(editingProduct.codeId, parsedB2b, parsedRetail);
+                    updateProductDetails(editingProduct.codeId, parsedB2b, parsedRetail, editForm.moq);
                     
                     setEditingProduct(null);
                   }}

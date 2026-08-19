@@ -165,7 +165,7 @@ interface AppContextType {
   allProducts: ProductShowcaseItem[];
   addProduct: (product: ProductShowcaseItem) => void;
   deleteProduct: (id: string) => void;
-  updateProductPrice: (id: string, b2bPrice: number, retailPrice: number) => void;
+  updateProductDetails: (id: string, b2bPrice: number, retailPrice: number, moq: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -572,15 +572,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const updateProductPrice = (id: string, b2bPrice: number, retailPrice: number) => {
+  const updateProductDetails = (id: string, b2bPrice: number, retailPrice: number, moq: string) => {
     setAllProducts(prev => {
       const updated = prev.map(p => 
-        p.id === id ? { ...p, unitPrice: b2bPrice, retailPrice: retailPrice } : p
+        p.id === id ? { ...p, unitPrice: b2bPrice, retailPrice: retailPrice, moq: moq } : p
       );
       try {
         localStorage.setItem('madhav_all_products', JSON.stringify(updated));
       } catch (e) {
-        console.error('Failed to update localStorage after price edit:', e);
+        console.error('Failed to update localStorage after product edit:', e);
       }
       return updated;
     });
@@ -622,7 +622,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         allProducts,
         addProduct,
         deleteProduct,
-        updateProductPrice,
+        updateProductDetails,
         shopMode,
         setShopMode: handleSetShopMode,
         retailCartItems,
