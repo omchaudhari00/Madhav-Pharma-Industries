@@ -208,7 +208,9 @@ else:
         'http://127.0.0.1:5173',
         'http://127.0.0.1:3000',
         'https://madhav-pharma-industries.vercel.app',
-        'https://madhav-pharma-industries.onrender.com',
+                'https://madhav-pharma-industries.onrender.com',
+        'https://madhavpharmaindustries.com',
+        'https://www.madhavpharmaindustries.com',
     ]
 
 # Email Configuration (Resend HTTP API for bypassing Firewalls)
