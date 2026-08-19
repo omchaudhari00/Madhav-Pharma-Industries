@@ -52,6 +52,27 @@ export const SalesDashboard: React.FC = () => {
   const [myQuotes, setMyQuotes] = useState<any[]>([]);
   const [retailOrders, setRetailOrders] = useState<any[]>([]);
 
+  // Hash sync: read tab from URL on mount
+  useEffect(() => {
+    const hash = window.location.hash.replace('#', '');
+    const parts = hash.split('-');
+    if (parts.length > 1 && parts[0] === 'sales') {
+      setActiveTab(parts.slice(1).join('_') as any);
+    }
+  }, []);
+
+  // Hash sync: write tab to URL when it changes
+  useEffect(() => {
+    const currentHash = window.location.hash.replace('#', '');
+    const parts = currentHash.split('-');
+    const tabForHash = activeTab.replace(/_/g, '_');
+    if (parts[0] === 'sales' && parts.slice(1).join('_') !== tabForHash) {
+      window.history.replaceState(null, '', `#sales-${activeTab.replace(/_/g, '-')}`);
+    } else if (currentHash === 'sales') {
+      window.history.replaceState(null, '', `#sales-${activeTab.replace(/_/g, '-')}`);
+    }
+  }, [activeTab]);
+
   useEffect(() => {
     const loadRetailOrders = () => {
       try {
