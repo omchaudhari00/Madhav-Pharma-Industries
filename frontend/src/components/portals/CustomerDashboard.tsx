@@ -764,12 +764,39 @@ export const CustomerDashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="p-6 rounded-2xl bg-white shadow-sm border border-neutral-200 space-y-4">
-                <h4 className="text-lg font-bold text-neutral-900">Account Details</h4>
-                <div className="space-y-3 text-sm text-neutral-600">
-                  <div><span className="text-neutral-500 block text-xs">Email Address:</span> {user?.email}</div>
-                  <div><span className="text-neutral-500 block text-xs">Full Name:</span> {user?.first_name} {user?.last_name}</div>
-                  <div><span className="text-neutral-500 block text-xs">Current Stage:</span> <strong className="text-[#d4a373]">{stage}</strong></div>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-bold text-neutral-900">Account Details</h4>
+                  {!isEditingProfile && (
+                    <button onClick={() => setIsEditingProfile(true)} className="px-4 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-xs font-bold text-neutral-900 transition-colors">
+                      Edit
+                    </button>
+                  )}
                 </div>
+                
+                {isEditingProfile ? (
+                  <div className="space-y-4 pt-2">
+                    <div className="grid grid-cols-2 gap-4">
+                      <input type="text" value={profileData.first_name} onChange={e => setProfileData({...profileData, first_name: e.target.value})} placeholder="First Name" className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373] text-black" />
+                      <input type="text" value={profileData.last_name} onChange={e => setProfileData({...profileData, last_name: e.target.value})} placeholder="Last Name" className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373] text-black" />
+                    </div>
+                    <input type="text" value={profileData.mobile_number} onChange={e => setProfileData({...profileData, mobile_number: e.target.value})} placeholder="Phone Number" className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#d4a373] text-black" />
+                    <div className="flex gap-3 pt-2">
+                      <button onClick={handleSaveProfile} disabled={profileLoading} className="flex-1 py-2.5 rounded-xl bg-[#d4a373] text-black font-bold text-xs uppercase hover:opacity-90">
+                        {profileLoading ? 'Saving...' : 'Save Profile'}
+                      </button>
+                      <button onClick={() => setIsEditingProfile(false)} className="px-6 py-2.5 rounded-xl border border-neutral-200 hover:bg-neutral-100 text-xs font-bold uppercase text-black">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3 text-sm text-neutral-600">
+                    <div><span className="text-neutral-500 block text-xs">Email Address:</span> {user?.email}</div>
+                    <div><span className="text-neutral-500 block text-xs">Full Name:</span> {user?.first_name} {user?.last_name}</div>
+                    <div><span className="text-neutral-500 block text-xs">Phone Number:</span> {user?.mobile_number || 'Not provided'}</div>
+                    <div><span className="text-neutral-500 block text-xs">Current Stage:</span> <strong className="text-[#d4a373]">{stage}</strong></div>
+                  </div>
+                )}
               </div>
 
               <div className="p-6 rounded-2xl bg-white shadow-sm border border-neutral-200 space-y-4">
