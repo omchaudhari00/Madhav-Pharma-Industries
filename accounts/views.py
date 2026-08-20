@@ -8,6 +8,7 @@ from datetime import timedelta
 import random
 from django.core.mail import send_mail
 from django.conf import settings
+from django.db.models import Q
 
 from .models import User, CustomerProfile, OTPRecord, Address
 from .serializers import (
