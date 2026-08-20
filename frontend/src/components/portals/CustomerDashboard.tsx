@@ -89,6 +89,7 @@ export const CustomerDashboard: React.FC = () => {
     mobile_number: user?.mobile_number || ''
   });
   const [profileLoading, setProfileLoading] = useState(false);
+  const [profileError, setProfileError] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -103,8 +104,9 @@ export const CustomerDashboard: React.FC = () => {
   const handleSaveProfile = async () => {
     if (!token) return;
     setProfileLoading(true);
+    setProfileError('');
     try {
-      const res = await fetch('/api/accounts/profile/update/', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/accounts/profile/update/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -112,15 +114,17 @@ export const CustomerDashboard: React.FC = () => {
         },
         body: JSON.stringify(profileData)
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        const data = await res.json();
         if (data.user) {
           login(data.user, token);
         }
         setIsEditingProfile(false);
+      } else {
+        setProfileError(data.error || 'Failed to save profile. Please try again.');
       }
     } catch (e) {
-      console.error('Failed to save profile', e);
+      setProfileError('Network error. Could not connect to server.');
     }
     setProfileLoading(false);
   };
@@ -355,7 +359,7 @@ export const CustomerDashboard: React.FC = () => {
             { id: 'quotes', label: 'Price Requests', icon: FileText, badge: myQuotes.length > 0 ? myQuotes.length.toString() : undefined },
             { id: 'orders', label: 'My Invoices & Orders', icon: ShoppingBag, badge: orders.length > 0 ? orders.length.toString() : undefined },
             { id: 'products', label: 'Products & Minimum Orders', icon: Package },
-            { id: 'profile', label: 'Company Profile', icon: User },
+            { id: 'profile', label: 'Profile', icon: User },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -422,7 +426,7 @@ export const CustomerDashboard: React.FC = () => {
                {activeTab === 'orders' && 'Invoices & Orders'}
                {activeTab === 'quotes' && 'Price Requests'}
                {activeTab === 'products' && 'Product Catalog'}
-               {activeTab === 'profile' && 'Company Profile'}
+               {activeTab === 'profile' && 'Profile'}
              </h2>
              {/* Luxury Stage Badge */}
              <div className="flex items-center gap-3">
@@ -795,8 +799,8 @@ export const CustomerDashboard: React.FC = () => {
         {activeTab === 'profile' && (
           <div className="p-8 rounded-3xl bg-white shadow-sm backdrop-blur-xl border border-neutral-200 shadow-xl space-y-6">
             <div>
-              <h3 className="text-2xl font-serif font-bold text-neutral-900">My Company & Tax Profile</h3>
-              <p className="text-sm text-neutral-500 mt-1">Manage your GSTIN, company registration, and shipping addresses.</p>
+              <h3 className="text-2xl font-serif font-bold text-neutral-900">My Profile</h3>
+              <p className="text-sm text-neutral-500 mt-1">Manage your name, phone number, and shipping address.</p>
             </div>
 
             <div className="p-6 rounded-2xl bg-white shadow-sm border border-neutral-200 space-y-5">
@@ -842,16 +846,23 @@ export const CustomerDashboard: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* Error Message */}
+                    {profileError && (
+                      <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+                        {profileError}
+                      </div>
+                    )}
+
                     {/* Save / Cancel Buttons */}
                     <div className="flex gap-3 pt-2">
                       <button 
-                        onClick={async () => { await handleSaveProfile(); await handleSaveAddress(); setIsEditingProfile(false); setIsEditingAddress(false); }} 
+                        onClick={async () => { await handleSaveProfile(); await handleSaveAddress(); }} 
                         disabled={profileLoading || addressLoading} 
                         className="flex-1 py-2.5 rounded-xl bg-[#d4a373] text-black font-bold text-xs uppercase hover:opacity-90"
                       >
                         {(profileLoading || addressLoading) ? 'Saving...' : 'Save Changes'}
                       </button>
-                      <button onClick={() => { setIsEditingProfile(false); setIsEditingAddress(false); }} className="px-6 py-2.5 rounded-xl border border-neutral-200 hover:bg-neutral-100 text-xs font-bold uppercase text-black">
+                      <button onClick={() => { setIsEditingProfile(false); setIsEditingAddress(false); setProfileError(''); }} className="px-6 py-2.5 rounded-xl border border-neutral-200 hover:bg-neutral-100 text-xs font-bold uppercase text-black">
                         Cancel
                       </button>
                     </div>

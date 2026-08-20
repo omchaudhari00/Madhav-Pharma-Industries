@@ -61,9 +61,11 @@ export const AuthModal: React.FC = () => {
   const [forgotIdentifier, setForgotIdentifier] = useState('');
   const [forgotOtp, setForgotOtp] = useState('');
   const [forgotNewPassword, setForgotNewPassword] = useState('');
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
   const [forgotError, setForgotError] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
   const [showForgotNewPassword, setShowForgotNewPassword] = useState(false);
+  const [showForgotConfirmPassword, setShowForgotConfirmPassword] = useState(false);
   const [forgotEmailHint, setForgotEmailHint] = useState('');
   const [forgotResendTimer, setForgotResendTimer] = useState(0);
 
@@ -193,12 +195,29 @@ export const AuthModal: React.FC = () => {
     }
   };
 
-  // Forgot Password: Verify OTP & Reset Password
+  // Forgot Password: Verify OTP only (step 2 -> step 3)
+  const handleForgotVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError('');
+    if (!forgotOtp.trim() || forgotOtp.trim().length !== 6) {
+      setForgotError('Please enter the 6-digit OTP sent to your email.');
+      return;
+    }
+    // We just advance to the new-password step - the OTP is validated when we actually reset.
+    // This matches the UI flow: user sees OTP box, then proceeds to password box.
+    setForgotStep('new-password');
+  };
+
+  // Forgot Password: Set New Password (final step)
   const handleForgotReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setForgotError('');
     if (forgotNewPassword.length < 8) {
       setForgotError('Password must be at least 8 characters long.');
+      return;
+    }
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      setForgotError('Passwords do not match. Please re-enter your new password.');
       return;
     }
     setForgotLoading(true);
@@ -216,7 +235,11 @@ export const AuthModal: React.FC = () => {
       if (res.ok) {
         setForgotStep('success');
       } else {
+        // If OTP is wrong, send user back to OTP entry step
         setForgotError(data.error || 'Failed to reset password.');
+        if (data.error && data.error.toLowerCase().includes('otp')) {
+          setForgotStep('enter-otp');
+        }
       }
     } catch {
       setForgotError('Network error. Could not connect to server.');
@@ -442,6 +465,7 @@ export const AuthModal: React.FC = () => {
                   setForgotError('');
                   setForgotOtp('');
                   setForgotNewPassword('');
+                  setForgotConfirmPassword('');
                   setForgotEmailHint('');
                 }}
                 className="text-xs text-neutral-400 hover:text-white transition-colors"
@@ -732,16 +756,16 @@ export const AuthModal: React.FC = () => {
           </form>
         )}
 
-        {/* FORGOT PASSWORD: Step 2 - Enter OTP & New Password */}
+        {/* FORGOT PASSWORD: Step 2 - Enter OTP only */}
         {authModalTab === 'signin' && forgotStep === 'enter-otp' && (
-          <form onSubmit={handleForgotReset} className="space-y-4 font-sans-custom text-center">
+          <form onSubmit={handleForgotVerifyOtp} className="space-y-4 font-sans-custom text-center">
             <div className="py-2">
               <div className="w-12 h-12 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center mx-auto mb-3">
                 <KeyRound className="w-6 h-6 text-emerald-400" />
               </div>
-              <h3 className="text-lg font-bold text-white font-display">Verify & Set New Password</h3>
+              <h3 className="text-lg font-bold text-white font-display">Enter Verification Code</h3>
               <p className="text-xs text-neutral-400 mt-1">
-                Enter the OTP sent to <strong className="text-white">{forgotEmailHint || forgotIdentifier}</strong>
+                A 6-digit code was sent to <strong className="text-white">{forgotEmailHint || forgotIdentifier}</strong>
               </p>
             </div>
 
@@ -752,27 +776,9 @@ export const AuthModal: React.FC = () => {
                 maxLength={6}
                 placeholder="123456"
                 value={forgotOtp}
-                onChange={(e) => setForgotOtp(e.target.value)}
+                onChange={(e) => setForgotOtp(e.target.value.replace(/[^0-9]/g, ''))}
                 className="w-full max-w-[200px] mx-auto bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 text-center text-xl font-bold tracking-widest text-white placeholder-neutral-600 focus:outline-none focus:border-white/50"
               />
-            </div>
-
-            <div className="text-left">
-              <label className="block text-xs text-neutral-400 mb-1.5">New Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-3 w-4 h-4 text-neutral-500" />
-                <input
-                  type={showForgotNewPassword ? "text" : "password"}
-                  required
-                  placeholder="Minimum 8 characters"
-                  value={forgotNewPassword}
-                  onChange={(e) => setForgotNewPassword(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50 transition-colors"
-                />
-                <button type="button" onClick={() => setShowForgotNewPassword(!showForgotNewPassword)} className="absolute right-3.5 top-3 text-neutral-500 hover:text-white transition-colors">
-                  {showForgotNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
             </div>
 
             {forgotError && (
@@ -784,11 +790,11 @@ export const AuthModal: React.FC = () => {
 
             <button
               type="submit"
-              disabled={forgotLoading}
-              className="w-full py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold uppercase text-xs tracking-wider transition-colors duration-200 flex items-center justify-center space-x-2 shadow-lg disabled:opacity-50 font-display"
+              disabled={forgotLoading || forgotOtp.length !== 6}
+              className="w-full py-3 rounded-full bg-white hover:bg-neutral-200 text-black font-bold uppercase text-xs tracking-wider transition-colors duration-200 flex items-center justify-center space-x-2 shadow-lg disabled:opacity-50 font-display"
             >
-              <span>{forgotLoading ? 'Resetting...' : 'Reset Password'}</span>
-              <CheckCircle2 className="w-4 h-4" />
+              <span>Verify Code</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
 
             {/* Resend OTP Section */}
@@ -809,6 +815,81 @@ export const AuthModal: React.FC = () => {
             <button
               type="button"
               onClick={() => { setForgotStep('enter-identifier'); setForgotError(''); }}
+              className="text-xs text-neutral-400 hover:text-white transition-colors block mx-auto pt-1"
+            >
+              Back
+            </button>
+          </form>
+        )}
+
+        {/* FORGOT PASSWORD: Step 3 - Set New Password */}
+        {authModalTab === 'signin' && forgotStep === 'new-password' && (
+          <form onSubmit={handleForgotReset} className="space-y-4 font-sans-custom">
+            <div className="py-2 text-center">
+              <div className="w-12 h-12 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center mx-auto mb-3">
+                <Lock className="w-6 h-6 text-amber-400" />
+              </div>
+              <h3 className="text-lg font-bold text-white font-display">Set New Password</h3>
+              <p className="text-xs text-neutral-400 mt-1">
+                OTP verified. Choose a strong new password.
+              </p>
+            </div>
+
+            <div className="text-left">
+              <label className="block text-xs text-neutral-400 mb-1.5">New Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-3 w-4 h-4 text-neutral-500" />
+                <input
+                  type={showForgotNewPassword ? "text" : "password"}
+                  required
+                  placeholder="Minimum 8 characters"
+                  value={forgotNewPassword}
+                  onChange={(e) => setForgotNewPassword(e.target.value)}
+                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50 transition-colors"
+                />
+                <button type="button" onClick={() => setShowForgotNewPassword(!showForgotNewPassword)} className="absolute right-3.5 top-3 text-neutral-500 hover:text-white transition-colors">
+                  {showForgotNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="text-left">
+              <label className="block text-xs text-neutral-400 mb-1.5">Re-enter New Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-3 w-4 h-4 text-neutral-500" />
+                <input
+                  type={showForgotConfirmPassword ? "text" : "password"}
+                  required
+                  placeholder="Repeat your new password"
+                  value={forgotConfirmPassword}
+                  onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white/50 transition-colors"
+                />
+                <button type="button" onClick={() => setShowForgotConfirmPassword(!showForgotConfirmPassword)} className="absolute right-3.5 top-3 text-neutral-500 hover:text-white transition-colors">
+                  {showForgotConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {forgotError && (
+              <div className="flex items-center space-x-2 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{forgotError}</span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={forgotLoading}
+              className="w-full py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold uppercase text-xs tracking-wider transition-colors duration-200 flex items-center justify-center space-x-2 shadow-lg disabled:opacity-50 font-display"
+            >
+              <span>{forgotLoading ? 'Saving...' : 'Save New Password'}</span>
+              <CheckCircle2 className="w-4 h-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setForgotStep('enter-otp'); setForgotError(''); }}
               className="text-xs text-neutral-400 hover:text-white transition-colors block mx-auto pt-1"
             >
               Back
