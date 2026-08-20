@@ -377,6 +377,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPortal('storefront');
     localStorage.removeItem('madhav_user');
     localStorage.removeItem('madhav_token');
+    
+    // Clear carts and local retail orders so they don't leak into other accounts tested on the same browser
+    setCartItems([]);
+    localStorage.removeItem('madhav_cart');
+    setRetailCartItems([]);
+    localStorage.removeItem('madhav_retail_cart');
+    localStorage.removeItem('madhav_retail_orders_list');
   };
 
   const openAuth = (tab: 'signin' | 'signup' = 'signin') => {
