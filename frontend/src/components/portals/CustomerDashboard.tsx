@@ -267,7 +267,8 @@ export const CustomerDashboard: React.FC = () => {
     if (!token) return;
     setAddressLoading(true);
     try {
-      const url = addressId ? `/api/accounts/addresses/${addressId}/` : '/api/accounts/addresses/';
+      const baseUrl = import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com';
+      const url = addressId ? `${baseUrl}/api/accounts/addresses/${addressId}/` : `${baseUrl}/api/accounts/addresses/`;
       const method = addressId ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
