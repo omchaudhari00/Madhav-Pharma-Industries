@@ -48,7 +48,15 @@ if not SECRET_KEY:
 import dj_database_url
 
 allowed_hosts_env = os.getenv('ALLOWED_HOSTS', '')
-base_hosts = ['localhost', '127.0.0.1', '0.0.0.0', 'testserver', '.onrender.com', '.vercel.app', 'madhav-pharma-industries.onrender.com', 'madhav-pharma-industries.vercel.app']
+base_hosts = [
+    'localhost', '127.0.0.1', '0.0.0.0', 'testserver',
+    '.onrender.com', '.vercel.app',
+    'madhav-pharma-industries.onrender.com',
+    'madhav-pharma-industries.vercel.app',
+    'madhavpharmaindustries.com',
+    'www.madhavpharmaindustries.com',
+    'api.madhavpharmaindustries.com',
+]
 if allowed_hosts_env:
     ALLOWED_HOSTS = list(set(base_hosts + [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]))
 else:
