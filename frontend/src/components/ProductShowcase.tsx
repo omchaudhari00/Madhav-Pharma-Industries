@@ -82,7 +82,16 @@ const PRODUCTS: ProductShowcaseItem[] = [
 ];
 
 export const ProductShowcase: React.FC = () => {
-  const { addToCart, addToRetailCart, isProductOutOfStock, isRetailOutOfStock, isB2BOutOfStock, isDiscontinued, allProducts } = useApp();
+  const { 
+    addToCart, 
+    addToRetailCart, 
+    isProductOutOfStock, 
+    isRetailOutOfStock, 
+    isB2BOutOfStock, 
+    isDiscontinued, 
+    allProducts,
+    setViewingBulkProductId 
+  } = useApp();
   const [activeProductId, setActiveProductId] = useState<string>('cumin-seed-oil');
   const [retailQty, setRetailQty] = useState<Record<string, number>>({});
   const [cardMode, setCardMode] = useState<Record<string, 'retail' | 'bulk'>>({});
@@ -124,8 +133,29 @@ export const ProductShowcase: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-full my-8">
-      {/* New Style Product Box Grid: 1 col on mobile, 2 cols on tablet/ipad, 4 cols on desktop */}
+    <div className="w-full max-w-full my-8 space-y-6">
+      {/* Industrial B2B Bulk Announcement Banner */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-neutral-900 via-neutral-900/90 to-neutral-950 border border-[#d4a373]/40 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#d4a373]/20 border border-[#d4a373]/40 flex items-center justify-center text-[#d4a373] shrink-0">
+            <Factory className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-serif font-bold text-white">Looking for Industrial Raw Material Supply (1 KG &amp; 5 KG)?</h4>
+            <p className="text-xs text-neutral-400 font-sans-custom">100% natural, pure steam-distilled essential oils with GC-MS assay &amp; COA documentation.</p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setViewingBulkProductId('cumin-seed-oil')}
+          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#d4a373] hover:bg-[#c39262] text-black font-bold uppercase text-xs tracking-wider transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer shadow-md"
+        >
+          <span>View Bulk Catalog &amp; Specs</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {/* Product Box Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 font-display items-stretch">
         {visibleProducts.map((product) => {
           const mode = getMode(product.id);
@@ -279,18 +309,27 @@ export const ProductShowcase: React.FC = () => {
                     <span>{isOos ? 'OUT OF STOCK' : `ADD TO CART • ₹${(product.retailPrice || 299) * qty}`}</span>
                   </button>
                 ) : (
-                  <button
-                    onClick={() => !isOos && handleShopNow(product)}
-                    disabled={isOos}
-                    className={`w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer ${
-                      isOos
-                        ? 'bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed'
-                        : 'bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 font-extrabold shadow-md hover:shadow-lg active:scale-95'
-                    }`}
-                  >
-                    <span>{isOos ? 'OUT OF STOCK (BULK)' : 'REQUEST BULK QUOTE'}</span>
-                    {!isOos && <ArrowRight className="w-4 h-4" />}
-                  </button>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => setViewingBulkProductId(product.id)}
+                      className="w-full py-2.5 px-4 rounded-xl border border-white/20 hover:border-[#d4a373] bg-neutral-950/80 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer hover:bg-neutral-800"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-[#d4a373]" />
+                      <span>View 1kg/5kg Specs &amp; COA</span>
+                    </button>
+                    <button
+                      onClick={() => !isOos && handleShopNow(product)}
+                      disabled={isOos}
+                      className={`w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer ${
+                        isOos
+                          ? 'bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed'
+                          : 'bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 font-extrabold shadow-md hover:shadow-lg active:scale-95'
+                      }`}
+                    >
+                      <span>{isOos ? 'OUT OF STOCK (BULK)' : 'REQUEST BULK QUOTE'}</span>
+                      {!isOos && <ArrowRight className="w-4 h-4" />}
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

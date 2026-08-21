@@ -41,7 +41,7 @@ const getIndividualItems = (q: any) => {
 
 export const SalesDashboard: React.FC = () => {
   const { user, setPortal, logout } = useApp();
-  const [activeTab, setActiveTab] = useState<'quotes' | 'retail_orders' | 'customers' | 'orders' | 'notifications'>('quotes');
+  const [activeTab, setActiveTab] = useState<'quotes' | 'retail_orders' | 'customers' | 'orders' | 'notifications'>('retail_orders');
   const [selectedQuote, setSelectedQuote] = useState<any | null>(null);
 
   const [retailFilter, setRetailFilter] = useState('Preparing in Stock');
@@ -272,7 +272,7 @@ export const SalesDashboard: React.FC = () => {
         
         <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
           {[
-            { id: 'quotes', label: 'Quotes & Negotiations', icon: FileText, badge: myQuotes.length > 0 ? myQuotes.length.toString() : undefined },
+            // { id: 'quotes', label: 'Quotes & Negotiations', icon: FileText, badge: myQuotes.length > 0 ? myQuotes.length.toString() : undefined }, // COMMENTED OUT: Request Quote disabled
             { 
               id: 'retail_orders', 
               label: 'Retail Orders', 
@@ -345,8 +345,18 @@ export const SalesDashboard: React.FC = () => {
              </div>
           </div>
 
-        {/* Tab 1: QUOTES & NEGOTIATIONS */}
+        {/* Tab: QUOTES & NEGOTIATIONS — DISABLED (Request Quote feature temporarily paused) */}
         {activeTab === 'quotes' && (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-neutral-100 border border-neutral-200 flex items-center justify-center mb-4">
+              <FileText className="w-8 h-8 text-neutral-400" />
+            </div>
+            <h3 className="text-xl font-bold text-neutral-800 mb-2">Quotations Paused</h3>
+            <p className="text-neutral-500 text-sm max-w-sm">The Request Quote feature is temporarily disabled. All products are now sold at fixed rates through the online shop.</p>
+          </div>
+        )}
+        {/* OLD QUOTES BLOCK — DISABLED. Kept for future re-enablement. */}
+        {false && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left List of Quotes */}
             <div className={`${selectedQuote ? 'lg:col-span-7' : 'lg:col-span-12'} space-y-4`}>
@@ -524,7 +534,7 @@ export const SalesDashboard: React.FC = () => {
               </div>
             )}
           </div>
-        )}
+        )} {/* end false && OLD QUOTES BLOCK */}
 
         {/* Tab 2: RETAIL B2C ORDERS & FULFILLMENT DESK */}
         {activeTab === 'retail_orders' && (

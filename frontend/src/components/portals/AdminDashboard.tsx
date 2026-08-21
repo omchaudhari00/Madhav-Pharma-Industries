@@ -63,7 +63,6 @@ export const AdminDashboard: React.FC = () => {
   const [newProductImage, setNewProductImage] = useState('/images/all-oils.png');
   const [newProductUnitPrice, setNewProductUnitPrice] = useState<number | ''>(100);
   const [newProductRetailPrice, setNewProductRetailPrice] = useState<number | ''>(279);
-  const [newProductMoq, setNewProductMoq] = useState('5 KG');
   const [newProductGrade, setNewProductGrade] = useState('100% Steam Distilled • Pharmaceutical Grade');
   const [newProductAvailability, setNewProductAvailability] = useState<'In Stock' | 'Out of Stock'>('In Stock');
 
@@ -90,7 +89,6 @@ export const AdminDashboard: React.FC = () => {
       heroImage: newProductImage.trim() || '/images/all-oils.png',
       unitPrice: Number(newProductUnitPrice) || 100,
       retailPrice: Number(newProductRetailPrice) || 279,
-      moq: newProductMoq.trim() || '5 KG',
       grade: newProductGrade.trim() || '100% Steam Distilled • Pharmaceutical Grade',
       availability: newProductAvailability,
     };
@@ -110,7 +108,7 @@ export const AdminDashboard: React.FC = () => {
     setNewProductImage('/images/all-oils.png');
     setNewProductUnitPrice(100);
     setNewProductRetailPrice(279);
-    setNewProductMoq('5 KG');
+    setNewProductRetailPrice('299');
     setNewProductGrade('100% Steam Distilled • Pharmaceutical Grade');
   };
 
@@ -252,7 +250,7 @@ export const AdminDashboard: React.FC = () => {
   }, [activeTab, token]);
 
   const [editingProduct, setEditingProduct] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ b2bPrice: '', retailPrice: '', moq: '' });
+  const [editForm, setEditForm] = useState({ b2bPrice: '', retailPrice: '' });
 
   const [products, setProducts] = useState<any[]>([]);
 
@@ -262,7 +260,7 @@ export const AdminDashboard: React.FC = () => {
         id: i + 1,
         codeId: p.id,
         name: p.name,
-        moq: p.moq || '5 KG',
+        retailPrice: p.retailPrice?.toString() || '299',
         price: `₹${p.unitPrice}/KG`,
         availability: p.availability || 'In Stock',
         active: true
@@ -430,7 +428,7 @@ export const AdminDashboard: React.FC = () => {
             { id: 'overview', label: 'Overview', icon: TrendingUp },
             { id: 'quotes', label: 'Quotes & Pricing', icon: FileText, badge: quotes.length > 0 ? quotes.length.toString() : undefined },
             { id: 'customers', label: 'Customers & Leads', icon: Users, badge: customers.length > 0 ? customers.length.toString() : undefined },
-            { id: 'products', label: 'Products (MOQ & Stock)', icon: Package },
+            { id: 'products', label: 'Products & Pricing', icon: Package },
             { id: 'sales', label: 'Sales Team', icon: Briefcase },
             { id: 'orders', label: 'Orders & Invoices', icon: ShoppingBag },
             { id: 'settings', label: 'Company & GST Settings', icon: SettingsIcon },
@@ -746,8 +744,8 @@ export const AdminDashboard: React.FC = () => {
             <div className="p-8 rounded-3xl bg-white border border-neutral-200 shadow-sm border border-neutral-200 space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-2xl font-serif font-bold text-neutral-900">Product Catalog & MOQ Management</h3>
-                  <p className="text-sm text-neutral-600 mt-1">Admin has full control to add/edit products, MOQ, upload certificates, and toggle availability.</p>
+                  <h3 className="text-2xl font-serif font-bold text-neutral-900">Product Catalog & Pricing</h3>
+                  <p className="text-sm text-neutral-600 mt-1">Admin has full control to edit products, prices, upload certificates, and toggle availability.</p>
                 </div>
               </div>
 
@@ -759,7 +757,7 @@ export const AdminDashboard: React.FC = () => {
                     <tr className="border-b border-neutral-200 text-neutral-600 text-xs uppercase tracking-wider font-semibold">
                       <th className="py-3 px-4">ID</th>
                       <th className="py-3 px-4">Product Name</th>
-                      <th className="py-3 px-4">MOQ</th>
+                      {/* removed MOQ column */}
                       <th className="py-3 px-4">Unit Price</th>
                       <th className="py-3 px-4">Retail Stock</th>
                       <th className="py-3 px-4">B2B Bulk Stock</th>
@@ -777,7 +775,7 @@ export const AdminDashboard: React.FC = () => {
                         <tr key={p.id} className="hover:bg-neutral-100 transition-colors">
                           <td className="py-4 px-4 font-mono text-neutral-600">#{p.id}</td>
                           <td className="py-4 px-4 font-bold text-neutral-900">{p.name}</td>
-                          <td className="py-4 px-4 font-mono text-amber-200">{p.moq}</td>
+                          {/* removed MOQ cell */}
                           <td className="py-4 px-4 font-mono text-neutral-900">{p.price}</td>
                           <td className="py-4 px-4">
                             <span className={`inline-flex items-center justify-center px-3 py-1 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${retailOos
@@ -835,16 +833,14 @@ export const AdminDashboard: React.FC = () => {
                               <button
                                 onClick={() => {
                                   const parsedPrice = p.price.replace(/[^0-9]/g, '');
-                                  const parsedMoq = p.moq.replace(/[^0-9]/g, '');
                                   setEditingProduct(p);
                                   setEditForm({
                                     b2bPrice: parsedPrice,
-                                    retailPrice: Math.round(Number(parsedPrice) * 0.75).toString(),
-                                    moq: parsedMoq + ' KG'
+                                    retailPrice: p.retailPrice?.toString() || Math.round(Number(parsedPrice) * 0.75).toString()
                                   });
                                 }}
                                 className="px-3 py-1.5 rounded-xl bg-[#d4a373]/20 hover:bg-[#d4a373] text-[#d4a373] hover:text-black border border-[#d4a373]/40 text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1"
-                                title="Edit Product Pricing & MOQ"
+                                title="Edit Product Pricing"
                               >
                                 <PenLine className="w-3.5 h-3.5" />
                                 <span>Edit Price</span>
@@ -1095,16 +1091,8 @@ export const AdminDashboard: React.FC = () => {
 
                     <div>
                       <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1.5">
-                        Minimum Order Quantity (MOQ)
+                        {/* removed MOQ add input */}
                       </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. 5 KG"
-                        value={newProductMoq}
-                        onChange={(e) => setNewProductMoq(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-white border border-neutral-200 rounded-xl text-sm text-neutral-900 focus:border-[#d4a373] focus:outline-none font-mono"
-                      />
                     </div>
                   </div>
 
@@ -1287,7 +1275,7 @@ export const AdminDashboard: React.FC = () => {
             {/* Form */}
             <div className="space-y-6">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">B2B Bulk Unit Price (₹/KG) *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">B2B Base Price (Per Litre)</label>
                 <input 
                   type="text" 
                   value={editForm.b2bPrice}
@@ -1309,14 +1297,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">Minimum Order Quantity (MOQ)</label>
-                <input 
-                  type="text" 
-                  value={editForm.moq}
-                  onChange={(e) => setEditForm({ ...editForm, moq: e.target.value })}
-                  className="w-full bg-neutral-900 border border-white/5 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#d4a373]/50 focus:ring-1 focus:ring-[#d4a373]/50 transition-all font-mono"
-                  placeholder="e.g. 5 KG"
-                />
+                {/* removed MOQ input */}
               </div>
             </div>
 
@@ -1336,12 +1317,12 @@ export const AdminDashboard: React.FC = () => {
                     // Update Admin UI state
                     setProducts(prev => prev.map(prod => prod.id === editingProduct.id ? { 
                       ...prod, 
-                      price: `₹${editForm.b2bPrice}/KG`,
-                      moq: editForm.moq 
+                      price: `₹${editForm.b2bPrice}/Litre`,
+                      retailPrice: editForm.retailPrice
                     } : prod));
                     
                     // Update global AppContext state
-                    updateProductDetails(editingProduct.codeId, parsedB2b, parsedRetail, editForm.moq);
+                    updateProductDetails(editingProduct.codeId, parsedB2b, parsedRetail);
                     
                     setEditingProduct(null);
                   }}

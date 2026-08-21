@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, ShoppingBag, User, LogOut, Info, Package, Factory, Phone, LogIn } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useNavigate } from 'react-router-dom';
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { openAuth, openCart, cartTotalCount, user, logout, setPortal, currentPortal, openRetailCheckout, retailCartTotalCount } = useApp();
+  const navigate = useNavigate();
 
   const totalCartCount = retailCartTotalCount + cartTotalCount;
 
@@ -76,12 +78,12 @@ export const Navbar: React.FC = () => {
           >
             About Us
           </a>
-          <a
-            href="#products"
-            className="hover:text-white transition-colors duration-200 py-1"
+          <button
+            onClick={() => navigate('/products')}
+            className="text-[#d4a373] hover:text-white transition-colors duration-200 py-1 cursor-pointer font-bold"
           >
-            Products
-          </a>
+            Shop
+          </button>
           <a
             href="#manufacturing"
             className="hover:text-white transition-colors duration-200 py-1"
@@ -173,14 +175,16 @@ export const Navbar: React.FC = () => {
                 <Info className="w-5 h-5 text-[#d4a373]" />
                 <span>About Us</span>
               </a>
-              <a
-                href="#products"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center space-x-3 p-3.5 rounded-xl hover:bg-neutral-900/90 text-neutral-200 hover:text-white transition-colors text-base font-medium border border-transparent hover:border-neutral-800"
+              <button
+                onClick={() => {
+                  navigate('/products');
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center space-x-3 p-3.5 rounded-xl bg-[#d4a373]/10 hover:bg-[#d4a373]/20 text-[#d4a373] transition-colors text-base font-bold border border-[#d4a373]/30 cursor-pointer"
               >
                 <Package className="w-5 h-5 text-[#d4a373]" />
-                <span>Products</span>
-              </a>
+                <span>Shop</span>
+              </button>
               <a
                 href="#manufacturing"
                 onClick={() => setMobileMenuOpen(false)}

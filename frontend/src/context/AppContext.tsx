@@ -44,7 +44,6 @@ export interface ProductShowcaseItem {
   heroImage: string;
   unitPrice: number;
   retailPrice?: number;
-  moq?: string;
   grade: string;
   availability?: 'In Stock' | 'Out of Stock';
 }
@@ -63,7 +62,6 @@ export const DEFAULT_PRODUCTS: ProductShowcaseItem[] = [
     heroImage: '/images/cumin-seed-oil.png',
     unitPrice: 120,
     retailPrice: 299,
-    moq: '5 KG',
     grade: '100% Steam Distilled • Pharmaceutical Grade',
     availability: 'In Stock',
   },
@@ -80,7 +78,6 @@ export const DEFAULT_PRODUCTS: ProductShowcaseItem[] = [
     heroImage: '/images/fennel-oil.jpg',
     unitPrice: 85,
     retailPrice: 249,
-    moq: '10 KG',
     grade: '100% Steam Distilled • Food & Wellness Grade',
     availability: 'In Stock',
   },
@@ -97,7 +94,6 @@ export const DEFAULT_PRODUCTS: ProductShowcaseItem[] = [
     heroImage: '/images/ajwain-oil.png',
     unitPrice: 95,
     retailPrice: 279,
-    moq: '5 KG',
     grade: '100% Steam Distilled • Pharma Grade',
     availability: 'In Stock',
   },
@@ -114,7 +110,6 @@ export const DEFAULT_PRODUCTS: ProductShowcaseItem[] = [
     heroImage: '/images/all-oils.png',
     unitPrice: 150,
     retailPrice: 349,
-    moq: '5 KG',
     grade: '100% Steam Distilled • Pharma & Wellness Grade',
     availability: 'In Stock',
   },
@@ -167,7 +162,9 @@ interface AppContextType {
   allProducts: ProductShowcaseItem[];
   addProduct: (product: ProductShowcaseItem) => void;
   deleteProduct: (id: string) => void;
-  updateProductDetails: (id: string, b2bPrice: number, retailPrice: number, moq: string) => void;
+  updateProductDetails: (id: string, b2bPrice: number, retailPrice: number) => void;
+  viewingBulkProductId: string | null;
+  setViewingBulkProductId: (id: string | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -182,6 +179,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>(INITIAL_CART_ITEMS);
   const [currentPortal, setPortal] = useState<'storefront' | 'admin' | 'sales' | 'customer'>('storefront');
+  const [viewingBulkProductId, setViewingBulkProductId] = useState<string | null>(null);
 
   const [shopMode, setShopMode] = useState<'retail' | 'bulk'>('retail');
   const [retailCartItems, setRetailCartItems] = useState<RetailCartItem[]>([]);
@@ -277,6 +275,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setIsRetailCheckoutOpen(true);
         } else if (hash === 'privacy' || hash === 'terms' || hash === 'refund') {
           setLegalModalTab(hash as any);
+        } else if (hash.startsWith('bulk-') || hash === 'bulk-products' || hash === 'bulk') {
+          const productId = hash.replace('bulk-', '');
+          setViewingBulkProductId(productId || 'cumin-seed-oil');
         } else if (basePortal === 'admin' || basePortal === 'sales' || basePortal === 'customer') {
           try {
             const storedUser = localStorage.getItem('madhav_user');
@@ -595,10 +596,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const updateProductDetails = (id: string, b2bPrice: number, retailPrice: number, moq: string) => {
+  const updateProductDetails = (id: string, b2bPrice: number, retailPrice: number) => {
     setAllProducts(prev => {
       const updated = prev.map(p => 
-        p.id === id ? { ...p, unitPrice: b2bPrice, retailPrice: retailPrice, moq: moq } : p
+        p.id === id ? { ...p, unitPrice: b2bPrice, retailPrice: retailPrice } : p
       );
       try {
         localStorage.setItem('madhav_all_products', JSON.stringify(updated));
@@ -659,6 +660,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         legalModalTab,
         openLegalModal,
         closeLegalModal,
+        viewingBulkProductId,
+        setViewingBulkProductId,
       }}
     >
       {children}

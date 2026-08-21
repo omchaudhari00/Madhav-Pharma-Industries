@@ -1,10 +1,10 @@
 "use client";
 
 import React from 'react';
-import { useApp } from '../context/AppContext';
+import { useNavigate } from 'react-router-dom';
 
 export const HeroSection: React.FC = () => {
-  const { openCart } = useApp();
+  const navigate = useNavigate();
 
   return (
     <section id="hero" className="relative w-full min-h-[calc(100vh-88px)] bg-transparent text-black sm:text-white flex flex-col justify-center px-6 sm:px-8 xl:px-12 py-8 max-w-7xl mx-auto overflow-hidden font-display">
@@ -38,25 +38,16 @@ export const HeroSection: React.FC = () => {
             Leading manufacturer of 100% steam distilled essential oils with high purity and strong aroma. Trusted by pharmaceutical and food industries worldwide.
           </p>
 
-          {/* Action Buttons: Request Quote & Explore Products */}
+          {/* Action Button: Explore Products only */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center xl:justify-end gap-4 sm:gap-6 font-display w-full sm:w-auto">
             <button
-              onClick={openCart}
+              onClick={() => navigate('/products')}
               className="group relative inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-white/20 sm:bg-white/10 backdrop-blur-md border border-white/30 text-white font-display text-xs sm:text-sm font-bold uppercase tracking-wider shadow-[0_8px_32px_0_rgba(0,0,0,0.12)] hover:shadow-[0_12px_40px_0_rgba(0,0,0,0.25)] hover:bg-white hover:text-neutral-950 hover:scale-105 active:scale-95 transition-all duration-300 w-full sm:w-auto cursor-pointer"
-            >
-              <span className="relative z-10 flex items-center justify-center">
-                Request Quote
-              </span>
-            </button>
-
-            <a
-              href="#products"
-              className="group relative inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-white/20 sm:bg-white/10 backdrop-blur-md border border-white/30 text-white font-display text-xs sm:text-sm font-bold uppercase tracking-wider shadow-[0_8px_32px_0_rgba(0,0,0,0.12)] hover:shadow-[0_12px_40px_0_rgba(0,0,0,0.25)] hover:bg-white hover:text-neutral-950 hover:scale-105 active:scale-95 transition-all duration-300 w-full sm:w-auto text-center"
             >
               <span className="relative z-10 flex items-center justify-center">
                 Explore Products
               </span>
-            </a>
+            </button>
           </div>
         </div>
       </div>

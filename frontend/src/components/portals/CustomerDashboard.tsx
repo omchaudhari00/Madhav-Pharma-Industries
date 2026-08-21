@@ -759,11 +759,11 @@ export const CustomerDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Tab 3: PHARMA PRODUCTS & MOQ */}
+        {/* Tab 3: PHARMA PRODUCTS */}
         {activeTab === 'products' && (
           <div className="p-8 rounded-3xl bg-white shadow-sm backdrop-blur-xl border border-neutral-200 shadow-xl space-y-6">
             <div>
-              <h3 className="text-2xl font-serif font-bold text-neutral-900">Madhav Pharma Products & Minimum Orders</h3>
+              <h3 className="text-2xl font-serif font-bold text-neutral-900">Madhav Pharma Products</h3>
               <p className="text-sm text-neutral-500 mt-1">100% steam distilled natural essential oils with GC-MS and COA certification.</p>
             </div>
 
@@ -778,10 +778,6 @@ export const CustomerDashboard: React.FC = () => {
                   <div>
                     <h4 className="font-bold text-neutral-900 text-base">{p.name}</h4>
                     <p className="text-xs text-[#d4a373] mt-1">{p.grade}</p>
-                    <div className="mt-4 text-xs text-neutral-600">
-                      <span className="text-neutral-500">Minimum Order Quantity (MOQ):</span>
-                      <strong className="text-neutral-900 block text-sm mt-0.5">{p.moq}</strong>
-                    </div>
                   </div>
 
                   <button 
