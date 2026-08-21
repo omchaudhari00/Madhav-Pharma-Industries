@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { openAuth, openCart, cartTotalCount, user, logout, setPortal, currentPortal, openRetailCheckout, retailCartTotalCount } = useApp();
+  const { openAuth, openCart, cartTotalCount, user, logout, openRetailCheckout, retailCartTotalCount } = useApp();
   const navigate = useNavigate();
 
   const totalCartCount = retailCartTotalCount + cartTotalCount;
@@ -100,19 +100,6 @@ export const Navbar: React.FC = () => {
 
         {/* Right Actions: Cart Logo Icon & SIGN IN / UP or User Profile */}
         <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-          {/* Smart Cart Pure Icon Button (No Box/Border) */}
-          <button
-            onClick={handleCartClick}
-            className="relative group p-1.5 text-[#d4a373] hover:text-white transition-all duration-300 flex items-center justify-center shrink-0 cursor-pointer"
-            aria-label="View Cart"
-          >
-            <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 text-[#d4a373] group-hover:text-white transition-colors" />
-            {totalCartCount > 0 && (
-              <span className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#d4a373] text-neutral-950 text-[10px] font-extrabold flex items-center justify-center shadow-md">
-                {totalCartCount}
-              </span>
-            )}
-          </button>
 
           {/* User Logged In State vs Sign In / Up */}
           {user ? (
@@ -120,9 +107,9 @@ export const Navbar: React.FC = () => {
               {/* Glassmorphism Theme Desktop User Profile Button (All Roles: Admin, Sales, Customer) */}
               <button
                 onClick={() => {
-                  if (user.role === 'Admin') setPortal('admin');
-                  else if (user.role === 'Sales') setPortal('sales');
-                  else setPortal('customer');
+                  if (user.role === 'Admin') navigate('/admin');
+                  else if (user.role === 'Sales') navigate('/sales');
+                  else navigate('/customer');
                 }}
                 className="group relative inline-flex items-center justify-center px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/25 hover:border-[#d4a373]/60 text-white font-display text-xs font-bold uppercase tracking-wider hover:shadow-[0_0_20px_rgba(212,163,115,0.25)] hover:scale-105 active:scale-95 transition-all duration-300 shrink-0 cursor-pointer overflow-hidden"
                 title={`Open My Portal (${user.role})`}
@@ -228,9 +215,9 @@ export const Navbar: React.FC = () => {
                   {/* Glassmorphism Theme Mobile & iPad Profile Button (All Roles: Admin, Sales, Customer) */}
                   <button
                     onClick={() => {
-                      if (user.role === 'Admin') setPortal('admin');
-                      else if (user.role === 'Sales') setPortal('sales');
-                      else setPortal('customer');
+                      if (user.role === 'Admin') navigate('/admin');
+                      else if (user.role === 'Sales') navigate('/sales');
+                      else navigate('/customer');
                       setMobileMenuOpen(false);
                     }}
                     className="w-full relative group flex items-center justify-between p-3.5 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/25 hover:border-[#d4a373]/60 text-white font-display font-medium text-sm hover:shadow-[0_0_20px_rgba(212,163,115,0.25)] active:scale-95 transition-all duration-300 cursor-pointer overflow-hidden"

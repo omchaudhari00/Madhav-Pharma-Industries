@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   ShieldCheck, Users, Package, FileText, Briefcase,
   ShoppingBag, Settings as SettingsIcon, TrendingUp,
@@ -33,6 +34,48 @@ const renderStatusBadge = (status: string) => {
   );
 };
 
+const compressImage = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.7)); // compress to JPEG 70%
+        } else {
+          resolve(e.target?.result as string);
+        }
+      };
+      img.onerror = () => reject('Image load error');
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject('File read error');
+    reader.readAsDataURL(file);
+  });
+};
+
 export const AdminDashboard: React.FC = () => {
   const {
     user,
@@ -52,6 +95,7 @@ export const AdminDashboard: React.FC = () => {
     token,
     logout,
   } = useApp();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<
     'overview' | 'quotes' | 'customers' | 'products' | 'sales' | 'orders' | 'settings' | 'logs'
   >('overview');
@@ -250,7 +294,7 @@ export const AdminDashboard: React.FC = () => {
   }, [activeTab, token]);
 
   const [editingProduct, setEditingProduct] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ b2bPrice: '', retailPrice: '' });
+  const [editForm, setEditForm] = useState({ b2bPrice: '', retailPrice: '', images: [] as string[] });
 
   const [products, setProducts] = useState<any[]>([]);
 
@@ -412,7 +456,7 @@ export const AdminDashboard: React.FC = () => {
       {/* LEFT SIDEBAR */}
       <aside className="w-64 bg-[#d4a373] flex flex-col shadow-xl z-20">
         <button 
-          onClick={() => setPortal('storefront')}
+          onClick={() => navigate('/')}
           className="p-6 border-b border-black/10 flex items-center gap-3 text-left hover:bg-black/5 transition-colors cursor-pointer focus:outline-none"
           title="Return to Storefront"
         >
@@ -468,7 +512,7 @@ export const AdminDashboard: React.FC = () => {
               <p className="text-black font-semibold truncate text-sm">{user?.first_name} {user?.last_name}</p>
               <p className="text-xs text-neutral-800 truncate">{user?.email}</p>
             </div>
-            <button onClick={() => setPortal('storefront')} className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-black/20 text-black hover:bg-black/5 text-xs font-bold uppercase transition-colors mb-2">
+            <button onClick={() => navigate('/')} className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-black/20 text-black hover:bg-black/5 text-xs font-bold uppercase transition-colors mb-2">
             <ArrowLeft className="w-4 h-4" /> Back to Storefront
           </button>
           <button onClick={logout} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-black text-white hover:bg-neutral-800 text-xs font-bold uppercase transition-colors">
@@ -833,10 +877,20 @@ export const AdminDashboard: React.FC = () => {
                               <button
                                 onClick={() => {
                                   const parsedPrice = p.price.replace(/[^0-9]/g, '');
+                                  const targetProduct = allProducts.find(ap => ap.id === p.codeId);
+                                  const existingCustom = targetProduct?.customImages;
+                                  let initImages: string[] = [];
+                                  if (existingCustom !== undefined) {
+                                      initImages = existingCustom;
+                                  } else {
+                                      initImages = ['/images/bulk_1l.jpg'];
+                                  }
+
                                   setEditingProduct(p);
                                   setEditForm({
                                     b2bPrice: parsedPrice,
-                                    retailPrice: p.retailPrice?.toString() || Math.round(Number(parsedPrice) * 0.75).toString()
+                                    retailPrice: p.retailPrice?.toString() || Math.round(Number(parsedPrice) * 0.75).toString(),
+                                    images: initImages
                                   });
                                 }}
                                 className="px-3 py-1.5 rounded-xl bg-[#d4a373]/20 hover:bg-[#d4a373] text-[#d4a373] hover:text-black border border-[#d4a373]/40 text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1"
@@ -1263,7 +1317,7 @@ export const AdminDashboard: React.FC = () => {
                   <PenLine className="w-6 h-6 text-black" />
                 </div>
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">Edit Product Pricing</h3>
+                  <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">Edit Product &amp; Pricing</h3>
                   <p className="text-sm text-neutral-400 mt-0.5">{editingProduct.name}</p>
                 </div>
               </div>
@@ -1299,6 +1353,51 @@ export const AdminDashboard: React.FC = () => {
               <div>
                 {/* removed MOQ input */}
               </div>
+              
+              <div className="mt-6 border-t border-white/10 pt-6">
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">Product Images (Max 3)</label>
+                <div className="flex flex-wrap gap-4">
+                  {editForm.images.map((img, idx) => (
+                    <div key={idx} className="relative w-24 h-24 rounded-xl border border-white/10 overflow-hidden group">
+                      <img src={img} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
+                      <button 
+                        onClick={() => setEditForm(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }))}
+                        className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remove image"
+                      >
+                        <Trash2 className="w-6 h-6 text-red-400" />
+                      </button>
+                    </div>
+                  ))}
+                  {editForm.images.length < 3 && (
+                    <label className="w-24 h-24 rounded-xl border-2 border-dashed border-white/20 hover:border-[#d4a373] hover:bg-[#d4a373]/10 flex flex-col items-center justify-center cursor-pointer transition-colors">
+                      <Plus className="w-6 h-6 text-neutral-400" />
+                      <span className="text-[10px] text-neutral-500 mt-1 uppercase font-bold tracking-wider">Upload</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            try {
+                              const compressedBase64 = await compressImage(file);
+                              setEditForm(prev => ({ ...prev, images: [...prev.images, compressedBase64] }));
+                            } catch(err) {
+                              console.error("Compression failed", err);
+                              alert("Failed to compress image");
+                            }
+                          }
+                          e.target.value = ''; // reset
+                        }} 
+                      />
+                    </label>
+                  )}
+                </div>
+                <p className="text-[10px] text-neutral-500 mt-3 leading-relaxed">
+                  First image will be the primary cover. Automatically compressed to save storage space.
+                </p>
+              </div>
             </div>
 
             {/* Footer */}
@@ -1322,7 +1421,7 @@ export const AdminDashboard: React.FC = () => {
                     } : prod));
                     
                     // Update global AppContext state
-                    updateProductDetails(editingProduct.codeId, parsedB2b, parsedRetail);
+                    updateProductDetails(editingProduct.codeId, parsedB2b, parsedRetail, editForm.images);
                     
                     setEditingProduct(null);
                   }}

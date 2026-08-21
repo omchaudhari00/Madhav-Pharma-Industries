@@ -46,6 +46,7 @@ export interface ProductShowcaseItem {
   retailPrice?: number;
   grade: string;
   availability?: 'In Stock' | 'Out of Stock';
+  customImages?: string[];
 }
 
 export const DEFAULT_PRODUCTS: ProductShowcaseItem[] = [
@@ -147,8 +148,6 @@ interface AppContextType {
   updateQuantity: (id: string, quantityKg: number) => void;
   clearCart: () => void;
   cartTotalCount: number;
-  currentPortal: 'storefront' | 'admin' | 'sales' | 'customer';
-  setPortal: (portal: 'storefront' | 'admin' | 'sales' | 'customer') => void;
   outOfStockProducts: Record<string, boolean>;
   toggleProductStock: (productId: string) => void;
   isProductOutOfStock: (productId: string) => boolean;
@@ -162,7 +161,7 @@ interface AppContextType {
   allProducts: ProductShowcaseItem[];
   addProduct: (product: ProductShowcaseItem) => void;
   deleteProduct: (id: string) => void;
-  updateProductDetails: (id: string, b2bPrice: number, retailPrice: number) => void;
+  updateProductDetails: (id: string, b2bPrice: number, retailPrice: number, customImages?: string[]) => void;
   viewingBulkProductId: string | null;
   setViewingBulkProductId: (id: string | null) => void;
 }
@@ -178,7 +177,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup'>('signin');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>(INITIAL_CART_ITEMS);
-  const [currentPortal, setPortal] = useState<'storefront' | 'admin' | 'sales' | 'customer'>('storefront');
   const [viewingBulkProductId, setViewingBulkProductId] = useState<string | null>(null);
 
   const [shopMode, setShopMode] = useState<'retail' | 'bulk'>('retail');
@@ -278,33 +276,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         } else if (hash.startsWith('bulk-') || hash === 'bulk-products' || hash === 'bulk') {
           const productId = hash.replace('bulk-', '');
           setViewingBulkProductId(productId || 'cumin-seed-oil');
-        } else if (basePortal === 'admin' || basePortal === 'sales' || basePortal === 'customer') {
-          try {
-            const storedUser = localStorage.getItem('madhav_user');
-            if (storedUser) {
-              const u = JSON.parse(storedUser);
-              if (basePortal === 'admin' && u.role === 'Admin') {
-                setPortal('admin');
-              } else if (basePortal === 'sales' && u.role === 'Sales') {
-                setPortal('sales');
-              } else if (basePortal === 'customer' && (u.role === 'Customer' || !u.role)) {
-                setPortal('customer');
-              } else {
-                setPortal('storefront');
-                window.history.replaceState(null, '', window.location.pathname + window.location.search);
-              }
-            } else {
-              // Not logged in, redirect to sign in
-              setPortal('storefront');
-              setAuthModalTab('signin');
-              setIsAuthModalOpen(true);
-              window.history.replaceState(null, '', '#signin');
-            }
-          } catch (e) {
-            setPortal('storefront');
-          }
-        } else {
-          setPortal('storefront');
         }
       };
 
@@ -340,8 +311,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         newHash = '#cart';
       } else if (isRetailCheckoutOpen) {
         newHash = '#checkout';
-      } else if (currentPortal !== 'storefront') {
-        newHash = `#${currentPortal}`;
       }
       
       if (newHash === '') {
@@ -358,7 +327,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           window.history.pushState(null, '', newHash);
         }
       }
-    }, [isAuthModalOpen, authModalTab, isCartOpen, isRetailCheckoutOpen, currentPortal]);
+    }, [isAuthModalOpen, authModalTab, isCartOpen, isRetailCheckoutOpen]);
 
   const login = (userData: UserProfile, tokenStr?: string) => {
     setUser(userData);
@@ -367,15 +336,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setToken(tokenStr);
       localStorage.setItem('madhav_token', tokenStr);
     }
-    if (userData.role === 'Admin') setPortal('admin');
-    else if (userData.role === 'Sales') setPortal('sales');
-    else setPortal('customer');
   };
 
   const logout = () => {
     setUser(null);
     setToken(null);
-    setPortal('storefront');
     localStorage.removeItem('madhav_user');
     localStorage.removeItem('madhav_token');
     
@@ -596,10 +561,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const updateProductDetails = (id: string, b2bPrice: number, retailPrice: number) => {
+  const updateProductDetails = (id: string, b2bPrice: number, retailPrice: number, customImages?: string[]) => {
     setAllProducts(prev => {
       const updated = prev.map(p => 
-        p.id === id ? { ...p, unitPrice: b2bPrice, retailPrice: retailPrice } : p
+        p.id === id ? { ...p, unitPrice: b2bPrice, retailPrice: retailPrice, ...(customImages !== undefined && { customImages }) } : p
       );
       try {
         localStorage.setItem('madhav_all_products', JSON.stringify(updated));
@@ -630,8 +595,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateQuantity,
         clearCart,
         cartTotalCount,
-        currentPortal,
-        setPortal,
         outOfStockProducts,
         toggleProductStock,
         isProductOutOfStock,

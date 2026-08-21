@@ -107,7 +107,7 @@ export const AboutSection: React.FC = () => {
     ...allProducts.slice(0, 2).map(p => ({
       id: `${p.id}-bulk`,
       name: `${p.categoryTitle} Oil — Bulk`,
-      image: p.cardImage,
+      image: '/images/bulk_1l.jpg',
       price: `₹${p.unitPrice.toLocaleString('en-IN')}`,
       type: 'bulk' as const,
       badge: 'B2B RAW OIL',

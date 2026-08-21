@@ -328,20 +328,27 @@ export const RetailCheckoutModal: React.FC = () => {
     };
   }, [isRetailCheckoutOpen]);
 
-  if (!isRetailCheckoutOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden font-display" data-lenis-prevent="true">
-      {/* Simple Backdrop Blur (Without Heavy Black Tint) */}
+    <div 
+      className={`fixed inset-0 z-50 overflow-hidden font-display transition-all duration-500 ${
+        isRetailCheckoutOpen ? 'visible' : 'invisible pointer-events-none delay-500'
+      }`} 
+      data-lenis-prevent="true"
+    >
+      {/* Simple Backdrop Blur */}
       <div
-        className="absolute inset-0 backdrop-blur-md bg-black/20 transition-all duration-300"
+        className={`absolute inset-0 backdrop-blur-md bg-black/40 transition-opacity duration-500 ${
+          isRetailCheckoutOpen ? 'opacity-100' : 'opacity-0'
+        }`}
         onClick={handleClose}
       />
 
       <div className="absolute inset-y-0 right-0 w-full lg:w-auto flex pl-0 lg:pl-10">
         {/* Modal Drawer (Full Screen on Mobile & iPad < 1024px) */}
-        <div 
-          className="w-full lg:w-screen lg:max-w-2xl bg-neutral-950 border-l border-neutral-800 text-white shadow-2xl flex flex-col h-full max-h-screen overflow-hidden"
+        <div
+          className={`w-full lg:w-screen lg:max-w-2xl bg-neutral-950 border-l border-neutral-800 text-white shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col h-full max-h-screen overflow-hidden transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            isRetailCheckoutOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
           data-lenis-prevent="true"
         >
           {/* Top Header */}
@@ -359,15 +366,16 @@ export const RetailCheckoutModal: React.FC = () => {
                   {step === 'paid'
                     ? 'Invoice Paid & Status'
                     : step === 'checkout'
-                    ? 'Secure Amazon-Style Checkout'
-                    : '50ml Retail Cart'}
+                      ? 'Secure Amazon-Style Checkout'
+                      // : '50ml Retail Cart'}
+                      : 'Your Cart'}
                 </h2>
                 <p className="text-xs text-[#d4a373] font-medium">
                   {step === 'paid'
                     ? `Order ID: #${orderId}`
                     : step === 'checkout'
-                    ? '100% Guaranteed Steam Distilled Purity • Verified Delivery'
-                    : '100% Pure Essential Oils • Fixed Price Store'}
+                      ? '100% Guaranteed Steam Distilled Purity • Verified Delivery'
+                      : '100% Pure Essential Oils • Fixed Price Store'}
                 </p>
               </div>
             </div>
@@ -391,7 +399,7 @@ export const RetailCheckoutModal: React.FC = () => {
             </div>
           </div>
 
-          {/* Cart Switcher Tabs (Only shown in 'cart' step) */}
+          {/* Cart Switcher Tabs (Commented out for now as per owner discussion)
           {step === 'cart' && (
             <div className="flex items-center p-1 bg-neutral-900 border-b border-neutral-800 text-xs font-bold shrink-0">
               <button
@@ -412,6 +420,8 @@ export const RetailCheckoutModal: React.FC = () => {
               </button>
             </div>
           )}
+          */}
+
 
           {/* Body Content */}
           <div className="flex-1 overflow-y-auto overscroll-contain min-h-0 p-5 sm:p-6 space-y-6" data-lenis-prevent="true">

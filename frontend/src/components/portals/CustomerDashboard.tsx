@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   FileText, ShoppingBag, User, Package, ArrowLeft, 
   CheckCircle, XCircle, RefreshCw, Award, Clock, 
@@ -41,7 +42,8 @@ const getIndividualItems = (q: any) => {
 };
 
 export const CustomerDashboard: React.FC = () => {
-  const { user, setPortal, openCart, token, logout, login } = useApp();
+  const { user, openCart, token, logout, login } = useApp();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'quotes' | 'orders' | 'products' | 'profile'>('quotes');
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
@@ -344,7 +346,7 @@ export const CustomerDashboard: React.FC = () => {
       {/* LEFT SIDEBAR */}
       <aside className="w-64 bg-[#d4a373] flex flex-col shadow-xl z-20">
         <button 
-          onClick={() => setPortal('storefront')}
+          onClick={() => navigate('/')}
           className="p-6 border-b border-black/10 flex items-center gap-3 text-left hover:bg-black/5 transition-colors cursor-pointer focus:outline-none"
           title="Return to Storefront"
         >
@@ -396,7 +398,7 @@ export const CustomerDashboard: React.FC = () => {
               <p className="text-black font-semibold truncate text-sm">{user?.first_name} {user?.last_name}</p>
               <p className="text-xs text-neutral-800 truncate">{user?.email}</p>
             </div>
-            <button onClick={() => setPortal('storefront')} className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-black/20 text-black hover:bg-black/5 text-xs font-bold uppercase transition-colors mb-2">
+            <button onClick={() => navigate('/')} className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-black/20 text-black hover:bg-black/5 text-xs font-bold uppercase transition-colors mb-2">
             <ArrowLeft className="w-4 h-4" /> Back to Storefront
           </button>
           <button onClick={logout} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-black text-white hover:bg-neutral-800 text-xs font-bold uppercase transition-colors">
@@ -781,7 +783,7 @@ export const CustomerDashboard: React.FC = () => {
                   </div>
 
                   <button 
-                    onClick={() => setPortal('storefront')}
+                    onClick={() => navigate('/')}
                     className="mt-6 w-full py-2.5 rounded-xl bg-white/10 hover:bg-[#d4a373] hover:text-white text-xs font-bold uppercase transition-all"
                   >
                     Request Bulk Quote

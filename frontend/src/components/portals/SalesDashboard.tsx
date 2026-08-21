@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Briefcase, FileText, Users, ShoppingBag, Bell, 
   PhoneCall, DollarSign, Send, ArrowLeft, MessageSquare,
@@ -40,7 +41,8 @@ const getIndividualItems = (q: any) => {
 };
 
 export const SalesDashboard: React.FC = () => {
-  const { user, setPortal, logout } = useApp();
+  const { user, logout } = useApp();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'quotes' | 'retail_orders' | 'customers' | 'orders' | 'notifications'>('retail_orders');
   const [selectedQuote, setSelectedQuote] = useState<any | null>(null);
 
@@ -259,7 +261,7 @@ export const SalesDashboard: React.FC = () => {
       {/* LEFT SIDEBAR */}
       <aside className="w-64 bg-[#d4a373] flex flex-col shadow-xl z-20">
         <button 
-          onClick={() => setPortal('storefront')}
+          onClick={() => navigate('/')}
           className="p-6 border-b border-black/10 flex items-center gap-3 text-left hover:bg-black/5 transition-colors cursor-pointer focus:outline-none"
           title="Return to Storefront"
         >
@@ -317,7 +319,7 @@ export const SalesDashboard: React.FC = () => {
               <p className="text-black font-semibold truncate text-sm">{user?.first_name} {user?.last_name}</p>
               <p className="text-xs text-neutral-800 truncate">{user?.email}</p>
             </div>
-            <button onClick={() => setPortal('storefront')} className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-black/20 text-black hover:bg-black/5 text-xs font-bold uppercase transition-colors mb-2">
+            <button onClick={() => navigate('/')} className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-black/20 text-black hover:bg-black/5 text-xs font-bold uppercase transition-colors mb-2">
             <ArrowLeft className="w-4 h-4" /> Back to Storefront
           </button>
           <button onClick={logout} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-black text-white hover:bg-neutral-800 text-xs font-bold uppercase transition-colors">

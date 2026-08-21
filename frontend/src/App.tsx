@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { AboutSection } from './components/AboutSection';
@@ -14,11 +14,27 @@ import { AdminDashboard } from './components/portals/AdminDashboard';
 import { SalesDashboard } from './components/portals/SalesDashboard';
 import { CustomerDashboard } from './components/portals/CustomerDashboard';
 import { ShopPage } from './components/ShopPage';
+import { ProductDetailPage } from './components/ProductDetailPage';
+import { FloatingCartButton } from './components/FloatingCartButton';
+
+const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
+  const { user } = useApp();
+  
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+  
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 const AppContent: React.FC = () => {
-  const { currentPortal } = useApp();
+  const location = useLocation();
   const [isLoading, setIsLoading] = React.useState(true);
-  const previousPortal = React.useRef(currentPortal);
+  const previousPath = React.useRef(location.pathname);
 
   React.useEffect(() => {
     // Show premium splash screen for 1.5s on app load
@@ -30,10 +46,10 @@ const AppContent: React.FC = () => {
 
   React.useEffect(() => {
     // Trigger loading screen on portal changes
-    if (currentPortal !== previousPortal.current) {
-      const isEnteringCustomerSide = currentPortal === 'customer';
-      const isExitingCustomerSideToStorefront = previousPortal.current === 'customer' && currentPortal === 'storefront';
-      previousPortal.current = currentPortal;
+    if (location.pathname !== previousPath.current) {
+      const isEnteringCustomerSide = location.pathname.startsWith('/customer');
+      const isExitingCustomerSideToStorefront = previousPath.current.startsWith('/customer') && (location.pathname === '/' || location.pathname.startsWith('/products'));
+      previousPath.current = location.pathname;
 
       if (isEnteringCustomerSide || isExitingCustomerSideToStorefront) {
         setIsLoading(true);
@@ -43,7 +59,7 @@ const AppContent: React.FC = () => {
         return () => clearTimeout(timer);
       }
     }
-  }, [currentPortal]);
+  }, [location.pathname]);
 
   if (isLoading) {
     return (
@@ -61,18 +77,39 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Portals override the route display
-  if (currentPortal === 'admin') return <AdminDashboard />;
-  if (currentPortal === 'sales') return <SalesDashboard />;
-  if (currentPortal === 'customer') return <CustomerDashboard />;
-
   return (
     <>
       <Routes>
+        {/* Portals */}
+        <Route path="/admin" element={
+          <ProtectedRoute allowedRoles={['Admin']}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/sales" element={
+          <ProtectedRoute allowedRoles={['Sales']}>
+            <SalesDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/customer" element={
+          <ProtectedRoute allowedRoles={['Customer', 'Admin', 'Sales']}>
+            <CustomerDashboard />
+          </ProtectedRoute>
+        } />
         {/* /products — Dedicated Shop Page */}
         <Route path="/products" element={
           <>
             <ShopPage />
+            <RetailCheckoutModal />
+            <AuthModal />
+            <LegalModals />
+          </>
+        } />
+
+        {/* /product/:id — Individual Product Detail Page */}
+        <Route path="/product/:id" element={
+          <>
+            <ProductDetailPage />
             <RetailCheckoutModal />
             <AuthModal />
             <LegalModals />
@@ -124,6 +161,7 @@ const AppContent: React.FC = () => {
           </SmoothScroll>
         } />
       </Routes>
+      <FloatingCartButton />
       <LegalModals />
     </>
   );

@@ -4,8 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, Phone, User, CheckCircle2, ArrowRight, ShieldCheck, KeyRound, AlertCircle, MapPin, Eye, EyeOff } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
+import { useNavigate } from 'react-router-dom';
+
 export const AuthModal: React.FC = () => {
-  const { isAuthModalOpen, authModalTab, closeAuth, openAuth, login, setPortal } = useApp();
+  const { isAuthModalOpen, authModalTab, closeAuth, openAuth, login } = useApp();
+  const navigate = useNavigate();
 
   // Sign In State
   const [signInIdentifier, setSignInIdentifier] = useState('');
@@ -129,9 +132,9 @@ export const AuthModal: React.FC = () => {
         };
 
         login(userObj, data.tokens?.access || 'demo-token');
-        if (userObj.role === 'Admin') setPortal('admin');
-        else if (userObj.role === 'Sales') setPortal('sales');
-        else setPortal('customer');
+        if (userObj.role === 'Admin') navigate('/admin');
+        else if (userObj.role === 'Sales') navigate('/sales');
+        else navigate('/customer');
         closeAuth();
         setSignInLoading(false);
         return;

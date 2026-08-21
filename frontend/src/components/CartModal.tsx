@@ -4,8 +4,11 @@ import React, { useState } from 'react';
 import { X, Trash2, ShoppingBag, Plus, Minus, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
+import { useNavigate } from 'react-router-dom';
+
 export const CartModal: React.FC = () => {
-  const { isCartOpen, closeCart, cartItems, updateQuantity, removeFromCart, clearCart, openAuth, user, token, setPortal, openRetailCheckout, retailCartTotalCount, cartTotalCount } = useApp();
+  const { isCartOpen, closeCart, cartItems, updateQuantity, removeFromCart, clearCart, openAuth, user, token, openRetailCheckout, retailCartTotalCount, cartTotalCount } = useApp();
+  const navigate = useNavigate();
   const [expectedPrices, setExpectedPrices] = useState<Record<string, string>>({});
   const [qtyInputs, setQtyInputs] = useState<Record<string, string>>({});
 
@@ -82,7 +85,7 @@ export const CartModal: React.FC = () => {
     alert(`Quotation request sent for ${cartItems.length} product(s)! Our Sales team has received your request.`);
     clearCart();
     closeCart();
-    setPortal('customer');
+    navigate('/customer');
   };
 
   return (
