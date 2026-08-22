@@ -56,7 +56,7 @@ export const ProductDetailPage: React.FC = () => {
     sizeLabel = '50ml';
     category = 'Therapeutic Formulation';
     specs = ['50ml Glass Bottle', baseProduct.grade.split('•')[1]?.trim() || baseProduct.grade];
-    description = `Therapeutic-grade ${baseProduct.categoryTitle.toLowerCase()} formulation for safe human wellness and daily use. Rich in natural compounds and carefully steam-distilled for maximum efficacy.`;
+    description = baseProduct.description || `Therapeutic-grade ${baseProduct.categoryTitle.toLowerCase()} formulation for safe human wellness and daily use. Rich in natural compounds and carefully steam-distilled for maximum efficacy.`;
   } else if (isBulk) {
     if (selectedSize === '1l') {
       productName = `${baseProduct.categoryTitle} Essential Oil (1 Litre)`;
@@ -65,7 +65,7 @@ export const ProductDetailPage: React.FC = () => {
       sizeLabel = '1L';
       category = 'B2B Raw Material';
       specs = ['1 Litre Amber Glass Bottle', '100% Pure Unadulterated', 'Industrial Grade'];
-      description = `100% pure steam-distilled ${baseProduct.categoryTitle.toLowerCase()} extract. Ideal for industrial manufacturing, pharmaceutical formulation, and commercial processing.`;
+      description = baseProduct.description || `100% pure steam-distilled ${baseProduct.categoryTitle.toLowerCase()} extract. Ideal for industrial manufacturing, pharmaceutical formulation, and commercial processing.`;
       defaultImage = '/images/bulk_1l.jpg';
     } else {
       productName = `${baseProduct.categoryTitle} Essential Oil (5 Litre)`;
@@ -74,7 +74,7 @@ export const ProductDetailPage: React.FC = () => {
       sizeLabel = '5L';
       category = 'B2B Bulk Material';
       specs = ['5 Litre HDPE Industrial Drum', '100% Pure Unadulterated', 'Industrial Grade'];
-      description = `100% pure steam-distilled ${baseProduct.categoryTitle.toLowerCase()} extract in bulk packaging. Designed for high-volume industrial and commercial manufacturing pipelines.`;
+      description = baseProduct.description || `100% pure steam-distilled ${baseProduct.categoryTitle.toLowerCase()} extract in bulk packaging. Designed for high-volume industrial and commercial manufacturing pipelines.`;
       defaultImage = '/images/bulk_5l.jpg';
     }
   }
@@ -181,9 +181,70 @@ export const ProductDetailPage: React.FC = () => {
               <h1 className="text-4xl sm:text-5xl font-serif font-bold text-white leading-tight mb-4">
                 {productName}
               </h1>
-              <p className="text-lg text-neutral-400 font-sans-custom leading-relaxed">
-                {description}
-              </p>
+              {baseId === 'weight-loss-oil' ? (
+                <div className="space-y-6 mt-4">
+                  <p className="text-xl font-medium text-white italic border-l-4 border-[#d4a373] pl-4">
+                    Healthy Body, Fit Life – Now Lose Weight Naturally
+                  </p>
+                  <p className="text-base text-neutral-300 font-sans-custom leading-relaxed">
+                    A 100% natural herbal and Ayurvedic oil designed to boost your metabolism and support your detoxification journey.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white/5 rounded-2xl p-5 border border-white/10">
+                      <h4 className="text-[#d4a373] font-extrabold mb-4 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4" /> Key Benefits
+                      </h4>
+                      <ul className="space-y-3">
+                        <li className="flex items-start gap-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0" />
+                          <p className="text-xs text-neutral-300"><strong className="text-white">Helps in Weight Loss:</strong> Actively assists in your weight management goals.</p>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0" />
+                          <p className="text-xs text-neutral-300"><strong className="text-white">Boosts Metabolism:</strong> Accelerates your body's natural fat-burning processes.</p>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0" />
+                          <p className="text-xs text-neutral-300"><strong className="text-white">100% Natural Ingredients:</strong> Formulated purely from nature's best elements.</p>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0" />
+                          <p className="text-xs text-neutral-300"><strong className="text-white">Improves Digestion:</strong> Enhances and strengthens your digestive power.</p>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0" />
+                          <p className="text-xs text-neutral-300"><strong className="text-white">Detoxifies & Purifies:</strong> Cleanses the body by flushing out toxins.</p>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-[#d4a373]/10 rounded-2xl p-5 border border-[#d4a373]/20">
+                      <h4 className="text-[#d4a373] font-extrabold mb-4 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <Zap className="w-4 h-4" /> Why Choose This Oil?
+                      </h4>
+                      <ul className="space-y-3">
+                        <li className="flex items-start gap-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#d4a373] mt-2 shrink-0" />
+                          <p className="text-xs text-neutral-300"><strong className="text-white">No Side Effects:</strong> Completely safe for regular use.</p>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#d4a373] mt-2 shrink-0" />
+                          <p className="text-xs text-neutral-300"><strong className="text-white">Safe & Effective:</strong> A trusted Ayurvedic formulation.</p>
+                        </li>
+                        <li className="flex items-start gap-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#d4a373] mt-2 shrink-0" />
+                          <p className="text-xs text-neutral-300"><strong className="text-white">Visible Results:</strong> See the difference in your wellness journey.</p>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-lg text-neutral-400 font-sans-custom leading-relaxed">
+                  {description}
+                </p>
+              )}
             </div>
 
             {/* Specifications */}

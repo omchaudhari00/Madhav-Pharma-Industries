@@ -294,7 +294,7 @@ export const AdminDashboard: React.FC = () => {
   }, [activeTab, token]);
 
   const [editingProduct, setEditingProduct] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ b2bPrice: '', retailPrice: '', images: [] as string[] });
+  const [editForm, setEditForm] = useState({ price: '', description: '', images: [] as string[] });
 
   const [products, setProducts] = useState<any[]>([]);
 
@@ -882,14 +882,16 @@ export const AdminDashboard: React.FC = () => {
                                   let initImages: string[] = [];
                                   if (existingCustom !== undefined) {
                                       initImages = existingCustom;
-                                  } else {
-                                      initImages = ['/images/bulk_1l.jpg'];
+                                  } else if (targetProduct?.heroImage) {
+                                      initImages = [targetProduct.heroImage];
+                                  } else if (targetProduct?.cardImage) {
+                                      initImages = [targetProduct.cardImage];
                                   }
 
                                   setEditingProduct(p);
                                   setEditForm({
-                                    b2bPrice: parsedPrice,
-                                    retailPrice: p.retailPrice?.toString() || Math.round(Number(parsedPrice) * 0.75).toString(),
+                                    price: parsedPrice,
+                                    description: targetProduct?.description || '',
                                     images: initImages
                                   });
                                 }}
@@ -1329,29 +1331,25 @@ export const AdminDashboard: React.FC = () => {
             {/* Form */}
             <div className="space-y-6">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">B2B Base Price (Per Litre)</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">Product Price (₹)</label>
                 <input 
                   type="text" 
-                  value={editForm.b2bPrice}
-                  onChange={(e) => setEditForm({ ...editForm, b2bPrice: e.target.value })}
+                  value={editForm.price}
+                  onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
                   className="w-full bg-neutral-900 border border-white/5 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#d4a373]/50 focus:ring-1 focus:ring-[#d4a373]/50 transition-all font-mono"
-                  placeholder="e.g. 1200"
+                  placeholder="e.g. 150"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">Retail Store Bottle Price (₹/50ML) *</label>
-                <input 
-                  type="text" 
-                  value={editForm.retailPrice}
-                  onChange={(e) => setEditForm({ ...editForm, retailPrice: e.target.value })}
-                  className="w-full bg-neutral-900 border border-white/5 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#d4a373]/50 focus:ring-1 focus:ring-[#d4a373]/50 transition-all font-mono"
-                  placeholder="e.g. 885"
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">Product Description</label>
+                <textarea 
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  rows={4}
+                  className="w-full bg-neutral-900 border border-white/5 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#d4a373]/50 focus:ring-1 focus:ring-[#d4a373]/50 transition-all"
+                  placeholder="Enter a detailed description for this product..."
                 />
-              </div>
-
-              <div>
-                {/* removed MOQ input */}
               </div>
               
               <div className="mt-6 border-t border-white/10 pt-6">
@@ -1410,18 +1408,17 @@ export const AdminDashboard: React.FC = () => {
               </button>
               <button 
                 onClick={() => {
-                    const parsedB2b = Number(editForm.b2bPrice);
-                    const parsedRetail = Number(editForm.retailPrice);
+                    const parsedPrice = Number(editForm.price);
                     
                     // Update Admin UI state
                     setProducts(prev => prev.map(prod => prod.id === editingProduct.id ? { 
                       ...prod, 
-                      price: `₹${editForm.b2bPrice}/Litre`,
-                      retailPrice: editForm.retailPrice
+                      price: `₹${editForm.price}`,
+                      retailPrice: parsedPrice
                     } : prod));
                     
                     // Update global AppContext state
-                    updateProductDetails(editingProduct.codeId, parsedB2b, parsedRetail, editForm.images);
+                    updateProductDetails(editingProduct.codeId, parsedPrice, parsedPrice, editForm.images, editForm.description);
                     
                     setEditingProduct(null);
                   }}

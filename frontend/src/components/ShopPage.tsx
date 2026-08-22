@@ -93,37 +93,36 @@ const ShopCard: React.FC<{ product: ShopProduct }> = ({ product }) => {
 /* ─── Main Shop Page ─── */
 export const ShopPage: React.FC = () => {
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState<'herbal' | 'bulk'>('herbal');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  
   const { allProducts, openRetailCheckout, retailCartTotalCount } = useApp();
 
-  const herbalProducts: ShopProduct[] = allProducts.map(p => ({
-    id: `${p.id}-herbal`,
-    baseId: p.id,
-    name: p.name,
-    shortName: `${p.categoryTitle} ${p.categorySubtitle}`,
-    image: p.customImages !== undefined ? (p.customImages[0] || '/images/favicon-circle.png') : p.cardImage,
-    badgeText: p.badgeText,
-    category: 'herbal',
-    price: p.retailPrice || 299,
-    priceLabel: 'Price per 50ml bottle',
-  }));
-
-  // Consolidate Bulk mapping: 1 card per product
-  const bulkProducts: ShopProduct[] = allProducts.map(p => ({
-    id: `${p.id}-bulk`,
-    baseId: p.id,
-    name: `${p.categoryTitle} Essential Oil (Bulk)`,
-    shortName: `${p.categoryTitle} Oil (Bulk)`,
-    image: p.customImages !== undefined ? (p.customImages[0] || '/images/favicon-circle.png') : '/images/bulk_1l.jpg',
-    badgeText: 'B2B RAW OIL',
-    category: 'bulk',
-    price: p.unitPrice,
-    priceLabel: 'Starting at (1L)',
-  }));
-
-  const products = activeSection === 'herbal' ? herbalProducts : bulkProducts;
+  const shopProducts: ShopProduct[] = allProducts.map(p => {
+    if (p.id === 'weight-loss-oil') {
+      return {
+        id: `${p.id}-herbal`,
+        baseId: p.id,
+        name: p.name,
+        shortName: `${p.categoryTitle} ${p.categorySubtitle}`,
+        image: p.customImages !== undefined ? (p.customImages[0] || '/images/favicon-circle.png') : p.cardImage,
+        badgeText: p.badgeText,
+        category: 'herbal',
+        price: p.retailPrice || 349,
+        priceLabel: 'Price per 50ml bottle',
+      };
+    } else {
+      return {
+        id: `${p.id}-bulk`,
+        baseId: p.id,
+        name: `${p.categoryTitle} Essential Oil (Bulk)`,
+        shortName: `${p.categoryTitle} Oil (Bulk)`,
+        image: p.customImages !== undefined ? (p.customImages[0] || '/images/favicon-circle.png') : '/images/bulk_1l.jpg',
+        badgeText: 'B2B RAW OIL',
+        category: 'bulk',
+        price: p.unitPrice,
+        priceLabel: 'Starting at (1L)',
+      };
+    }
+  });
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white font-display">
@@ -143,152 +142,28 @@ export const ShopPage: React.FC = () => {
 
             <div className="flex items-center gap-2">
               <img src="/images/favicon-circle.png" alt="Logo" className="w-7 h-7 rounded-full object-cover border border-[#d4a373]/40" />
-              <span className="font-bold text-white text-sm tracking-tight">Shop</span>
-              <ChevronRight className="w-3.5 h-3.5 text-neutral-500" />
-              <span className="text-[#d4a373] font-bold text-sm">
-                {activeSection === 'herbal' ? 'Herbal Products' : 'Pure Natural Oils'}
-              </span>
+              <span className="font-bold text-white text-sm tracking-tight">Shop All Products</span>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSidebarOpen(o => !o)}
-              className="lg:hidden p-2 rounded-xl bg-white/10 hover:bg-white/15 text-white transition-colors cursor-pointer"
-            >
-              {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-            </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex gap-8 relative">
-        {/* ─── Left Sidebar ─── */}
-        {/* Mobile overlay */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/60 z-30 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-
-        <aside className={`
-          w-64 shrink-0
-          ${sidebarOpen
-            ? 'fixed left-0 top-0 h-full z-40 flex flex-col pt-20 px-4 bg-neutral-950 border-r border-white/10 overflow-y-auto'
-            : 'hidden lg:block'
-          }
-        `}>
-          <div className="sticky top-24 space-y-2">
-            <p className="text-[10px] font-extrabold text-neutral-500 uppercase tracking-widest mb-4 px-2">
-              Categories
-            </p>
-
-            {/* Herbal Products Section */}
-            <button
-              onClick={() => { setActiveSection('herbal'); setSidebarOpen(false); }}
-              className={`w-full text-left px-4 py-4 rounded-2xl border transition-all cursor-pointer ${activeSection === 'herbal'
-                ? 'bg-[#d4a373]/15 border-[#d4a373]/50 text-white'
-                : 'bg-neutral-900/40 border-white/10 text-neutral-400 hover:border-white/20 hover:text-white'
-                }`}
-            >
-              <div className="flex items-center gap-3 mb-1">
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${activeSection === 'herbal' ? 'bg-[#d4a373]/30 text-[#d4a373]' : 'bg-neutral-800 text-neutral-400'
-                  }`}>
-                  <Leaf className="w-4 h-4" />
-                </div>
-                <span className="font-bold text-sm">Herbal Products</span>
-              </div>
-              <p className="text-[11px] text-neutral-500 ml-11 leading-snug">
-                50ml therapeutic bottles safe for daily use
-              </p>
-              <div className="mt-2 ml-11 flex flex-wrap gap-1">
-                {herbalProducts.map(p => (
-                  <span key={p.id} className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-neutral-400">
-                    {p.shortName.split(' ')[0]}
-                  </span>
-                ))}
-              </div>
-            </button>
-
-            {/* Pure Natural Oils Section */}
-            <button
-              onClick={() => { setActiveSection('bulk'); setSidebarOpen(false); }}
-              className={`w-full text-left px-4 py-4 rounded-2xl border transition-all cursor-pointer ${activeSection === 'bulk'
-                ? 'bg-[#d4a373]/15 border-[#d4a373]/50 text-white'
-                : 'bg-neutral-900/40 border-white/10 text-neutral-400 hover:border-white/20 hover:text-white'
-                }`}
-            >
-              <div className="flex items-center gap-3 mb-1">
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${activeSection === 'bulk' ? 'bg-[#d4a373]/30 text-[#d4a373]' : 'bg-neutral-800 text-neutral-400'
-                  }`}>
-                  <Droplets className="w-4 h-4" />
-                </div>
-                <span className="font-bold text-sm">Pure Natural Oils</span>
-              </div>
-              <p className="text-[11px] text-neutral-500 ml-11 leading-snug">
-                1L &amp; 5L raw essential oils for industrial/B2B use
-              </p>
-              <div className="mt-2 ml-11 flex flex-wrap gap-1">
-                {bulkProducts.map(p => (
-                  <span key={p.id} className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-neutral-400">
-                    {p.shortName.split(' ')[0]}
-                  </span>
-                ))}
-              </div>
-            </button>
-
-            {/* Info Box */}
-            <div className="mt-6 p-4 rounded-2xl bg-neutral-900/40 border border-white/8 space-y-2">
-              <div className="flex items-center gap-2 text-[#d4a373]">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span className="text-xs font-bold">Fixed Pricing</span>
-              </div>
-              <p className="text-[11px] text-neutral-500 leading-relaxed">
-                All products are sold at listed fixed rates. No quotation needed — simply add to cart and checkout.
-              </p>
-            </div>
-
-            {/* Quick Info for Bulk */}
-            {activeSection === 'bulk' && (
-              <div className="p-4 rounded-2xl bg-[#d4a373]/8 border border-[#d4a373]/25 space-y-2">
-                <div className="flex items-center gap-2 text-[#d4a373]">
-                  <Package className="w-4 h-4 shrink-0" />
-                  <span className="text-xs font-bold">B2B Packaging</span>
-                </div>
-                <p className="text-[11px] text-neutral-400 leading-relaxed">
-                  1L amber glass bottles or 5L HDPE industrial containers. COA documentation available on request.
-                </p>
-              </div>
-            )}
-          </div>
-        </aside>
-
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* ─── Main Content ─── */}
-        <main className="flex-1 min-w-0">
+        <main className="w-full">
           {/* Section Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${activeSection === 'herbal' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-[#d4a373]/20 text-[#d4a373]'
-                }`}>
-                {activeSection === 'herbal' ? <Leaf className="w-5 h-5" /> : <Droplets className="w-5 h-5" />}
-              </div>
-              <div>
-                <h1 className="text-2xl font-serif font-bold text-white">
-                  {activeSection === 'herbal' ? 'Herbal Products' : 'Pure Natural Oils'}
-                </h1>
-                <p className="text-xs text-neutral-400 font-sans-custom">
-                  {activeSection === 'herbal'
-                    ? '50ml therapeutic formulations — researched &amp; safe for human use'
-                    : '1L &amp; 5L raw steam-distilled essential oils — for industrial &amp; B2B use'}
-                </p>
-              </div>
-            </div>
-            <div className="h-px bg-gradient-to-r from-[#d4a373]/40 to-transparent mt-4" />
+          <div className="mb-10 text-center">
+            <h1 className="text-3xl md:text-4xl font-serif font-bold text-white mb-3">
+              Madhav Pharma Collection
+            </h1>
+            <p className="text-sm text-neutral-400 font-sans-custom max-w-2xl mx-auto">
+              100% natural essential oils and therapeutic remedies. Carefully steam-distilled and formulated for your wellness and vitality.
+            </p>
+            <div className="h-px bg-gradient-to-r from-transparent via-[#d4a373]/40 to-transparent mt-8" />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            {products.map(product =>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {shopProducts.map(product =>
               <ShopCard key={product.id} product={product} />
             )}
           </div>

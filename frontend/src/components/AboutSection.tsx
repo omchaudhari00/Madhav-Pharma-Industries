@@ -92,28 +92,34 @@ export const AboutSection: React.FC = () => {
   const navigate = useNavigate();
   const { allProducts } = useApp();
 
-  const previewProducts: PreviewProduct[] = [
-    // Top 2 Herbal
-    ...allProducts.slice(0, 2).map(p => ({
-      id: p.id,
-      name: p.name,
-      image: p.cardImage,
-      price: `₹${p.retailPrice || 299}`,
+  const heroProduct = allProducts.find(p => p.id === 'weight-loss-oil') || allProducts[0];
+  const bulkCandidates = allProducts.filter(p => p.id !== heroProduct?.id).slice(0, 3);
+
+  const previewProducts: PreviewProduct[] = [];
+  
+  if (heroProduct) {
+    previewProducts.push({
+      id: heroProduct.id,
+      name: heroProduct.name,
+      image: heroProduct.cardImage,
+      price: `₹${heroProduct.retailPrice || 299}`,
       type: 'herbal' as const,
-      badge: p.badgeText,
-      specs: ['50ml Bottle', p.grade.split('•')[1]?.trim() || p.grade],
-    })),
-    // Top 2 Bulk
-    ...allProducts.slice(0, 2).map(p => ({
+      badge: heroProduct.badgeText,
+      specs: ['50ml Bottle', heroProduct.grade.split('•')[1]?.trim() || heroProduct.grade],
+    });
+  }
+
+  bulkCandidates.forEach(p => {
+    previewProducts.push({
       id: `${p.id}-bulk`,
       name: `${p.categoryTitle} Oil — Bulk`,
-      image: '/images/bulk_1l.jpg',
+      image: p.customImages?.[0] || '/images/bulk_1l.jpg',
       price: `₹${p.unitPrice.toLocaleString('en-IN')}`,
       type: 'bulk' as const,
       badge: 'B2B RAW OIL',
       specs: ['1L / 5L Available', 'Industrial Grade'],
-    }))
-  ];
+    });
+  });
 
   return (
     <>

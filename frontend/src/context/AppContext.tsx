@@ -47,25 +47,43 @@ export interface ProductShowcaseItem {
   grade: string;
   availability?: 'In Stock' | 'Out of Stock';
   customImages?: string[];
+  description?: string;
 }
 
 export const DEFAULT_PRODUCTS: ProductShowcaseItem[] = [
   {
+    id: 'weight-loss-oil',
+    name: 'Completely Natural Remedy for Weight Loss',
+    categoryTitle: 'Weight Loss',
+    categorySubtitle: 'Remedy',
+    titleWhite: 'Weight Loss',
+    titleGold: 'Remedy',
+    badgeText: '100% Natural & Herbal',
+    specs: ['Helps in Weight Loss', 'Boosts Metabolism', '100% Natural Ingredients', 'Improves Digestion', 'Detoxifies & Purifies'],
+    cardImage: '/images/weight-loss-oil.jpg',
+    heroImage: '/images/weight-loss-oil.jpg',
+    unitPrice: 150,
+    retailPrice: 349,
+    grade: '100% Natural Herbal & Ayurvedic',
+    availability: 'In Stock',
+  },
+  {
     id: 'cumin-seed-oil',
     name: 'Pure Cumin Seed Oil (Jeera Oil)',
     categoryTitle: 'Cumin',
-    categorySubtitle: 'Seed Oil',
+    categorySubtitle: 'Seed',
     titleWhite: 'Cumin',
-    titleGold: 'Seed Oil',
-    badgeText: 'BEST SELLER',
-    specs: ['100% Pure & Natural', 'Steam Distilled', 'Essential Oil'],
-    cardImage: '/images/cumin-seed-oil.png',
-    heroImage: '/images/cumin-seed-oil.png',
-    unitPrice: 120,
+    titleGold: 'Seed',
+    badgeText: 'Anti-inflammatory',
+    specs: ['Digestive Aid', 'Immunity Booster', 'Skin Clarity', 'Warm & Spicy Aroma', 'Relieves Bloating'],
+    cardImage: '/images/cumin_product.jpg',
+    heroImage: '/images/cumin_hero.jpg',
+    unitPrice: 2200,
     retailPrice: 299,
-    grade: '100% Steam Distilled • Pharmaceutical Grade',
+    grade: '100% Pure • Premium Therapeutic Grade',
     availability: 'In Stock',
   },
+
   {
     id: 'fennel-seed-oil',
     name: 'Natural Fennel Seed Oil',
@@ -161,7 +179,7 @@ interface AppContextType {
   allProducts: ProductShowcaseItem[];
   addProduct: (product: ProductShowcaseItem) => void;
   deleteProduct: (id: string) => void;
-  updateProductDetails: (id: string, b2bPrice: number, retailPrice: number, customImages?: string[]) => void;
+  updateProductDetails: (id: string, b2bPrice: number, retailPrice: number, customImages?: string[], description?: string) => void;
   viewingBulkProductId: string | null;
   setViewingBulkProductId: (id: string | null) => void;
 }
@@ -525,9 +543,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const stored = localStorage.getItem('madhav_all_products');
       if (stored) {
-        const parsed = JSON.parse(stored);
+        let parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // If we have saved products, use them (they contain price edits + custom products)
+          let updated = false;
+          // Filter out the mistakenly added product
+          if (parsed.find((p: ProductShowcaseItem) => p.id === 'cumin-seed-retail')) {
+            parsed = parsed.filter((p: ProductShowcaseItem) => p.id !== 'cumin-seed-retail');
+            updated = true;
+          }
+          
+          // Merge missing default products (like newly added Weight Loss)
+          DEFAULT_PRODUCTS.forEach(dp => {
+            if (!parsed.find((p: ProductShowcaseItem) => p.id === dp.id)) {
+              parsed.push(dp);
+              updated = true;
+            }
+          });
+
+          // Cleanup tainted customImages from the Edit Price bug
+          parsed.forEach((p: ProductShowcaseItem) => {
+            if (p.customImages && p.customImages.length === 1 && p.customImages[0] === '/images/bulk_1l.jpg') {
+               delete p.customImages;
+               updated = true;
+            }
+          });
+          
+          // Force 'weight-loss-oil' to be first
+          parsed.sort((a: ProductShowcaseItem, b: ProductShowcaseItem) => {
+            if (a.id === 'weight-loss-oil') return -1;
+            if (b.id === 'weight-loss-oil') return 1;
+            return 0;
+          });
+
+          if (updated || parsed[0]?.id !== 'weight-loss-oil') {
+            localStorage.setItem('madhav_all_products', JSON.stringify(parsed));
+          }
           return parsed;
         }
       }
@@ -561,10 +611,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const updateProductDetails = (id: string, b2bPrice: number, retailPrice: number, customImages?: string[]) => {
+  const updateProductDetails = (id: string, b2bPrice: number, retailPrice: number, customImages?: string[], description?: string) => {
     setAllProducts(prev => {
       const updated = prev.map(p => 
-        p.id === id ? { ...p, unitPrice: b2bPrice, retailPrice: retailPrice, ...(customImages !== undefined && { customImages }) } : p
+        p.id === id ? { ...p, unitPrice: b2bPrice, retailPrice: retailPrice, ...(customImages !== undefined && { customImages }), ...(description !== undefined && { description }) } : p
       );
       try {
         localStorage.setItem('madhav_all_products', JSON.stringify(updated));

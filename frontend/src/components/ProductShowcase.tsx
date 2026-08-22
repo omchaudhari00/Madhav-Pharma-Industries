@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, Leaf, Droplets, Sparkles, ArrowRight, Package, Factory, AlertCircle, ShoppingBag } from 'lucide-react';
+import { Star, Leaf, Droplets, Sparkles, ArrowRight, Package, Factory, AlertCircle, ShoppingBag, FileText, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export interface ProductShowcaseItem {
@@ -18,91 +18,23 @@ export interface ProductShowcaseItem {
   grade: string;
 }
 
-const PRODUCTS: ProductShowcaseItem[] = [
-  {
-    id: 'cumin-seed-oil',
-    name: 'Pure Cumin Seed Oil (Jeera Oil)',
-    categoryTitle: 'Cumin',
-    categorySubtitle: 'Seed Oil',
-    titleWhite: 'Cumin',
-    titleGold: 'Seed Oil',
-    badgeText: 'BEST SELLER',
-    specs: ['100% Pure & Natural', 'Steam Distilled', 'Essential Oil'],
-    cardImage: '/images/cumin-seed-oil.png',
-    heroImage: '/images/cumin-seed-oil.png',
-    unitPrice: 120,
-    retailPrice: 299,
-    grade: '100% Steam Distilled • Pharmaceutical Grade',
-  },
-  {
-    id: 'fennel-seed-oil',
-    name: 'Natural Fennel Seed Oil',
-    categoryTitle: 'Fennel',
-    categorySubtitle: 'Seed Oil',
-    titleWhite: 'Fennel',
-    titleGold: 'Seed Oil',
-    badgeText: 'POPULAR CHOICE',
-    specs: ['100% Pure & Natural', 'Steam Distilled', 'Aromatic Essential Oil'],
-    cardImage: '/images/fennel-oil.jpg',
-    heroImage: '/images/fennel-oil.jpg',
-    unitPrice: 85,
-    retailPrice: 249,
-    grade: '100% Steam Distilled • Food & Wellness Grade',
-  },
-  {
-    id: 'ajwain-seed-oil',
-    name: 'Pure Ajwain Seed Oil',
-    categoryTitle: 'Ajwain',
-    categorySubtitle: 'Seed Oil',
-    titleWhite: 'Ajwain',
-    titleGold: 'Seed Oil',
-    badgeText: 'HIGH POTENCY',
-    specs: ['100% Pure & Natural', 'Steam Distilled', 'Therapeutic Grade'],
-    cardImage: '/images/ajwain-oil.png',
-    heroImage: '/images/ajwain-oil.png',
-    unitPrice: 95,
-    retailPrice: 279,
-    grade: '100% Steam Distilled • Pharma Grade',
-  },
-  {
-    id: 'black-seed-oil',
-    name: 'Pure Black Seed Oil (Kalonji Oil)',
-    categoryTitle: 'Black Seed',
-    categorySubtitle: 'Essential Oil',
-    titleWhite: 'Black Seed',
-    titleGold: 'Essential Oil',
-    badgeText: 'PREMIUM CHOICE',
-    specs: ['100% Pure & Cold Pressed/Distilled', 'Rich in Thymoquinone', 'Therapeutic Grade'],
-    cardImage: '/images/all-oils.png',
-    heroImage: '/images/all-oils.png',
-    unitPrice: 150,
-    retailPrice: 349,
-    grade: '100% Steam Distilled • Pharma & Wellness Grade',
-  },
-];
 
 export const ProductShowcase: React.FC = () => {
   const { 
     addToCart, 
     addToRetailCart, 
-    isProductOutOfStock, 
     isRetailOutOfStock, 
     isB2BOutOfStock, 
     isDiscontinued, 
     allProducts,
     setViewingBulkProductId 
   } = useApp();
-  const [activeProductId, setActiveProductId] = useState<string>('cumin-seed-oil');
+
   const [retailQty, setRetailQty] = useState<Record<string, number>>({});
-  const [cardMode, setCardMode] = useState<Record<string, 'retail' | 'bulk'>>({});
 
   const visibleProducts = allProducts.filter(p => !isDiscontinued(p.id));
-  const activeProduct = visibleProducts.find((p) => p.id === activeProductId) || visibleProducts[0] || allProducts[0] || PRODUCTS[0];
-
-  const getMode = (id: string) => cardMode[id] || 'retail';
-  const setMode = (id: string, mode: 'retail' | 'bulk') => {
-    setCardMode(prev => ({ ...prev, [id]: mode }));
-  };
+  const heroProduct = visibleProducts.find((p) => p.id === 'weight-loss-oil') || visibleProducts[0];
+  const bulkProducts = visibleProducts.filter(p => p.id !== heroProduct.id);
 
   const getQty = (id: string) => (retailQty[id] !== undefined ? retailQty[id] : 1);
   const changeQty = (id: string, delta: number) => {
@@ -133,51 +65,123 @@ export const ProductShowcase: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-full my-8 space-y-6">
-      {/* Industrial B2B Bulk Announcement Banner */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-neutral-900 via-neutral-900/90 to-neutral-950 border border-[#d4a373]/40 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#d4a373]/20 border border-[#d4a373]/40 flex items-center justify-center text-[#d4a373] shrink-0">
-            <Factory className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="text-sm font-serif font-bold text-white">Looking for Industrial Raw Material Supply (1 KG &amp; 5 KG)?</h4>
-            <p className="text-xs text-neutral-400 font-sans-custom">100% natural, pure steam-distilled essential oils with GC-MS assay &amp; COA documentation.</p>
+    <div className="w-full max-w-full my-8 space-y-12">
+      {/* ─── Hero Product Section ─── */}
+      <div className="relative rounded-[2rem] bg-neutral-900/40 backdrop-blur-3xl border border-white/10 overflow-hidden shadow-2xl flex flex-col md:flex-row items-center p-8 md:p-12 gap-10">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#d4a373]/40 to-transparent z-10" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-[#d4a373]/10 rounded-full blur-[100px] pointer-events-none" />
+        
+        {/* Hero Image */}
+        <div className="w-full md:w-1/3 relative z-10">
+          <div className="relative rounded-3xl bg-neutral-950/60 border border-white/10 aspect-[4/5] flex items-center justify-center p-6 shadow-xl overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-tr from-neutral-900/50 to-transparent" />
+            <img 
+              src={heroProduct.heroImage} 
+              alt={heroProduct.name} 
+              className="w-full h-full object-contain filter brightness-105 contrast-105 relative z-10 group-hover:scale-110 transition-transform duration-700"
+            />
+            {isRetailOutOfStock(heroProduct.id) ? (
+              <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-extrabold uppercase tracking-wider z-20">
+                Out of Stock
+              </div>
+            ) : (
+              <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-extrabold uppercase tracking-wider z-20 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                In Stock
+              </div>
+            )}
           </div>
         </div>
 
-        <button
-          onClick={() => setViewingBulkProductId('cumin-seed-oil')}
-          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#d4a373] hover:bg-[#c39262] text-black font-bold uppercase text-xs tracking-wider transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer shadow-md"
-        >
-          <span>View Bulk Catalog &amp; Specs</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </button>
+        {/* Hero Details */}
+        <div className="w-full md:w-2/3 flex flex-col justify-center space-y-6 relative z-10">
+          <div>
+            <span className="inline-block px-4 py-1.5 rounded-full bg-[#d4a373]/20 border border-[#d4a373]/50 text-[#d4a373] text-xs font-extrabold uppercase tracking-widest mb-4">
+              {heroProduct.badgeText}
+            </span>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white leading-tight mb-4">
+              {heroProduct.name}
+            </h2>
+            <p className="text-xl text-[#d4a373] italic font-medium border-l-4 border-[#d4a373] pl-4">
+              Healthy Body, Fit Life – Now Lose Weight Naturally
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2 pt-2">
+            {heroProduct.specs.slice(0, 3).map((spec, i) => (
+              <span key={i} className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-neutral-300 text-xs font-bold flex items-center gap-2 shadow-sm">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                {spec}
+              </span>
+            ))}
+          </div>
+
+          <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center gap-6">
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Fixed Retail Price</span>
+              <span className="text-4xl font-extrabold text-[#d4a373]">₹{heroProduct.retailPrice || 349} <span className="text-lg text-neutral-400">/ 50ml</span></span>
+            </div>
+
+            <div className="flex-1 w-full flex items-center gap-3">
+              <div className="flex items-center justify-between bg-neutral-950/80 border border-white/15 rounded-xl px-4 py-3 min-w-[120px]">
+                <button
+                  onClick={() => changeQty(heroProduct.id, -1)}
+                  className="w-8 h-8 rounded-lg bg-neutral-800 hover:bg-[#d4a373] hover:text-black text-white flex items-center justify-center font-bold text-lg transition-colors cursor-pointer"
+                >-</button>
+                <span className="text-base font-mono font-extrabold text-white w-8 text-center">{getQty(heroProduct.id)}</span>
+                <button
+                  onClick={() => changeQty(heroProduct.id, 1)}
+                  className="w-8 h-8 rounded-lg bg-neutral-800 hover:bg-[#d4a373] hover:text-black text-white flex items-center justify-center font-bold text-lg transition-colors cursor-pointer"
+                >+</button>
+              </div>
+
+              <button
+                onClick={() => !isRetailOutOfStock(heroProduct.id) && handleAddRetail(heroProduct)}
+                disabled={isRetailOutOfStock(heroProduct.id)}
+                className={`flex-1 py-4 px-6 rounded-xl font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-3 transition-all duration-300 cursor-pointer ${
+                  isRetailOutOfStock(heroProduct.id)
+                    ? 'bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed'
+                    : 'bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 font-extrabold shadow-lg hover:shadow-xl active:scale-95'
+                }`}
+              >
+                <ShoppingBag className="w-5 h-5" />
+                <span>{isRetailOutOfStock(heroProduct.id) ? 'OUT OF STOCK' : `BUY NOW • ₹${(heroProduct.retailPrice || 349) * getQty(heroProduct.id)}`}</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Product Box Grid */}
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent my-8" />
+
+      {/* ─── Bulk Oils Section ─── */}
+      <div className="mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 className="text-2xl font-serif font-bold text-white flex items-center gap-3">
+            <Droplets className="w-6 h-6 text-[#d4a373]" />
+            Pure Natural Oils <span className="text-sm font-sans font-bold text-neutral-500 uppercase tracking-widest mt-1">(B2B Bulk)</span>
+          </h3>
+          <p className="text-sm text-neutral-400 mt-1">100% pure steam-distilled essential oils available in 1L and 5L industrial drums.</p>
+        </div>
+      </div>
+
+      {/* Bulk Product Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 font-display items-stretch">
-        {visibleProducts.map((product) => {
-          const mode = getMode(product.id);
-          const qty = getQty(product.id);
-          const isRetailOos = isRetailOutOfStock(product.id);
-          const isB2bOos = isB2BOutOfStock(product.id);
-          const isOos = mode === 'retail' ? isRetailOos : isB2bOos;
+        {bulkProducts.map((product) => {
+          const isOos = isB2BOutOfStock(product.id);
 
           return (
             <div
               key={product.id}
-              className="relative group rounded-3xl p-6 bg-neutral-900/40 backdrop-blur-2xl border border-white/15 hover:border-[#d4a373]/60 transition-all duration-500 flex flex-col justify-between overflow-hidden shadow-[0_16px_48px_0_rgba(0,0,0,0.4)] hover:shadow-[0_20px_60px_0_rgba(212,163,115,0.15)] hover:-translate-y-1"
+              className="relative group rounded-3xl p-6 bg-neutral-900/40 backdrop-blur-2xl border border-white/15 hover:border-[#d4a373]/60 transition-all duration-500 flex flex-col justify-between overflow-hidden shadow-[0_16px_48px_0_rgba(0,0,0,0.4)] hover:-translate-y-1"
             >
-              {/* Glossy top edge highlight & ambient background orb */}
               <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none z-10" />
-              <div className="absolute -top-20 -right-20 w-44 h-44 bg-[#d4a373]/10 rounded-full blur-3xl pointer-events-none group-hover:bg-[#d4a373]/20 transition-colors duration-500" />
+              <div className="absolute -top-20 -right-20 w-44 h-44 bg-neutral-700/10 rounded-full blur-3xl pointer-events-none group-hover:bg-[#d4a373]/10 transition-colors duration-500" />
 
               <div>
                 {/* Header Badge & Stock Tag */}
                 <div className="flex items-center justify-between gap-2 mb-4 relative z-10">
-                  <span className="px-3 py-1 rounded-full bg-[#d4a373]/15 border border-[#d4a373]/40 text-[#d4a373] text-[11px] font-extrabold uppercase tracking-wider">
-                    {product.badgeText}
+                  <span className="px-3 py-1 rounded-full bg-neutral-800 border border-neutral-600 text-neutral-300 text-[10px] font-extrabold uppercase tracking-wider">
+                    B2B RAW OIL
                   </span>
                   {isOos ? (
                     <span className="px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1">
@@ -192,65 +196,31 @@ export const ProductShowcase: React.FC = () => {
                 </div>
 
                 {/* Product Image Container */}
-                <div className="relative w-full h-48 sm:h-52 rounded-2xl overflow-hidden bg-neutral-950/60 border border-white/10 mb-5 group-hover:border-white/20 transition-colors flex items-center justify-center p-4">
+                <div className="relative w-full h-48 rounded-2xl overflow-hidden bg-neutral-950/60 border border-white/10 mb-5 group-hover:border-white/20 transition-colors flex items-center justify-center p-4">
                   <img
                     src={product.cardImage}
                     alt={product.name}
                     className="w-full h-full object-contain filter brightness-105 contrast-105 transform group-hover:scale-110 transition-transform duration-700"
                   />
-                  {/* Subtle bottom gradient overlay */}
                   <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-neutral-950/80 to-transparent pointer-events-none" />
                 </div>
 
                 {/* Product Name & Category */}
                 <div className="mb-4">
-                  <span className="text-[11px] font-bold text-[#d4a373] tracking-widest uppercase block mb-1">
-                    {product.categoryTitle} {product.categorySubtitle}
+                  <span className="text-[11px] font-bold text-neutral-500 tracking-widest uppercase block mb-1">
+                    {product.categoryTitle} Oil
                   </span>
                   <h4 className="text-xl font-serif font-bold text-white leading-tight group-hover:text-[#d4a373] transition-colors">
                     {product.name}
                   </h4>
                 </div>
 
-                {/* Pack Size / Mode Toggle (Retail 50ml vs Bulk 1kg+) */}
-                <div className="mb-4 p-1 rounded-xl bg-neutral-950/80 border border-white/10 flex items-center text-xs font-bold gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setMode(product.id, 'retail')}
-                    className={`flex-1 py-1.5 px-2 rounded-lg transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer ${
-                      mode === 'retail'
-                        ? 'bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 font-extrabold shadow-sm'
-                        : 'text-neutral-400 hover:text-white'
-                    }`}
-                  >
-                    <Package className="w-3.5 h-3.5 shrink-0" />
-                    <span>50ml Retail</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setMode(product.id, 'bulk')}
-                    className={`flex-1 py-1.5 px-2 rounded-lg transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer ${
-                      mode === 'bulk'
-                        ? 'bg-gradient-to-r from-[#d4a373] to-[#c29161] text-neutral-950 font-extrabold shadow-sm'
-                        : 'text-neutral-400 hover:text-white'
-                    }`}
-                  >
-                    <Factory className="w-3.5 h-3.5 shrink-0" />
-                    <span>Bulk (B2B)</span>
-                  </button>
-                </div>
-
                 {/* Price Display */}
                 <div className="mb-4 p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
-                  <span className="text-xs text-neutral-400 font-medium">
-                    {mode === 'retail' ? '50ml Bottle' : 'Per KG Bulk'}
-                  </span>
+                  <span className="text-xs text-neutral-400 font-medium">Per KG Bulk</span>
                   <div className="text-right">
-                    <span className="text-xl font-extrabold text-[#d4a373]">
-                      ₹{mode === 'retail' ? (product.retailPrice || 299) : product.unitPrice}
-                    </span>
-                    <span className="text-[10px] text-neutral-400 font-normal block">
-                      {mode === 'retail' ? 'Fixed Retail Price' : 'Quotation Rate'}
+                    <span className="text-xl font-extrabold text-white">
+                      ₹{product.unitPrice}
                     </span>
                   </div>
                 </div>
@@ -259,78 +229,34 @@ export const ProductShowcase: React.FC = () => {
                 <div className="mb-6 space-y-1 text-xs text-neutral-300 font-sans-custom">
                   {product.specs.slice(0, 2).map((spec, idx) => (
                     <div key={idx} className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#d4a373]" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
                       <span>{spec}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Bottom Actions: Quantity Selector & Add to Cart / Request Quote Button */}
-              <div className="pt-4 border-t border-white/10 space-y-3">
-                {mode === 'retail' && !isOos && (
-                  <div className="flex items-center justify-between bg-neutral-950/80 border border-white/15 rounded-xl px-3 py-1.5">
-                    <span className="text-xs font-bold text-neutral-300">Quantity:</span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => changeQty(product.id, -1)}
-                        className="w-6 h-6 rounded-md bg-neutral-800 hover:bg-[#d4a373] hover:text-black text-white flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
-                        aria-label="Decrease quantity"
-                      >
-                        -
-                      </button>
-                      <span className="text-xs font-mono font-extrabold text-white w-6 text-center">
-                        {qty}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => changeQty(product.id, 1)}
-                        className="w-6 h-6 rounded-md bg-neutral-800 hover:bg-[#d4a373] hover:text-black text-white flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
-                        aria-label="Increase quantity"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {mode === 'retail' ? (
-                  <button
-                    onClick={() => !isOos && handleAddRetail(product)}
-                    disabled={isOos}
-                    className={`w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer ${
-                      isOos
-                        ? 'bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed'
-                        : 'bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 font-extrabold shadow-md hover:shadow-lg active:scale-95'
-                    }`}
-                  >
-                    <ShoppingBag className="w-4 h-4" />
-                    <span>{isOos ? 'OUT OF STOCK' : `ADD TO CART • ₹${(product.retailPrice || 299) * qty}`}</span>
-                  </button>
-                ) : (
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => setViewingBulkProductId(product.id)}
-                      className="w-full py-2.5 px-4 rounded-xl border border-white/20 hover:border-[#d4a373] bg-neutral-950/80 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer hover:bg-neutral-800"
-                    >
-                      <FileText className="w-3.5 h-3.5 text-[#d4a373]" />
-                      <span>View 1kg/5kg Specs &amp; COA</span>
-                    </button>
-                    <button
-                      onClick={() => !isOos && handleShopNow(product)}
-                      disabled={isOos}
-                      className={`w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer ${
-                        isOos
-                          ? 'bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed'
-                          : 'bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 font-extrabold shadow-md hover:shadow-lg active:scale-95'
-                      }`}
-                    >
-                      <span>{isOos ? 'OUT OF STOCK (BULK)' : 'REQUEST BULK QUOTE'}</span>
-                      {!isOos && <ArrowRight className="w-4 h-4" />}
-                    </button>
-                  </div>
-                )}
+              {/* Bottom Actions */}
+              <div className="pt-4 border-t border-white/10 space-y-2">
+                <button
+                  onClick={() => setViewingBulkProductId(product.id)}
+                  className="w-full py-2.5 px-4 rounded-xl border border-white/20 hover:border-[#d4a373] bg-neutral-950/80 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer hover:bg-neutral-800"
+                >
+                  <FileText className="w-3.5 h-3.5 text-neutral-400" />
+                  <span>View 1kg/5kg Specs</span>
+                </button>
+                <button
+                  onClick={() => !isOos && handleShopNow(product)}
+                  disabled={isOos}
+                  className={`w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer ${
+                    isOos
+                      ? 'bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed'
+                      : 'bg-white hover:bg-neutral-200 text-neutral-950 font-extrabold shadow-md active:scale-95'
+                  }`}
+                >
+                  <span>{isOos ? 'OUT OF STOCK' : 'REQUEST BULK QUOTE'}</span>
+                  {!isOos && <ArrowRight className="w-4 h-4" />}
+                </button>
               </div>
             </div>
           );
