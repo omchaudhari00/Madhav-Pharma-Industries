@@ -229,12 +229,16 @@ export const AdminDashboard: React.FC = () => {
         if (Array.isArray(data)) {
           setOrders(data.map((o: any) => ({
             id: o.order_number,
+            pk: o.id,
             customer: o.customer_name || (o.customer_details ? `${o.customer_details.first_name} ${o.customer_details.last_name}` : 'Direct Customer'),
             amount: `₹${Number(o.total_amount).toLocaleString()}`,
             status: o.status,
             payment: o.payment_status || 'Completed',
             date: o.created_at ? new Date(o.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-            items: o.items_data || []
+            items: o.items_data || [],
+            shiprocket_order_id: o.shiprocket_order_id,
+            awb_code: o.awb_code,
+            tracking_url: o.tracking_url
           })));
         }
       }
@@ -445,6 +449,26 @@ export const AdminDashboard: React.FC = () => {
       }
       return p;
     }));
+  };
+
+  const handleGenerateShipment = async (orderPk: number) => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/orders/orders/${orderPk}/create-shipment/`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        alert("Shipment generated successfully via Shiprocket!");
+        loadOrders();
+      } else {
+        const error = await res.json();
+        alert(`Failed to generate shipment: ${error.error || error.detail || 'Unknown error'}`);
+      }
+    } catch (e) {
+      alert("Error generating shipment");
+      console.error(e);
+    }
   };
 
   return (
@@ -1010,7 +1034,7 @@ export const AdminDashboard: React.FC = () => {
                       <th className="py-3 px-4">Order Status</th>
                       <th className="py-3 px-4">Payment</th>
                       <th className="py-3 px-4">Date</th>
-                      <th className="py-3 px-4">Invoice Action</th>
+                      <th className="py-3 px-4">Shipping & Invoice</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-sm">
@@ -1029,8 +1053,17 @@ export const AdminDashboard: React.FC = () => {
                           </div>
                         </td>
                         <td className="py-4 px-4 text-neutral-600">{ord.date}</td>
-                        <td className="py-4 px-4">
-                          <button className="px-3 py-1.5 rounded-lg bg-[#d4a373]/20 hover:bg-[#d4a373] text-[#d4a373] hover:text-neutral-950 text-xs font-bold uppercase transition-all">
+                        <td className="py-4 px-4 flex flex-col gap-2">
+                          {ord.tracking_url ? (
+                            <a href={ord.tracking_url} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 hover:bg-blue-500/20 text-[10px] font-extrabold uppercase transition-all text-center">
+                              Track: {ord.awb_code}
+                            </a>
+                          ) : (ord.status === 'Preparing in Stock' || ord.status === 'Processing' || ord.status === 'Shipped') ? (
+                            <button onClick={() => handleGenerateShipment(ord.pk)} className="px-3 py-1.5 rounded-lg bg-[#d4a373] text-black hover:bg-[#c29161] text-[10px] font-extrabold uppercase transition-all shadow-sm">
+                              Ship via Shiprocket
+                            </button>
+                          ) : null}
+                          <button className="px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-600 text-[10px] font-extrabold uppercase transition-all">
                             Generate Invoice
                           </button>
                         </td>

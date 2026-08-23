@@ -207,7 +207,9 @@ export const CustomerDashboard: React.FC = () => {
                 amount: `₹${Number(o.total_amount).toLocaleString()}.00`,
                 status: o.status || 'Preparing in Stock',
                 isRetail: o.order_type === 'Retail',
-                items: o.items_data || []
+                items: o.items_data || [],
+                awb_code: o.awb_code,
+                tracking_url: o.tracking_url
               }));
             }
           }
@@ -635,7 +637,7 @@ export const CustomerDashboard: React.FC = () => {
                       <th className="py-3 px-4">Total Amount</th>
                       <th className="py-3 px-4">Delivery Status</th>
                       <th className="py-3 px-4">Date</th>
-                      <th className="py-3 px-4">Invoice</th>
+                      <th className="py-3 px-4">Tracking & Invoice</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-sm">
@@ -659,7 +661,17 @@ export const CustomerDashboard: React.FC = () => {
                             </div>
                           </td>
                           <td className="py-4 px-4 text-neutral-500">{ord.date}</td>
-                          <td className="py-4 px-4" onClick={(e) => e.stopPropagation()}>
+                          <td className="py-4 px-4 flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+                            {ord.tracking_url && (
+                              <a 
+                                href={ord.tracking_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="inline-block text-center px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 text-[10px] font-extrabold uppercase transition-all"
+                              >
+                                Track Package
+                              </a>
+                            )}
                             <button 
                               onClick={() => {
                                 if (ord.isRetail) {

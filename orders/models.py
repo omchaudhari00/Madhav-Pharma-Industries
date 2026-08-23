@@ -83,6 +83,12 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # Shiprocket Logistics Fields
+    shiprocket_order_id = models.CharField(max_length=100, blank=True, null=True)
+    shiprocket_shipment_id = models.CharField(max_length=100, blank=True, null=True)
+    awb_code = models.CharField(max_length=100, blank=True, null=True)
+    tracking_url = models.URLField(blank=True, null=True)
+
     def save(self, *args, **kwargs):
         if not self.order_number:
             prefix = "MP-RET" if self.order_type == 'Retail' else "ORD"

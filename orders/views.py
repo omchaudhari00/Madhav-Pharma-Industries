@@ -355,3 +355,42 @@ class OrderViewSet(viewsets.ModelViewSet):
             'message': 'WhatsApp confirmation triggered successfully.'
         }, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated], url_path='create-shipment')
+    def create_shipment(self, request, pk=None):
+        """
+        Creates an order in Shiprocket and immediately generates the AWB tracking code.
+        """
+        user = request.user
+        if user.role not in ['Admin', 'Sales'] and not user.is_staff:
+            raise PermissionDenied("Only Admin and Sales personnel can generate shipments.")
+            
+        order = self.get_object()
+        
+        try:
+            from backend.services.shiprocket import create_order, generate_awb
+            
+            # Step 1: Create Order in Shiprocket
+            if not order.shiprocket_order_id:
+                sr_data = create_order(order)
+                order.shiprocket_order_id = str(sr_data.get('order_id', ''))
+                order.shiprocket_shipment_id = str(sr_data.get('shipment_id', ''))
+                order.status = 'Shipped'
+                order.save()
+            
+            # Step 2: Generate AWB
+            if order.shiprocket_shipment_id and not order.awb_code:
+                awb_data = generate_awb(order.shiprocket_shipment_id)
+                order.awb_code = awb_data.get('awb_code')
+                if order.awb_code:
+                    order.tracking_url = f"https://shiprocket.co/tracking/{order.awb_code}"
+                order.save()
+                
+            return Response({
+                'success': True,
+                'message': 'Shipment created and AWB generated successfully.',
+                'order': OrderSerializer(order).data
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
