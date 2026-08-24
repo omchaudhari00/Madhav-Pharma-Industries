@@ -10,12 +10,32 @@ from django.db.models import Q
 import hmac
 import hashlib
 import uuid
+import logging
 from decimal import Decimal
 from .models import Payment, Invoice, Order
 from .serializers import PaymentSerializer, InvoiceSerializer, OrderSerializer
 from quotations.models import Quotation
 from catalog.models import Product
 from interactions.models import ActivityLog
+from accounts.models import User
+
+logger = logging.getLogger(__name__)
+
+
+def _resolve_authenticated_user(request):
+    """Manually attempt JWT authentication on AllowAny endpoints.
+    Returns the User instance or None."""
+    if request.user and request.user.is_authenticated:
+        return request.user
+    try:
+        from rest_framework_simplejwt.authentication import JWTAuthentication
+        jwt_auth = JWTAuthentication()
+        auth_result = jwt_auth.authenticate(request)
+        if auth_result:
+            return auth_result[0]
+    except Exception:
+        pass
+    return None
 
 class PaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PaymentSerializer
@@ -180,7 +200,13 @@ class PaymentViewSet(viewsets.ModelViewSet):
             if quotation_id:
                 quote = Quotation.objects.filter(id=quotation_id).first()
 
-            user = request.user if (request.user and request.user.is_authenticated) else None
+            # Manually resolve user from JWT token (AllowAny doesn't auto-authenticate)
+            user = _resolve_authenticated_user(request)
+
+            # Fallback: try to find user by checkout email if still anonymous
+            if not user and order_details.get('email'):
+                checkout_email = order_details['email'].strip().lower()
+                user = User.objects.filter(email__iexact=checkout_email).first()
             
             # Recompute total amount strictly from server-side quote or verified catalog pricing
             total_amt = Decimal('0.00')
@@ -316,9 +342,12 @@ class OrderViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.role in ['Admin', 'Sales']:
             return Order.objects.all().order_by('-created_at')
+        # Match orders by customer FK, email, or mobile number for maximum coverage
         return Order.objects.filter(
-            Q(customer=user) | Q(customer_email__iexact=user.email)
-        ).order_by('-created_at')
+            Q(customer=user) |
+            Q(customer_email__iexact=user.email) |
+            (Q(customer_phone=user.mobile_number) if user.mobile_number else Q())
+        ).distinct().order_by('-created_at')
 
     def perform_update(self, serializer):
         # Only Admin or Sales users are permitted to update order status

@@ -7,6 +7,7 @@ import {
   Truck, MapPin, PackageCheck, User, CheckCircle, ExternalLink, LogOut
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { generateInvoicePDF } from '../../utils/InvoiceGenerator';
 
 const getIndividualItems = (q: any) => {
   if (q.items && Array.isArray(q.items) && q.items.length > 0) {
@@ -100,6 +101,9 @@ export const SalesDashboard: React.FC = () => {
               paymentStatus: o.payment_status || 'PAID',
               deliveryStatus: o.status || 'Preparing in Stock',
               totalAmount: `₹${Number(o.total_amount).toLocaleString()}.00`,
+              awb_code: o.awb_code,
+              tracking_url: o.tracking_url,
+              shiprocket_order_id: o.shiprocket_order_id,
               items: o.items_data && o.items_data.length > 0 ? o.items_data : [
                 { name: '100% Pure Cumin Seed Essential Oil (Jeera Oil)', sizeLabel: '50ml Bottle', quantity: 2, unitPrice: 299 }
               ]
@@ -148,6 +152,51 @@ export const SalesDashboard: React.FC = () => {
       } catch (e) {
         console.error('Failed to sync delivery status with backend:', e);
       }
+    }
+  };
+
+  const handleGenerateShipment = async (orderPk: number | string) => {
+    const token = localStorage.getItem('madhav_token');
+    if (!token) return;
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/orders/orders/${orderPk}/create-shipment/`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        alert("Shipment created & AWB generated via Shiprocket!");
+        const reloadRes = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/orders/orders/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (reloadRes.ok) {
+          const data = await reloadRes.json();
+          if (Array.isArray(data)) {
+            setRetailOrders(data.map((o: any) => ({
+              id: o.order_number,
+              rawId: o.id,
+              date: o.created_at ? new Date(o.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              customerName: o.customer_name || (o.customer_details ? `${o.customer_details.first_name} ${o.customer_details.last_name}` : 'Retail Customer'),
+              phone: o.customer_phone || (o.customer_details?.mobile_number || 'Not provided'),
+              email: o.customer_email || (o.customer_details?.email || 'customer@madhavpharma.com'),
+              deliveryAddress: o.delivery_address || (o.shipping_address_details?.address_line_1 || 'Standard Delivery'),
+              paymentMethod: 'Razorpay (Verified)',
+              paymentStatus: o.payment_status || 'PAID',
+              deliveryStatus: o.status || 'Preparing in Stock',
+              totalAmount: `₹${Number(o.total_amount).toLocaleString()}.00`,
+              awb_code: o.awb_code,
+              tracking_url: o.tracking_url,
+              shiprocket_order_id: o.shiprocket_order_id,
+              items: o.items_data && o.items_data.length > 0 ? o.items_data : []
+            })));
+          }
+        }
+      } else {
+        const error = await res.json();
+        alert(`Shiprocket error: ${error.error || error.detail || 'Failed to generate shipment'}`);
+      }
+    } catch (e) {
+      alert("Error generating shipment");
+      console.error(e);
     }
   };
 
@@ -684,29 +733,66 @@ export const SalesDashboard: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Bottom Row: Logistics Delivery Status Selector */}
-                    <div className="pt-4 border-t border-neutral-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                      <div className="flex items-center gap-2">
+                    {/* Bottom Row: Logistics Delivery Status Selector & Shiprocket Actions */}
+                    <div className="pt-4 border-t border-neutral-200 flex flex-wrap items-center justify-between gap-4">
+                      <div className="flex flex-wrap items-center gap-3">
                         <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
-                          Update Logistics Status:
+                          Logistics Status:
                         </span>
                         <select
                           value={ord.deliveryStatus || 'Preparing in Stock'}
                           onChange={(e) => handleUpdateDeliveryStatus(ord.id, e.target.value)}
-                          className="px-4 py-2.5 rounded-xl bg-neutral-100 border border-white/20 text-neutral-900 font-bold text-xs focus:outline-none focus:border-[#d4a373] cursor-pointer"
+                          className="px-4 py-2.5 rounded-xl bg-neutral-100 border border-neutral-200 text-neutral-900 font-bold text-xs focus:outline-none focus:border-[#d4a373] cursor-pointer"
                         >
                           <option value="Preparing in Stock">Preparing in Stock</option>
                           <option value="Packed & Purity Verified">Packed &amp; Purity Verified</option>
                           <option value="Ready to Dispatch">Ready to Dispatch</option>
+                          <option value="Shipped">Shipped</option>
                           <option value="Out for Express Delivery">Out for Express Delivery</option>
                           <option value="Delivered to Doorstep">Delivered to Doorstep</option>
                         </select>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <span className="px-4 py-2 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-bold">
-                          Current: {ord.deliveryStatus || 'Preparing in Stock'}
-                        </span>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {ord.tracking_url ? (
+                          <a
+                            href={ord.tracking_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-700 hover:bg-blue-500/25 text-xs font-extrabold uppercase transition-all flex items-center gap-1.5"
+                          >
+                            <Truck className="w-3.5 h-3.5" />
+                            <span>Track Courier: {ord.awb_code}</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        ) : ord.rawId ? (
+                          <button
+                            type="button"
+                            onClick={() => handleGenerateShipment(ord.rawId)}
+                            className="px-4 py-2 rounded-xl bg-[#d4a373] hover:bg-[#c29161] text-black font-extrabold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Truck className="w-3.5 h-3.5" />
+                            <span>Ship via Shiprocket</span>
+                          </button>
+                        ) : null}
+
+                        <button
+                          type="button"
+                          onClick={() => generateInvoicePDF({
+                            id: ord.id,
+                            date: ord.date,
+                            customerName: ord.customerName,
+                            phone: ord.phone,
+                            deliveryAddress: ord.deliveryAddress,
+                            items: ord.items && ord.items.length > 0 ? ord.items : [
+                              { name: '100% Pure Cumin Seed Essential Oil (Jeera Oil)', sizeLabel: '50ml Bottle', quantity: 2, unitPrice: 299 }
+                            ]
+                          })}
+                          className="px-4 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-extrabold uppercase transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>Tax Invoice (PDF)</span>
+                        </button>
                       </div>
                     </div>
                   </div>

@@ -11,15 +11,15 @@ export const generateInvoicePDF = (orderDetails: any) => {
   
   doc.setFontSize(10);
   doc.setTextColor(100);
-  doc.text('402, Sunset Heights, MG Road, Mumbai, Maharashtra - 400001', 14, 28);
-  doc.text('Email: info@madhavpharma.com | Phone: +91 9876543210', 14, 34);
+  doc.text('Phase IV, GIDC Industrial Estate, Gujarat', 14, 28);
+  doc.text('Email: madhavpharmaindustries@gmail.com | Phone: +91 9023385917', 14, 34);
   
   // Tax / GST Details
   doc.setFontSize(12);
   doc.setTextColor(0, 0, 0);
   doc.text('TAX INVOICE', 14, 45);
   doc.setFontSize(10);
-  doc.text(`GSTIN: 24AAAAA0000A1Z5`, 14, 52);
+  doc.text(`GSTIN: 24AGPPC9524J2Z5`, 14, 52);
   doc.text(`Order ID: ${orderDetails.id}`, 14, 58);
   doc.text(`Date: ${orderDetails.date}`, 14, 64);
   
@@ -90,14 +90,15 @@ export const generateInvoicePDF = (orderDetails: any) => {
   doc.setFont("helvetica", "bold");
   doc.text(`Grand Total: Rs ${totalAmount.toFixed(2)}`, 120, finalY + 38);
   
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text('Authorized Signatory', 14, finalY + 38);
-  doc.text('For Madhav Pharma Industries', 14, finalY + 44);
+  doc.setTextColor(80);
+  doc.text('Bank Details: Axis Bank | A/C: 923020039126687 | IFSC: UTIB0003165', 14, finalY + 54);
 
   // Footer
   doc.setFontSize(8);
-  doc.text('This is a computer generated invoice and does not require a signature.', 14, 280);
+  doc.setTextColor(120);
+  doc.text('This is a computer generated invoice and does not require a physical signature.', 14, 280);
 
   doc.save(`Invoice_${orderDetails.id}.pdf`);
 };

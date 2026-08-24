@@ -8,10 +8,14 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 class UserSerializer(serializers.ModelSerializer):
     customer_stage = serializers.SerializerMethodField()
     address = serializers.SerializerMethodField()
+    orders_count = serializers.SerializerMethodField()
+    total_spent = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'mobile_number', 'role', 'first_name', 'last_name', 'is_verified', 'customer_stage', 'address']
+        fields = ['id', 'email', 'mobile_number', 'role', 'first_name', 'last_name',
+                  'is_verified', 'is_active', 'customer_stage', 'address',
+                  'orders_count', 'total_spent']
 
     def get_customer_stage(self, obj):
         if hasattr(obj, 'customer_profile'):
@@ -25,6 +29,22 @@ class UserSerializer(serializers.ModelSerializer):
             if addr:
                 return addr.address_line_1
         return ''
+
+    def get_orders_count(self, obj):
+        from orders.models import Order
+        from django.db.models import Q
+        return Order.objects.filter(
+            Q(customer=obj) | Q(customer_email__iexact=obj.email)
+        ).exclude(status='Cancelled').count()
+
+    def get_total_spent(self, obj):
+        from orders.models import Order
+        from django.db.models import Q, Sum
+        result = Order.objects.filter(
+            Q(customer=obj) | Q(customer_email__iexact=obj.email)
+        ).exclude(status='Cancelled').aggregate(total=Sum('total_amount'))
+        return float(result['total'] or 0)
+
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)

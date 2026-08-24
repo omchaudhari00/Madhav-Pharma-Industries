@@ -19,6 +19,7 @@ urlpatterns = [
     path('register/verify-otp/', VerifyOTPAndRegisterView.as_view(), name='verify_otp'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('admin/stats/', AdminDashboardStatsView.as_view(), name='admin_stats'),
+    path('dashboard-stats/', AdminDashboardStatsView.as_view(), name='dashboard_stats'),
     path('users/', UserListView.as_view(), name='user_list'),
     path('sales-users/', ManageSalesUserView.as_view(), name='manage_sales_user'),
     path('forgot-password/request-otp/', ForgotPasswordRequestOTPView.as_view(), name='forgot_password_request_otp'),

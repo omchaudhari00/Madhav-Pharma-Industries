@@ -8,6 +8,7 @@ import {
   RefreshCw, Lock, LogOut, X, PenLine
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { generateInvoicePDF } from '../../utils/InvoiceGenerator';
 
 const renderStatusBadge = (status: string) => {
   let style = 'bg-white/10 border-white/20 text-neutral-200';
@@ -206,7 +207,7 @@ export const AdminDashboard: React.FC = () => {
   const loadStats = async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/accounts/dashboard-stats/`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/accounts/admin/stats/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -230,8 +231,12 @@ export const AdminDashboard: React.FC = () => {
           setOrders(data.map((o: any) => ({
             id: o.order_number,
             pk: o.id,
-            customer: o.customer_name || (o.customer_details ? `${o.customer_details.first_name} ${o.customer_details.last_name}` : 'Direct Customer'),
+            customer: o.customer_name || (o.customer_details ? `${o.customer_details.first_name} ${o.customer_details.last_name}`.trim() : 'Direct Customer'),
+            phone: o.customer_phone || o.customer_details?.mobile_number || '',
+            email: o.customer_email || o.customer_details?.email || '',
+            deliveryAddress: o.delivery_address || (o.shipping_address_details?.address_line_1 || 'Standard Delivery'),
             amount: `₹${Number(o.total_amount).toLocaleString()}`,
+            rawAmount: Number(o.total_amount) || 0,
             status: o.status,
             payment: o.payment_status || 'Completed',
             date: o.created_at ? new Date(o.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -1028,43 +1033,81 @@ export const AdminDashboard: React.FC = () => {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-neutral-200 text-neutral-600 text-xs uppercase tracking-wider font-semibold">
-                      <th className="py-3 px-4">Order ID</th>
-                      <th className="py-3 px-4">Customer Name</th>
+                      <th className="py-3 px-4">Order ID & Date</th>
+                      <th className="py-3 px-4">Customer & Address</th>
+                      <th className="py-3 px-4">Items / Products</th>
                       <th className="py-3 px-4">Total Amount</th>
                       <th className="py-3 px-4">Order Status</th>
                       <th className="py-3 px-4">Payment</th>
-                      <th className="py-3 px-4">Date</th>
-                      <th className="py-3 px-4">Shipping & Invoice</th>
+                      <th className="py-3 px-4">Logistics & Invoice</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-sm">
                     {orders.map((ord) => (
-                      <tr key={ord.id} className="hover:bg-neutral-100 transition-colors">
-                        <td className="py-4 px-4 font-bold text-[#d4a373]">{ord.id}</td>
-                        <td className="py-4 px-4 font-semibold text-neutral-900">{ord.customer}</td>
-                        <td className="py-4 px-4 font-mono text-neutral-900">{ord.amount}</td>
-                        <td className="py-4 px-4">
+                      <tr key={ord.id} className="hover:bg-neutral-50 transition-colors">
+                        <td className="py-4 px-4 align-top">
+                          <div className="font-bold text-[#b5835a] font-mono">{ord.id}</div>
+                          <div className="text-xs text-neutral-500 mt-0.5">{ord.date}</div>
+                        </td>
+                        <td className="py-4 px-4 align-top">
+                          <div className="font-bold text-neutral-900">{ord.customer}</div>
+                          {ord.phone && <div className="text-xs text-neutral-600 font-mono">{ord.phone}</div>}
+                          {ord.email && <div className="text-xs text-neutral-500 truncate max-w-[200px]">{ord.email}</div>}
+                          {ord.deliveryAddress && (
+                            <div className="text-xs text-neutral-500 mt-1 max-w-[220px] line-clamp-2" title={ord.deliveryAddress}>
+                              📍 {ord.deliveryAddress}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-4 px-4 align-top">
+                          <div className="space-y-1 max-w-[220px]">
+                            {ord.items && ord.items.length > 0 ? (
+                              ord.items.map((it: any, idx: number) => (
+                                <div key={idx} className="text-xs text-neutral-800 bg-neutral-100 px-2 py-1 rounded-lg">
+                                  <span className="font-bold text-neutral-900">{it.quantity}x</span> {it.name}
+                                  <span className="text-neutral-500 block text-[10px]">({it.sizeLabel || '50ml Bottle'})</span>
+                                </div>
+                              ))
+                            ) : (
+                              <span className="text-xs text-neutral-500 italic">Standard Order</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 align-top font-mono font-bold text-neutral-900">{ord.amount}</td>
+                        <td className="py-4 px-4 align-top">
                           {renderStatusBadge(ord.status)}
                         </td>
-                        <td className="py-4 px-4">
-                          <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${ord.payment === 'Completed' ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30' : 'text-amber-300 bg-amber-500/15 border-amber-500/30'
+                        <td className="py-4 px-4 align-top">
+                          <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${ord.payment.includes('PAID') || ord.payment === 'Completed' ? 'text-emerald-700 bg-emerald-500/15 border-emerald-500/30' : 'text-amber-700 bg-amber-500/15 border-amber-500/30'
                             }`}>
                             {ord.payment}
                           </div>
                         </td>
-                        <td className="py-4 px-4 text-neutral-600">{ord.date}</td>
-                        <td className="py-4 px-4 flex flex-col gap-2">
+                        <td className="py-4 px-4 align-top flex flex-col gap-2">
                           {ord.tracking_url ? (
                             <a href={ord.tracking_url} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 hover:bg-blue-500/20 text-[10px] font-extrabold uppercase transition-all text-center">
                               Track: {ord.awb_code}
                             </a>
                           ) : (ord.status === 'Preparing in Stock' || ord.status === 'Processing' || ord.status === 'Shipped') ? (
-                            <button onClick={() => handleGenerateShipment(ord.pk)} className="px-3 py-1.5 rounded-lg bg-[#d4a373] text-black hover:bg-[#c29161] text-[10px] font-extrabold uppercase transition-all shadow-sm">
+                            <button onClick={() => handleGenerateShipment(ord.pk)} className="px-3 py-1.5 rounded-lg bg-[#d4a373] text-black hover:bg-[#c29161] text-[10px] font-extrabold uppercase transition-all shadow-sm cursor-pointer">
                               Ship via Shiprocket
                             </button>
                           ) : null}
-                          <button className="px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-600 text-[10px] font-extrabold uppercase transition-all">
-                            Generate Invoice
+                          <button
+                            onClick={() => generateInvoicePDF({
+                              id: ord.id,
+                              date: ord.date,
+                              customerName: ord.customer,
+                              phone: ord.phone || '+91 9023385917',
+                              deliveryAddress: ord.deliveryAddress || 'Phase IV, GIDC Industrial Estate, Gujarat',
+                              items: ord.items && ord.items.length > 0 ? ord.items : [
+                                { name: '100% Pure Therapeutic Grade Essential Oil', sizeLabel: '50ml Bottle', quantity: 1, unitPrice: ord.rawAmount || 299 }
+                              ]
+                            })}
+                            className="px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-[10px] font-extrabold uppercase transition-all cursor-pointer flex items-center justify-center gap-1"
+                          >
+                            <FileText className="w-3 h-3" />
+                            Tax Invoice
                           </button>
                         </td>
                       </tr>
@@ -1102,9 +1145,10 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                   <div className="space-y-3 text-xs text-neutral-700">
                     <div><span className="text-neutral-500 block">Legal Entity Name:</span> Madhav Pharma Industries Private Limited</div>
-                    <div><span className="text-neutral-500 block">GSTIN Number:</span> 24AABCM1234F1Z9</div>
+                    <div><span className="text-neutral-500 block">GSTIN Number:</span> 24AGPPC9524J2Z5</div>
                     <div><span className="text-neutral-500 block">Registered Office:</span> Phase IV, GIDC Industrial Estate, Gujarat</div>
-                    <div><span className="text-neutral-500 block">Bank Account:</span> HDFC Bank (AC: 50200012998811 • IFSC: HDFC0001234)</div>
+                    <div><span className="text-neutral-500 block">Official Contact:</span> +91 9023385917 • madhavpharmaindustries@gmail.com</div>
+                    <div><span className="text-neutral-500 block">Bank Account:</span> Axis Bank (AC: 923020039126687 • IFSC: UTIB0003165)</div>
                   </div>
                 </div>
 

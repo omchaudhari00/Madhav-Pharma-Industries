@@ -242,10 +242,18 @@ class AdminDashboardStatsView(APIView):
         sales_count = User.objects.filter(role='Sales').count()
 
         # Real Financial & Order Analytics from Database
-        total_revenue_result = Payment.objects.filter(status='Completed').aggregate(total=Sum('amount'))
-        total_revenue = float(total_revenue_result['total'] or 0)
+        payment_rev_result = Payment.objects.filter(status__in=['Completed', 'Paid']).aggregate(total=Sum('amount'))
+        payment_rev = payment_rev_result['total'] or Decimal('0.00')
+        
+        order_rev_result = Order.objects.exclude(status='Cancelled').aggregate(total=Sum('total_amount'))
+        order_rev = order_rev_result['total'] or Decimal('0.00')
+        
+        total_revenue = float(max(payment_rev, order_rev))
 
-        total_transactions = Payment.objects.filter(status='Completed').count()
+        total_transactions = max(
+            Payment.objects.filter(status__in=['Completed', 'Paid']).count(),
+            Order.objects.exclude(status='Cancelled').count()
+        )
         total_orders = Order.objects.exclude(status='Cancelled').count()
         active_orders = Order.objects.filter(status__in=['Pending', 'Processing', 'Preparing in Stock', 'Confirmed', 'Shipped']).count()
         pending_quotes = Quotation.objects.filter(status__in=['Pending', 'Under Negotiation']).count()
