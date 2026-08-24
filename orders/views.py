@@ -153,21 +153,14 @@ class PaymentViewSet(viewsets.ModelViewSet):
             razorpay_secret != 'YOUR_KEY_SECRET_HERE'
         )
 
-        # Check if this is a developer bypass test or simulation
-        is_bypass = (
-            str(razorpay_signature) in ['bypass_signature', 'simulated', 'simulated_signature'] or
-            str(razorpay_order_id).startswith(('order_bypass_', 'order_sim_')) or
-            getattr(settings, 'DEBUG', False)
-        )
+        is_simulated = not has_configured_keys
 
-        # Disallow simulated orders when real keys are configured on production (unless DEBUG or bypass)
-        if has_configured_keys and str(razorpay_order_id).startswith('order_sim_') and not (settings.DEBUG or is_bypass):
+        # Disallow simulated orders when real keys are configured on production
+        if has_configured_keys and str(razorpay_order_id).startswith('order_sim_'):
             return Response({
                 'success': False,
                 'error': 'Simulated payments are rejected on live payment environments.'
             }, status=status.HTTP_400_BAD_REQUEST)
-
-        is_simulated = (not has_configured_keys) or is_bypass
 
         # Idempotency check: prevent replay attacks with the same payment reference
         if razorpay_payment_id and Payment.objects.filter(transaction_reference=razorpay_payment_id).exists():
@@ -261,7 +254,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 quotation=quote,
                 amount=total_amt,
                 status='Completed',
-                payment_method='Developer Bypass (Verified)' if is_bypass else 'Razorpay (Verified)',
+                payment_method='Razorpay (Verified)',
                 currency='INR',
                 signature_verified=True,
                 transaction_reference=razorpay_payment_id or f"TXN-{uuid.uuid4().hex[:8].upper()}",

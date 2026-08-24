@@ -207,27 +207,6 @@ export const RetailCheckoutModal: React.FC = () => {
     }
   };
 
-  const handleBypassPayment = () => {
-    if (!name.trim() || !phone.trim() || !address.trim() || !email.trim()) {
-      alert('Please fill in Name, Mobile Number, Address, and Email to complete your order.');
-      return;
-    }
-    if (retailCartItems.length === 0) {
-      alert('Your retail cart is empty!');
-      return;
-    }
-
-    handlePaymentSuccess({
-      method: 'Developer Bypass Flow',
-      status: 'Paid',
-      referenceId: `BYPASS-PAY-${Math.floor(10000 + Math.random() * 90000)}`,
-      amountINR: totalINR,
-      razorpay_order_id: `order_bypass_${Date.now()}`,
-      razorpay_payment_id: `pay_bypass_${Date.now()}`,
-      razorpay_signature: 'bypass_signature'
-    });
-  };
-
   const handlePaymentSuccess = async (details: PaymentSuccessDetails & { razorpay_order_id?: string, razorpay_payment_id?: string, razorpay_signature?: string }) => {
     setVerifiedPayment(details);
     setStep('processing');
@@ -802,24 +781,14 @@ export const RetailCheckoutModal: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
-                    <button
-                      type="submit"
-                      disabled={isLaunchingRazorpay}
-                      className="flex-1 py-4 rounded-full bg-gradient-to-r from-[#d4a373] via-[#e6bc92] to-[#c29161] hover:opacity-95 text-black font-extrabold text-sm uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_6px_24px_rgba(212,163,115,0.4)] cursor-pointer disabled:opacity-50"
-                    >
-                      <ShieldCheck className="w-5 h-5" />
-                      <span>{isLaunchingRazorpay ? 'OPENING SECURE GATEWAY...' : `PLACE YOUR ORDER AND PAY (₹${totalINR}.00)`}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleBypassPayment}
-                      className="px-6 py-4 rounded-full bg-red-500/20 hover:bg-red-500/30 text-red-500 font-extrabold text-sm uppercase tracking-wider transition-all duration-300 flex items-center justify-center border border-red-500/30 cursor-pointer"
-                      title="Developer Bypass Flow"
-                    >
-                      Bypass
-                    </button>
-                  </div>
+                  <button
+                    type="submit"
+                    disabled={isLaunchingRazorpay}
+                    className="w-full py-4 rounded-full bg-gradient-to-r from-[#d4a373] via-[#e6bc92] to-[#c29161] hover:opacity-95 text-black font-extrabold text-sm uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_6px_24px_rgba(212,163,115,0.4)] cursor-pointer disabled:opacity-50"
+                  >
+                    <ShieldCheck className="w-5 h-5" />
+                    <span>{isLaunchingRazorpay ? 'OPENING SECURE GATEWAY...' : `PLACE YOUR ORDER AND PAY (₹${totalINR}.00)`}</span>
+                  </button>
 
                   <p className="text-[11px] text-center text-neutral-400">
                     By placing your order, you agree to Madhav Pharma's{' '}

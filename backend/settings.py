@@ -221,7 +221,7 @@ else:
         'https://www.madhavpharmaindustries.com',
     ]
 
-# Email Configuration (Resend HTTP API for bypassing Firewalls)
+# Email Configuration (Resend HTTP API for Transactional Emails)
 ANYMAIL = {
     "RESEND_API_KEY": os.getenv("RESEND_API_KEY", ""),
 }
