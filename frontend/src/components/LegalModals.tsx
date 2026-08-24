@@ -135,7 +135,7 @@ export const LegalModals: React.FC = () => {
                   <div className="flex items-center gap-2"><Building className="w-4 h-4 text-[#d4a373]" /><span className="font-bold text-white">Entity Name:</span> Madhav Pharma Industries Private Limited</div>
                   <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-[#d4a373]" /><span className="font-bold text-white">Registered Office:</span> Phase IV, GIDC Industrial Estate, Gujarat, India</div>
                   <div className="flex items-center gap-2"><Scale className="w-4 h-4 text-[#d4a373]" /><span className="font-bold text-white">GSTIN:</span> 24AGPPC9524J2Z5</div>
-                  <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-[#d4a373]" /><span className="font-bold text-white">Customer Support:</span> madhavpharmaindustries@gmail.com • +91 9023385917</div>
+                  <div className="flex items-center gap-2"><Mail className="w-4 h-4 text-[#d4a373]" /><span className="font-bold text-white">Customer Support:</span> info@madhavpharmaindustries.com • +91 9023385917</div>
                 </div>
               </div>
 

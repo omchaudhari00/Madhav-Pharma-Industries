@@ -1147,7 +1147,7 @@ export const AdminDashboard: React.FC = () => {
                     <div><span className="text-neutral-500 block">Legal Entity Name:</span> Madhav Pharma Industries Private Limited</div>
                     <div><span className="text-neutral-500 block">GSTIN Number:</span> 24AGPPC9524J2Z5</div>
                     <div><span className="text-neutral-500 block">Registered Office:</span> Phase IV, GIDC Industrial Estate, Gujarat</div>
-                    <div><span className="text-neutral-500 block">Official Contact:</span> +91 9023385917 • madhavpharmaindustries@gmail.com</div>
+                    <div><span className="text-neutral-500 block">Official Contact:</span> +91 9023385917 • info@madhavpharmaindustries.com</div>
                     <div><span className="text-neutral-500 block">Bank Account:</span> Axis Bank (AC: 923020039126687 • IFSC: UTIB0003165)</div>
                   </div>
                 </div>

@@ -12,7 +12,7 @@ export const generateInvoicePDF = (orderDetails: any) => {
   doc.setFontSize(10);
   doc.setTextColor(100);
   doc.text('Phase IV, GIDC Industrial Estate, Gujarat', 14, 28);
-  doc.text('Email: madhavpharmaindustries@gmail.com | Phone: +91 9023385917', 14, 34);
+  doc.text('Email: info@madhavpharmaindustries.com | Phone: +91 9023385917', 14, 34);
   
   // Tax / GST Details
   doc.setFontSize(12);
