@@ -29,7 +29,7 @@ const PreviewCard: React.FC<{ product: PreviewProduct }> = ({ product }) => {
   return (
     <div
       className="group relative rounded-3xl p-6 bg-neutral-900/40 backdrop-blur-2xl border border-white/15 hover:border-[#d4a373]/60 transition-all duration-500 flex flex-col overflow-hidden shadow-[0_16px_48px_0_rgba(0,0,0,0.4)] hover:shadow-[0_20px_60px_0_rgba(212,163,115,0.15)] hover:-translate-y-1 cursor-pointer"
-      onClick={() => navigate('/products')}
+      onClick={() => navigate(`/product/${product.id}`)}
     >
       {/* Glossy top edge & ambient orb */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none z-10" />
@@ -81,7 +81,7 @@ const PreviewCard: React.FC<{ product: PreviewProduct }> = ({ product }) => {
           <span className="text-xl font-extrabold text-[#d4a373]">{product.price}</span>
         </div>
         <span className="text-xs font-bold text-[#d4a373] flex items-center gap-1 group-hover:gap-2 transition-all">
-          Shop <ArrowRight className="w-3.5 h-3.5" />
+          View Product <ArrowRight className="w-3.5 h-3.5" />
         </span>
       </div>
     </div>
@@ -92,33 +92,28 @@ export const AboutSection: React.FC = () => {
   const navigate = useNavigate();
   const { allProducts } = useApp();
 
-  const heroProduct = allProducts.find(p => p.id === 'weight-loss-oil') || allProducts[0];
-  const bulkCandidates = allProducts.filter(p => p.id !== heroProduct?.id).slice(0, 3);
-
-  const previewProducts: PreviewProduct[] = [];
-  
-  if (heroProduct) {
-    previewProducts.push({
-      id: heroProduct.id,
-      name: heroProduct.name,
-      image: heroProduct.cardImage,
-      price: `₹${heroProduct.retailPrice || 299}`,
-      type: 'herbal' as const,
-      badge: heroProduct.badgeText,
-      specs: ['50ml Bottle', heroProduct.grade.split('•')[1]?.trim() || heroProduct.grade],
-    });
-  }
-
-  bulkCandidates.forEach(p => {
-    previewProducts.push({
-      id: `${p.id}-bulk`,
-      name: `${p.categoryTitle} Oil — Bulk`,
-      image: p.customImages?.[0] || '/images/bulk_1l.jpg',
-      price: `₹${p.unitPrice.toLocaleString('en-IN')}`,
-      type: 'bulk' as const,
-      badge: 'B2B RAW OIL',
-      specs: ['1L / 5L Available', 'Industrial Grade'],
-    });
+  const previewProducts: PreviewProduct[] = allProducts.slice(0, 4).map(p => {
+    if (p.id === 'weight-loss-oil') {
+      return {
+        id: `${p.id}-herbal`,
+        name: p.name,
+        image: p.customImages !== undefined ? (p.customImages[0] || '/images/favicon-circle.png') : p.cardImage,
+        price: `₹${(p.retailPrice || 299).toLocaleString('en-IN')}`,
+        type: 'herbal' as const,
+        badge: p.badgeText || 'HERBAL REMEDY',
+        specs: ['50ml Bottle', p.grade.split('•')[1]?.trim() || p.grade],
+      };
+    } else {
+      return {
+        id: `${p.id}-bulk`,
+        name: `${p.categoryTitle} Oil — Bulk`,
+        image: p.customImages !== undefined ? (p.customImages[0] || '/images/favicon-circle.png') : (p.id === 'cumin-seed-oil' ? '/images/cumin-seed-oil.png' : p.cardImage || '/images/bulk_1l.jpg'),
+        price: `₹${p.unitPrice.toLocaleString('en-IN')}`,
+        type: 'bulk' as const,
+        badge: p.badgeText || 'B2B RAW OIL',
+        specs: ['1L / 5L Available', 'Industrial Grade'],
+      };
+    }
   });
 
   return (

@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingCart, Zap, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { Navbar } from './Navbar';
+import { Footer } from './Footer';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -9,6 +11,18 @@ export const ProductDetailPage: React.FC = () => {
   const { allProducts, addToRetailCart, isRetailOutOfStock, isB2BOutOfStock, isDiscontinued, openRetailCheckout, retailCartTotalCount } = useApp();
   const [qty, setQty] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  // Scroll to top immediately when product page loads or id changes
+  React.useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    });
+  }, [id]);
 
   if (!id) return <div>Product not found</div>;
 
@@ -116,22 +130,42 @@ export const ProductDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white font-display flex flex-col">
-      {/* Top Bar */}
-      <div className="sticky top-0 z-40 bg-neutral-950/95 backdrop-blur-xl border-b border-white/10 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-          <button
-            onClick={() => navigate('/products')}
-            className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors text-sm font-medium cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Shop</span>
-          </button>
-        </div>
+    <div className="min-h-screen bg-neutral-950 text-white font-display relative selection:bg-neutral-800 selection:text-white flex flex-col">
+      {/* Themed Static Background Layer */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        {/* Static Background Image with Dark Toning */}
+        <img
+          src="/images/home-about-gy.png"
+          alt="Madhav Pharma Background"
+          className="w-full h-full object-cover object-[51%_top] filter brightness-[0.3] contrast-[1.1] opacity-75"
+        />
+
+        {/* Ambient Gradient Overlays */}
+        <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/85 via-neutral-950/70 to-neutral-950/95" />
+
+        {/* Subtle Ambient Color Glow Orbs */}
+        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#d4a373]/15 rounded-full blur-[140px]" />
+        <div className="absolute top-2/3 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-[140px]" />
       </div>
 
-      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
-        <div className="flex flex-col lg:flex-row gap-12 items-start">
+      {/* Foreground Content */}
+      <div className="relative z-10 flex-1 flex flex-col">
+        {/* Landing Page Navbar */}
+        <Navbar />
+
+        <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 w-full">
+          {/* Breadcrumb / Back Link */}
+          <div className="mb-6">
+            <button
+              onClick={() => navigate('/products')}
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4 text-[#d4a373]" />
+              <span>Back to Shop</span>
+            </button>
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-12 items-start">
           
           {/* Left: Product Image */}
           <div className="w-full lg:w-1/2 flex flex-col gap-4">
@@ -360,6 +394,10 @@ export const ProductDetailPage: React.FC = () => {
 
           </div>
         </div>
+      </div>
+
+      {/* Landing Page Footer */}
+      <Footer />
       </div>
     </div>
   );

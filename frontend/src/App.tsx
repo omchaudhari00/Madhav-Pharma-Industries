@@ -31,6 +31,34 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
   return <>{children}</>;
 };
 
+const ScrollToTopOnNav = () => {
+  const { pathname, hash } = useLocation();
+
+  React.useLayoutEffect(() => {
+    if (!hash) {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      });
+
+      const timer = setTimeout(() => {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }, 50);
+
+      return () => clearTimeout(timer);
+    }
+  }, [pathname, hash]);
+
+  return null;
+};
+
 const AppContent: React.FC = () => {
   const location = useLocation();
   const [isLoading, setIsLoading] = React.useState(true);
@@ -79,6 +107,7 @@ const AppContent: React.FC = () => {
 
   return (
     <>
+      <ScrollToTopOnNav />
       <Routes>
         {/* Portals */}
         <Route path="/admin" element={
@@ -100,6 +129,7 @@ const AppContent: React.FC = () => {
         <Route path="/products" element={
           <>
             <ShopPage />
+            <CartModal />
             <RetailCheckoutModal />
             <AuthModal />
             <LegalModals />
@@ -110,6 +140,7 @@ const AppContent: React.FC = () => {
         <Route path="/product/:id" element={
           <>
             <ProductDetailPage />
+            <CartModal />
             <RetailCheckoutModal />
             <AuthModal />
             <LegalModals />

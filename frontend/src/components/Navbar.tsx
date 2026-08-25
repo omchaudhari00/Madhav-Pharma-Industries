@@ -1,15 +1,14 @@
-"use client";
-
 import React, { useState, useEffect } from 'react';
 import { Menu, X, ShoppingBag, User, LogOut, Info, Package, Factory, Phone, LogIn } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { openAuth, openCart, cartTotalCount, user, logout, openRetailCheckout, retailCartTotalCount } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const totalCartCount = retailCartTotalCount + cartTotalCount;
 
@@ -48,18 +47,20 @@ export const Navbar: React.FC = () => {
     else openRetailCheckout();
   };
 
+  const isSolid = isScrolled || location.pathname !== '/';
+
   return (
     <header 
       id="main-navbar-header" 
       className={`sticky top-0 z-40 w-full transition-all duration-500 ease-in-out ${
-        isScrolled 
+        isSolid 
           ? 'bg-neutral-950/95 backdrop-blur-xl border-b border-white/10 shadow-lg' 
           : 'bg-transparent border-b border-transparent'
       }`}
     >
       <nav className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-3 sm:py-4 flex items-center justify-between text-white relative font-display">
         {/* Left: Brand Logo */}
-        <a href="#hero" className="flex items-center space-x-2 sm:space-x-2.5 group shrink-0">
+        <a href="/#hero" className="flex items-center space-x-2 sm:space-x-2.5 group shrink-0">
           <img 
             src="/images/favicon-circle.png" 
             alt="Madhav Pharma Logo" 
@@ -73,25 +74,27 @@ export const Navbar: React.FC = () => {
         {/* Right-Aligned Desktop Navigation Links (Visible on Large Screens 1280px+) */}
         <div className="hidden xl:flex items-center space-x-6 xl:space-x-8 text-xs sm:text-sm font-medium text-neutral-300 whitespace-nowrap ml-auto mr-6 xl:mr-8">
           <a
-            href="#about-us"
+            href="/#about-us"
             className="hover:text-white transition-colors duration-200 py-1"
           >
             About Us
           </a>
           <button
             onClick={() => navigate('/products')}
-            className="text-[#d4a373] hover:text-white transition-colors duration-200 py-1 cursor-pointer font-bold"
+            className={`transition-colors duration-200 py-1 cursor-pointer font-bold ${
+              location.pathname.startsWith('/products') ? 'text-[#d4a373]' : 'text-neutral-300 hover:text-white'
+            }`}
           >
             Shop
           </button>
           <a
-            href="#manufacturing"
+            href="/#manufacturing"
             className="hover:text-white transition-colors duration-200 py-1"
           >
             Manufacturing
           </a>
           <a
-            href="#contact"
+            href="/#contact"
             className="hover:text-white transition-colors duration-200 py-1"
           >
             Contact
@@ -155,7 +158,7 @@ export const Navbar: React.FC = () => {
                 Navigation Menu
               </span>
               <a
-                href="#about-us"
+                href="/#about-us"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center space-x-3 p-3.5 rounded-xl hover:bg-neutral-900/90 text-neutral-200 hover:text-white transition-colors text-base font-medium border border-transparent hover:border-neutral-800"
               >
@@ -173,7 +176,7 @@ export const Navbar: React.FC = () => {
                 <span>Shop</span>
               </button>
               <a
-                href="#manufacturing"
+                href="/#manufacturing"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center space-x-3 p-3.5 rounded-xl hover:bg-neutral-900/90 text-neutral-200 hover:text-white transition-colors text-base font-medium border border-transparent hover:border-neutral-800"
               >
@@ -181,7 +184,7 @@ export const Navbar: React.FC = () => {
                 <span>Manufacturing</span>
               </a>
               <a
-                href="#contact"
+                href="/#contact"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center space-x-3 p-3.5 rounded-xl hover:bg-neutral-900/90 text-neutral-200 hover:text-white transition-colors text-base font-medium border border-transparent hover:border-neutral-800"
               >
