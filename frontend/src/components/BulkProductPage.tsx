@@ -422,7 +422,8 @@ export const BulkProductPage: React.FC<{
                   alt={product.name}
                   className="w-full h-full object-contain filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)] transition-transform duration-500 group-hover:scale-105"
                   onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/images/bulk_1l.jpg';
                   }}
                 />
               </div>
