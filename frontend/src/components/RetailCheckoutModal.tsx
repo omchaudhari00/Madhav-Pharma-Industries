@@ -734,6 +734,10 @@ export const RetailCheckoutModal: React.FC = () => {
                           <img
                             src={item.imageUrl}
                             alt={item.name}
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = '/images/bulk_1l.jpg';
+                            }}
                             className="w-14 h-14 rounded-xl object-cover border border-white/10 shrink-0"
                           />
                           <div className="min-w-0">
@@ -836,6 +840,10 @@ export const RetailCheckoutModal: React.FC = () => {
                             <img
                               src={item.imageUrl}
                               alt={item.name}
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = '/images/bulk_1l.jpg';
+                              }}
                               className="w-14 h-14 rounded-xl object-cover border border-white/10 shrink-0"
                             />
                             <div className="min-w-0">

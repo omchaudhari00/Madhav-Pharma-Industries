@@ -78,6 +78,10 @@ export const ProductShowcase: React.FC = () => {
             <img 
               src={heroProduct.heroImage} 
               alt={heroProduct.name} 
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/images/bulk_1l.jpg';
+              }}
               className="w-full h-full object-contain filter brightness-105 contrast-105 relative z-10 group-hover:scale-110 transition-transform duration-700"
             />
             {isRetailOutOfStock(heroProduct.id) ? (
@@ -200,6 +204,10 @@ export const ProductShowcase: React.FC = () => {
                   <img
                     src={product.cardImage}
                     alt={product.name}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/images/bulk_1l.jpg';
+                    }}
                     className="w-full h-full object-contain filter brightness-105 contrast-105 transform group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-neutral-950/80 to-transparent pointer-events-none" />

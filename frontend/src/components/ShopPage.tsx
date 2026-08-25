@@ -56,6 +56,10 @@ const ShopCard: React.FC<{ product: ShopProduct }> = ({ product }) => {
         <img
           src={product.image}
           alt={product.name}
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = '/images/bulk_1l.jpg';
+          }}
           className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 brightness-105"
         />
         <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-neutral-900/70 to-transparent pointer-events-none" />
@@ -133,7 +137,7 @@ export const ShopPage: React.FC = () => {
         baseId: p.id,
         name: `${p.categoryTitle} Essential Oil (Bulk)`,
         shortName: `${p.categoryTitle} Oil (Bulk)`,
-        image: p.customImages !== undefined ? (p.customImages[0] || '/images/favicon-circle.png') : (p.id === 'cumin-seed-oil' ? '/images/cumin-seed-oil.png' : p.cardImage || '/images/bulk_1l.jpg'),
+        image: p.customImages !== undefined ? (p.customImages[0] || '/images/bulk_1l.jpg') : (p.id === 'cumin-seed-oil' ? (p.cardImage || '/images/bulk_1l.jpg') : p.cardImage || '/images/bulk_1l.jpg'),
         badgeText: 'B2B RAW OIL',
         category: 'bulk',
         price: p.unitPrice,
@@ -152,7 +156,7 @@ export const ShopPage: React.FC = () => {
       badge: '100% PURE THERAPEUTIC',
       price: 2200,
       priceLabel: 'Starting at 1L Bulk Container',
-      image: '/images/cumin-seed-oil.png',
+      image: '/images/bulk_1l.jpg',
       panelGradient: 'from-[#342010] via-[#23150a] to-[#150c05]',
       glowColor: 'bg-[#d4a373]/25',
       accentColor: 'text-[#d4a373]',
@@ -426,6 +430,10 @@ export const ShopPage: React.FC = () => {
                         <img
                           src={slide.image}
                           alt={slide.title}
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = '/images/bulk_1l.jpg';
+                          }}
                           className="max-h-[280px] sm:max-h-[340px] lg:max-h-[400px] w-auto object-contain filter brightness-105 contrast-105 drop-shadow-[0_25px_50px_rgba(0,0,0,0.9)] group-hover:scale-105 transition-transform duration-500"
                         />
                       </div>

@@ -169,6 +169,10 @@ export const CartModal: React.FC = () => {
                     <img
                       src={item.imageUrl}
                       alt={item.name}
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/images/bulk_1l.jpg';
+                      }}
                       className="w-16 h-16 rounded-xl object-cover border border-neutral-800 flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">

@@ -137,6 +137,10 @@ export const ProductDetailPage: React.FC = () => {
         <img
           src="/images/home-about-gy.png"
           alt="Madhav Pharma Background"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = '/images/bulk_1l.jpg';
+          }}
           className="w-full h-full object-cover object-[51%_top] filter brightness-[0.3] contrast-[1.1] opacity-75"
         />
 
@@ -174,6 +178,10 @@ export const ProductDetailPage: React.FC = () => {
               <img 
                 src={currentImage} 
                 alt={productName} 
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/images/bulk_1l.jpg';
+                }}
                 className="w-full h-full max-h-[400px] object-contain filter brightness-105 relative z-10 transition-all duration-500"
               />
               {isOos && (
@@ -199,7 +207,15 @@ export const ProductDetailPage: React.FC = () => {
                     className={`relative w-24 h-24 shrink-0 rounded-2xl border-2 overflow-hidden transition-all cursor-pointer ${activeImageIndex === idx ? 'border-[#d4a373] opacity-100' : 'border-white/10 opacity-60 hover:opacity-100 hover:border-white/30'}`}
                   >
                     <div className="absolute inset-0 bg-neutral-900/50" />
-                    <img src={img} alt={`${productName} thumbnail ${idx + 1}`} className="w-full h-full object-cover relative z-10 brightness-110" />
+                    <img 
+                      src={img} 
+                      alt={`${productName} thumbnail ${idx + 1}`} 
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/images/bulk_1l.jpg';
+                      }}
+                      className="w-full h-full object-cover relative z-10 brightness-110" 
+                    />
                   </button>
                 ))}
               </div>
