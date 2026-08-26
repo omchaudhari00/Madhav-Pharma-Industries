@@ -184,10 +184,16 @@ class ProductViewSet(viewsets.ModelViewSet):
             prod.price = request.data['unit_price']
         if 'retail_price' in request.data:
             prod.retail_price = request.data['retail_price']
+        if 'price_5l' in request.data:
+            prod.price_5l = request.data['price_5l']
         if 'custom_images' in request.data:
             prod.custom_images = request.data['custom_images']
+        if 'custom_images_5l' in request.data:
+            prod.custom_images_5l = request.data['custom_images_5l']
         if 'description' in request.data:
             prod.description = request.data['description']
+        if 'description_5l' in request.data:
+            prod.description_5l = request.data['description_5l']
         if 'specs' in request.data:
             prod.specs = request.data['specs']
         if 'badge_text' in request.data:

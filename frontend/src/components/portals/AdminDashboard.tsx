@@ -305,7 +305,9 @@ export const AdminDashboard: React.FC = () => {
   }, [activeTab, token]);
 
   const [editingProduct, setEditingProduct] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ price: '', description: '', images: [] as string[] });
+  const [editSizeTab, setEditSizeTab] = useState<'1l' | '5l'>('1l');
+  const [editForm1L, setEditForm1L] = useState({ price: '', description: '', images: [] as string[] });
+  const [editForm5L, setEditForm5L] = useState({ price: '', description: '', images: [] as string[] });
 
   const [products, setProducts] = useState<any[]>([]);
 
@@ -1005,23 +1007,39 @@ export const AdminDashboard: React.FC = () => {
                               </button>
                               <button
                                 onClick={() => {
-                                  const parsedPrice = p.price.replace(/[^0-9]/g, '');
                                   const targetProduct = allProducts.find(ap => ap.id === p.codeId);
-                                  const existingCustom = targetProduct?.customImages;
-                                  let initImages: string[] = [];
-                                  if (existingCustom !== undefined) {
-                                      initImages = existingCustom;
+                                  const parsedPrice1L = targetProduct?.unitPrice?.toString() || p.price.replace(/[^0-9]/g, '');
+                                  const parsedPrice5L = targetProduct?.price5L ? targetProduct.price5L.toString() : (targetProduct?.unitPrice ? (targetProduct.unitPrice * 5).toString() : '');
+
+                                  let initImages1L: string[] = [];
+                                  if (targetProduct?.customImages !== undefined && targetProduct.customImages.length > 0) {
+                                    initImages1L = targetProduct.customImages;
                                   } else if (targetProduct?.heroImage) {
-                                      initImages = [targetProduct.heroImage];
+                                    initImages1L = [targetProduct.heroImage];
                                   } else if (targetProduct?.cardImage) {
-                                      initImages = [targetProduct.cardImage];
+                                    initImages1L = [targetProduct.cardImage];
+                                  } else {
+                                    initImages1L = ['/images/bulk_1l.jpg'];
+                                  }
+
+                                  let initImages5L: string[] = [];
+                                  if (targetProduct?.customImages5L !== undefined && targetProduct.customImages5L.length > 0) {
+                                    initImages5L = targetProduct.customImages5L;
+                                  } else {
+                                    initImages5L = ['/images/bulk_5l.jpg'];
                                   }
 
                                   setEditingProduct(p);
-                                  setEditForm({
-                                    price: parsedPrice,
+                                  setEditSizeTab('1l');
+                                  setEditForm1L({
+                                    price: parsedPrice1L,
                                     description: targetProduct?.description || '',
-                                    images: initImages
+                                    images: initImages1L
+                                  });
+                                  setEditForm5L({
+                                    price: parsedPrice5L,
+                                    description: targetProduct?.description5L || targetProduct?.description || '',
+                                    images: initImages5L
                                   });
                                 }}
                                 className="px-3 py-1.5 rounded-xl bg-[#d4a373]/20 hover:bg-[#d4a373] text-[#d4a373] hover:text-black border border-[#d4a373]/40 text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1"
@@ -1508,9 +1526,9 @@ export const AdminDashboard: React.FC = () => {
       {editingProduct && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditingProduct(null)}></div>
-          <div className="relative w-full max-w-md bg-[#0a0a0a] rounded-3xl border border-white/10 shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in duration-200">
+          <div className="relative w-full max-w-lg bg-[#0a0a0a] rounded-3xl border border-white/10 shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
             {/* Header */}
-            <div className="flex items-start justify-between mb-8">
+            <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-[#d4a373] flex items-center justify-center shadow-lg shrink-0">
                   <PenLine className="w-6 h-6 text-black" />
@@ -1520,108 +1538,235 @@ export const AdminDashboard: React.FC = () => {
                   <p className="text-sm text-neutral-400 mt-0.5">{editingProduct.name}</p>
                 </div>
               </div>
-              <button onClick={() => setEditingProduct(null)} className="text-neutral-500 hover:text-white transition-colors mt-1">
+              <button onClick={() => setEditingProduct(null)} className="text-neutral-500 hover:text-white transition-colors mt-1 cursor-pointer">
                 <XCircle className="w-6 h-6" />
               </button>
             </div>
 
-            {/* Form */}
-            <div className="space-y-6">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">Product Price (₹)</label>
-                <input 
-                  type="text" 
-                  value={editForm.price}
-                  onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
-                  className="w-full bg-neutral-900 border border-white/5 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#d4a373]/50 focus:ring-1 focus:ring-[#d4a373]/50 transition-all font-mono"
-                  placeholder="e.g. 150"
-                />
+            {/* 1L / 5L Size Selector Tabs for Bulk Products */}
+            {editingProduct.codeId !== 'weight-loss-oil' && (
+              <div className="flex items-center gap-3 p-1.5 bg-neutral-900/80 rounded-2xl border border-white/10 mb-6">
+                <button
+                  type="button"
+                  onClick={() => setEditSizeTab('1l')}
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                    editSizeTab === '1l'
+                      ? 'bg-[#d4a373] text-neutral-950 shadow-md font-black'
+                      : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <span>1 Litre (1L Bottle)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditSizeTab('5l')}
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                    editSizeTab === '5l'
+                      ? 'bg-[#d4a373] text-neutral-950 shadow-md font-black'
+                      : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <span>5 Litre (5L Drum)</span>
+                </button>
               </div>
+            )}
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">Product Description</label>
-                <textarea 
-                  value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                  rows={4}
-                  className="w-full bg-neutral-900 border border-white/5 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#d4a373]/50 focus:ring-1 focus:ring-[#d4a373]/50 transition-all"
-                  placeholder="Enter a detailed description for this product..."
-                />
-              </div>
-              
-              <div className="mt-6 border-t border-white/10 pt-6">
-                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">Product Images (Max 3)</label>
-                <div className="flex flex-wrap gap-4">
-                  {editForm.images.map((img, idx) => (
-                    <div key={idx} className="relative w-24 h-24 rounded-xl border border-white/10 overflow-hidden group">
-                      <img src={img} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
-                      <button 
-                        onClick={() => setEditForm(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }))}
-                        className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Remove image"
-                      >
-                        <Trash2 className="w-6 h-6 text-red-400" />
-                      </button>
-                    </div>
-                  ))}
-                  {editForm.images.length < 3 && (
-                    <label className="w-24 h-24 rounded-xl border-2 border-dashed border-white/20 hover:border-[#d4a373] hover:bg-[#d4a373]/10 flex flex-col items-center justify-center cursor-pointer transition-colors">
-                      <Plus className="w-6 h-6 text-neutral-400" />
-                      <span className="text-[10px] text-neutral-500 mt-1 uppercase font-bold tracking-wider">Upload</span>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        className="hidden" 
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            try {
-                              const compressedBase64 = await compressImage(file);
-                              setEditForm(prev => ({ ...prev, images: [...prev.images, compressedBase64] }));
-                            } catch(err) {
-                              console.error("Compression failed", err);
-                              alert("Failed to compress image");
-                            }
-                          }
-                          e.target.value = ''; // reset
-                        }} 
-                      />
+            {/* Form Section */}
+            <div className="space-y-6">
+              {editSizeTab === '1l' || editingProduct.codeId === 'weight-loss-oil' ? (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">
+                      {editingProduct.codeId === 'weight-loss-oil' ? 'Product Price (₹ per 50ml Bottle)' : 'Product Price (₹ per 1 Litre Bottle)'}
                     </label>
-                  )}
-                </div>
-                <p className="text-[10px] text-neutral-500 mt-3 leading-relaxed">
-                  First image will be the primary cover. Automatically compressed to save storage space.
-                </p>
-              </div>
+                    <input 
+                      type="text" 
+                      value={editForm1L.price}
+                      onChange={(e) => setEditForm1L({ ...editForm1L, price: e.target.value })}
+                      className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#d4a373]/50 focus:ring-1 focus:ring-[#d4a373]/50 transition-all font-mono"
+                      placeholder="e.g. 150"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">
+                      {editingProduct.codeId === 'weight-loss-oil' ? 'Product Description' : '1 Litre Product Description'}
+                    </label>
+                    <textarea 
+                      value={editForm1L.description}
+                      onChange={(e) => setEditForm1L({ ...editForm1L, description: e.target.value })}
+                      rows={4}
+                      className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#d4a373]/50 focus:ring-1 focus:ring-[#d4a373]/50 transition-all"
+                      placeholder="Enter description..."
+                    />
+                  </div>
+                  
+                  <div className="border-t border-white/10 pt-5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">
+                      {editingProduct.codeId === 'weight-loss-oil' ? 'Product Images (Max 3)' : '1 Litre Product Images (Max 3)'}
+                    </label>
+                    <div className="flex flex-wrap gap-4">
+                      {editForm1L.images.map((img, idx) => (
+                        <div key={idx} className="relative w-24 h-24 rounded-xl border border-white/10 overflow-hidden group">
+                          <img src={img} alt={`1L Preview ${idx}`} className="w-full h-full object-cover" />
+                          <button 
+                            type="button"
+                            onClick={() => setEditForm1L(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }))}
+                            className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                            title="Remove image"
+                          >
+                            <Trash2 className="w-6 h-6 text-red-400" />
+                          </button>
+                        </div>
+                      ))}
+                      {editForm1L.images.length < 3 && (
+                        <label className="w-24 h-24 rounded-xl border-2 border-dashed border-white/20 hover:border-[#d4a373] hover:bg-[#d4a373]/10 flex flex-col items-center justify-center cursor-pointer transition-colors">
+                          <Plus className="w-6 h-6 text-neutral-400" />
+                          <span className="text-[10px] text-neutral-500 mt-1 uppercase font-bold tracking-wider">Upload</span>
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                try {
+                                  const compressedBase64 = await compressImage(file);
+                                  setEditForm1L(prev => ({ ...prev, images: [...prev.images, compressedBase64] }));
+                                } catch(err) {
+                                  console.error("Compression failed", err);
+                                  alert("Failed to compress image");
+                                }
+                              }
+                              e.target.value = '';
+                            }} 
+                          />
+                        </label>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-neutral-500 mt-2 leading-relaxed">
+                      First image is the primary cover for 1L variant.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">
+                      Product Price (₹ per 5 Litre Industrial Drum)
+                    </label>
+                    <input 
+                      type="text" 
+                      value={editForm5L.price}
+                      onChange={(e) => setEditForm5L({ ...editForm5L, price: e.target.value })}
+                      className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#d4a373]/50 focus:ring-1 focus:ring-[#d4a373]/50 transition-all font-mono"
+                      placeholder="e.g. 11000"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">
+                      5 Litre Product Description
+                    </label>
+                    <textarea 
+                      value={editForm5L.description}
+                      onChange={(e) => setEditForm5L({ ...editForm5L, description: e.target.value })}
+                      rows={4}
+                      className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#d4a373]/50 focus:ring-1 focus:ring-[#d4a373]/50 transition-all"
+                      placeholder="Enter 5L bulk drum description..."
+                    />
+                  </div>
+                  
+                  <div className="border-t border-white/10 pt-5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">
+                      5 Litre Drum Images (Max 3)
+                    </label>
+                    <div className="flex flex-wrap gap-4">
+                      {editForm5L.images.map((img, idx) => (
+                        <div key={idx} className="relative w-24 h-24 rounded-xl border border-white/10 overflow-hidden group">
+                          <img src={img} alt={`5L Preview ${idx}`} className="w-full h-full object-cover" />
+                          <button 
+                            type="button"
+                            onClick={() => setEditForm5L(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }))}
+                            className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                            title="Remove image"
+                          >
+                            <Trash2 className="w-6 h-6 text-red-400" />
+                          </button>
+                        </div>
+                      ))}
+                      {editForm5L.images.length < 3 && (
+                        <label className="w-24 h-24 rounded-xl border-2 border-dashed border-white/20 hover:border-[#d4a373] hover:bg-[#d4a373]/10 flex flex-col items-center justify-center cursor-pointer transition-colors">
+                          <Plus className="w-6 h-6 text-neutral-400" />
+                          <span className="text-[10px] text-neutral-500 mt-1 uppercase font-bold tracking-wider">Upload</span>
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                try {
+                                  const compressedBase64 = await compressImage(file);
+                                  setEditForm5L(prev => ({ ...prev, images: [...prev.images, compressedBase64] }));
+                                } catch(err) {
+                                  console.error("Compression failed", err);
+                                  alert("Failed to compress image");
+                                }
+                              }
+                              e.target.value = '';
+                            }} 
+                          />
+                        </label>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-neutral-500 mt-2 leading-relaxed">
+                      First image is the primary cover for 5L drum variant.
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Footer */}
             <div className="flex gap-3 mt-8 pt-6 border-t border-white/10">
               <button 
+                type="button"
                 onClick={() => setEditingProduct(null)} 
-                className="flex-1 py-3.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-bold uppercase tracking-wider transition-colors"
+                className="flex-1 py-3.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button 
+                type="button"
                 onClick={() => {
-                    const parsedPrice = Number(editForm.price);
+                    const parsedPrice1L = Number(editForm1L.price) || 100;
+                    const parsedPrice5L = editForm5L.price ? Number(editForm5L.price) : parsedPrice1L * 5;
                     
                     // Update Admin UI state
                     setProducts(prev => prev.map(prod => prod.id === editingProduct.id ? { 
                       ...prod, 
-                      price: `₹${editForm.price}`,
-                      retailPrice: parsedPrice
+                      price: `₹${editForm1L.price}/KG`,
+                      retailPrice: parsedPrice1L
                     } : prod));
                     
-                    // Update global AppContext state
-                    updateProductDetails(editingProduct.codeId, parsedPrice, parsedPrice, editForm.images, editForm.description);
+                    // Update global AppContext state and backend DB
+                    updateProductDetails(
+                      editingProduct.codeId,
+                      parsedPrice1L,
+                      parsedPrice1L,
+                      editForm1L.images,
+                      editForm1L.description,
+                      parsedPrice5L,
+                      editForm5L.images,
+                      editForm5L.description
+                    );
                     
                     setEditingProduct(null);
                   }}
-                className="flex-1 py-3.5 rounded-xl bg-[#d4a373] hover:bg-[#c29161] text-black text-xs font-bold uppercase tracking-wider transition-colors"
+                className="flex-1 py-3.5 rounded-xl bg-[#d4a373] hover:bg-[#c29161] text-black text-xs font-bold uppercase tracking-wider transition-colors shadow-lg cursor-pointer font-black"
               >
-                Save New Prices
+                Save Changes
               </button>
             </div>
           </div>

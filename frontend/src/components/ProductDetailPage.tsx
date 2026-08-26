@@ -83,18 +83,29 @@ export const ProductDetailPage: React.FC = () => {
       defaultImage = '/images/bulk_1l.jpg';
     } else {
       productName = `${baseProduct.categoryTitle} Essential Oil (5 Litre)`;
-      price = baseProduct.unitPrice * 5;
+      price = baseProduct.price5L ? Number(baseProduct.price5L) : (baseProduct.unitPrice * 5);
       priceLabel = 'Price per 5 Litre drum';
       sizeLabel = '5L';
       category = 'B2B Bulk Material';
       specs = ['5 Litre HDPE Industrial Drum', '100% Pure Unadulterated', 'Industrial Grade'];
-      description = baseProduct.description || `100% pure steam-distilled ${baseProduct.categoryTitle.toLowerCase()} extract in bulk packaging. Designed for high-volume industrial and commercial manufacturing pipelines.`;
+      description = baseProduct.description5L || baseProduct.description || `100% pure steam-distilled ${baseProduct.categoryTitle.toLowerCase()} extract in bulk packaging. Designed for high-volume industrial and commercial manufacturing pipelines.`;
       defaultImage = '/images/bulk_5l.jpg';
     }
   }
 
-  const images = baseProduct.customImages !== undefined 
-    ? (baseProduct.customImages.length > 0 ? baseProduct.customImages : ['/images/favicon-circle.png']) 
+  let customImagesForVariant: string[] | undefined = undefined;
+  if (isBulk && selectedSize === '5l') {
+    customImagesForVariant = baseProduct.customImages5L && baseProduct.customImages5L.length > 0 
+      ? baseProduct.customImages5L 
+      : undefined;
+  } else {
+    customImagesForVariant = baseProduct.customImages && baseProduct.customImages.length > 0 
+      ? baseProduct.customImages 
+      : undefined;
+  }
+
+  const images = customImagesForVariant !== undefined 
+    ? customImagesForVariant 
     : [defaultImage];
   const currentImage = images[activeImageIndex] || images[0];
 
@@ -315,7 +326,7 @@ export const ProductDetailPage: React.FC = () => {
                 <h3 className="text-sm font-extrabold text-neutral-300 uppercase tracking-wider">Select Packaging Size</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <button
-                    onClick={() => setSelectedSize('1l')}
+                    onClick={() => { setSelectedSize('1l'); setActiveImageIndex(0); }}
                     className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                       selectedSize === '1l'
                         ? 'bg-[#d4a373]/20 border-[#d4a373]/60 text-white shadow-[0_0_15px_rgba(212,163,115,0.15)]'
@@ -328,7 +339,7 @@ export const ProductDetailPage: React.FC = () => {
                     </span>
                   </button>
                   <button
-                    onClick={() => setSelectedSize('5l')}
+                    onClick={() => { setSelectedSize('5l'); setActiveImageIndex(0); }}
                     className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                       selectedSize === '5l'
                         ? 'bg-[#d4a373]/20 border-[#d4a373]/60 text-white shadow-[0_0_15px_rgba(212,163,115,0.15)]'
@@ -337,7 +348,7 @@ export const ProductDetailPage: React.FC = () => {
                   >
                     <span className="text-xs font-bold block mb-1">5 Litre Drum</span>
                     <span className={`text-lg font-extrabold ${selectedSize === '5l' ? 'text-[#d4a373]' : 'text-white'}`}>
-                      &#8377;{(baseProduct.unitPrice * 5).toLocaleString('en-IN')}
+                      &#8377;{(baseProduct.price5L ? Number(baseProduct.price5L) : (baseProduct.unitPrice * 5)).toLocaleString('en-IN')}
                     </span>
                   </button>
                 </div>

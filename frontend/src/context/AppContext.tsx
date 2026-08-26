@@ -44,6 +44,9 @@ export interface ProductShowcaseItem {
   heroImage: string;
   unitPrice: number;
   retailPrice?: number;
+  price5L?: number;
+  customImages5L?: string[];
+  description5L?: string;
   grade: string;
   availability?: 'In Stock' | 'Out of Stock';
   customImages?: string[];
@@ -179,7 +182,16 @@ interface AppContextType {
   allProducts: ProductShowcaseItem[];
   addProduct: (product: ProductShowcaseItem) => void;
   deleteProduct: (id: string) => void;
-  updateProductDetails: (id: string, b2bPrice: number, retailPrice: number, customImages?: string[], description?: string) => void;
+  updateProductDetails: (
+    id: string,
+    b2bPrice: number,
+    retailPrice: number,
+    customImages?: string[],
+    description?: string,
+    price5L?: number,
+    customImages5L?: string[],
+    description5L?: string
+  ) => void;
   viewingBulkProductId: string | null;
   setViewingBulkProductId: (id: string | null) => void;
 }
@@ -533,10 +545,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             heroImage: p.hero_image || '/images/bulk_1l.jpg',
             unitPrice: Number(p.unit_price || p.price || 100),
             retailPrice: Number(p.retail_price || 299),
+            price5L: p.price_5l ? Number(p.price_5l) : undefined,
             grade: p.grade || '100% Steam Distilled • Pharma Grade',
             availability: (p.availability_status as any) || 'In Stock',
             customImages: Array.isArray(p.custom_images) && p.custom_images.length > 0 ? p.custom_images : undefined,
+            customImages5L: Array.isArray(p.custom_images_5l) && p.custom_images_5l.length > 0 ? p.custom_images_5l : undefined,
             description: p.description || '',
+            description5L: p.description_5l || '',
           }));
 
           // Sort weight loss oil to top
@@ -707,10 +722,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const updateProductDetails = async (id: string, b2bPrice: number, retailPrice: number, customImages?: string[], description?: string) => {
+  const updateProductDetails = async (
+    id: string,
+    b2bPrice: number,
+    retailPrice: number,
+    customImages?: string[],
+    description?: string,
+    price5L?: number,
+    customImages5L?: string[],
+    description5L?: string
+  ) => {
     setAllProducts(prev => {
       const updated = prev.map(p => 
-        p.id === id ? { ...p, unitPrice: b2bPrice, retailPrice: retailPrice, ...(customImages !== undefined && { customImages }), ...(description !== undefined && { description }) } : p
+        p.id === id ? { 
+          ...p, 
+          unitPrice: b2bPrice, 
+          retailPrice: retailPrice, 
+          ...(customImages !== undefined && { customImages }), 
+          ...(description !== undefined && { description }),
+          ...(price5L !== undefined && { price5L }),
+          ...(customImages5L !== undefined && { customImages5L }),
+          ...(description5L !== undefined && { description5L })
+        } : p
       );
       try {
         localStorage.setItem('madhav_all_products', JSON.stringify(updated));
@@ -732,8 +765,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           code_id: id,
           unit_price: b2bPrice,
           retail_price: retailPrice,
+          price_5l: price5L,
           custom_images: customImages || [],
-          description: description || ''
+          custom_images_5l: customImages5L || [],
+          description: description || '',
+          description_5l: description5L || ''
         })
       });
     } catch (e) {
