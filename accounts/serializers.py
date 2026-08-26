@@ -10,12 +10,20 @@ class UserSerializer(serializers.ModelSerializer):
     address = serializers.SerializerMethodField()
     orders_count = serializers.SerializerMethodField()
     total_spent = serializers.SerializerMethodField()
+    assigned_sales_person_name = serializers.SerializerMethodField()
+    assigned_customers_count = serializers.SerializerMethodField()
+    closed_deals_count = serializers.SerializerMethodField()
+    active_quotes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'mobile_number', 'role', 'first_name', 'last_name',
-                  'is_verified', 'is_active', 'customer_stage', 'address',
-                  'orders_count', 'total_spent']
+        fields = [
+            'id', 'email', 'mobile_number', 'role', 'first_name', 'last_name',
+            'is_verified', 'is_active', 'customer_stage', 'address',
+            'orders_count', 'total_spent',
+            'assigned_sales_person', 'assigned_sales_person_name',
+            'assigned_customers_count', 'closed_deals_count', 'active_quotes_count'
+        ]
 
     def get_customer_stage(self, obj):
         if hasattr(obj, 'customer_profile'):
@@ -44,6 +52,42 @@ class UserSerializer(serializers.ModelSerializer):
             Q(customer=obj) | Q(customer_email__iexact=obj.email)
         ).exclude(status='Cancelled').aggregate(total=Sum('total_amount'))
         return float(result['total'] or 0)
+
+    def get_assigned_sales_person_name(self, obj):
+        if obj.assigned_sales_person:
+            name = f"{obj.assigned_sales_person.first_name} {obj.assigned_sales_person.last_name}".strip()
+            return name or obj.assigned_sales_person.email or f"Sales Rep #{obj.assigned_sales_person.id}"
+        return None
+
+    def get_assigned_customers_count(self, obj):
+        if obj.role == 'Sales':
+            return obj.assigned_customers.count()
+        return 0
+
+    def get_closed_deals_count(self, obj):
+        if obj.role == 'Sales':
+            from orders.models import Order
+            from django.db.models import Q
+            assigned_ids = list(obj.assigned_customers.values_list('id', flat=True))
+            assigned_emails = list(obj.assigned_customers.exclude(email__isnull=True).values_list('email', flat=True))
+            if not assigned_ids and not assigned_emails:
+                return 0
+            return Order.objects.filter(
+                Q(customer_id__in=assigned_ids) | Q(customer_email__in=assigned_emails)
+            ).exclude(status='Cancelled').count()
+        return 0
+
+    def get_active_quotes_count(self, obj):
+        if obj.role == 'Sales':
+            from quotations.models import Quotation
+            assigned_ids = list(obj.assigned_customers.values_list('id', flat=True))
+            if not assigned_ids:
+                return 0
+            return Quotation.objects.filter(
+                customer_id__in=assigned_ids,
+                status__in=['Pending', 'Under Negotiation', 'Approved by Sales', 'Counter Offer by Sales', 'Pending Approval']
+            ).count()
+        return 0
 
 
 class CustomerProfileSerializer(serializers.ModelSerializer):

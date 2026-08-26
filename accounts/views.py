@@ -281,9 +281,22 @@ class UserListView(APIView):
 
     def get(self, request):
         role_filter = request.query_params.get('role', None)
+        assigned_to = request.query_params.get('assigned_to', None)
         queryset = User.objects.all().order_by('-id')
+
+        # If a sales rep requests users without admin privileges, show their assigned customers
+        if request.user.role == 'Sales' and request.query_params.get('all') != 'true':
+            queryset = queryset.filter(assigned_sales_person=request.user)
+
         if role_filter:
             queryset = queryset.filter(role__iexact=role_filter.strip())
+
+        if assigned_to:
+            if assigned_to == 'unassigned':
+                queryset = queryset.filter(assigned_sales_person__isnull=True)
+            elif assigned_to.isdigit():
+                queryset = queryset.filter(assigned_sales_person_id=int(assigned_to))
+
         data = UserSerializer(queryset, many=True).data
         return Response(data)
 
@@ -319,6 +332,51 @@ class ManageSalesUserView(APIView):
             is_verified=True
         )
         return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+
+class AssignCustomersView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, sales_user_id):
+        sales_user = User.objects.filter(id=sales_user_id, role='Sales').first()
+        if not sales_user:
+            return Response({"error": "Sales representative not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        customer_ids = request.data.get('customer_ids', [])
+        if not isinstance(customer_ids, list):
+            return Response({"error": "customer_ids must be a list of customer IDs."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Unassign customers currently assigned to this sales user if not in new list
+        User.objects.filter(assigned_sales_person=sales_user).exclude(id__in=customer_ids).update(assigned_sales_person=None)
+
+        # Assign selected customers
+        if customer_ids:
+            User.objects.filter(id__in=customer_ids, role='Customer').update(assigned_sales_person=sales_user)
+
+        # Refresh and return sales user data with updated counts
+        sales_user.refresh_from_db()
+        return Response({
+            "success": True,
+            "message": f"Successfully assigned {len(customer_ids)} customers to {sales_user.first_name or sales_user.email}.",
+            "sales_user": UserSerializer(sales_user).data
+        })
+
+class ToggleSalesUserStatusView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, sales_user_id):
+        sales_user = User.objects.filter(id=sales_user_id, role='Sales').first()
+        if not sales_user:
+            return Response({"error": "Sales representative not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        sales_user.is_active = not sales_user.is_active
+        sales_user.save(update_fields=['is_active'])
+
+        action_str = "Restored" if sales_user.is_active else "Revoked"
+        return Response({
+            "success": True,
+            "message": f"Access has been {action_str.lower()} for {sales_user.first_name or sales_user.email}.",
+            "sales_user": UserSerializer(sales_user).data
+        })
 
 class ForgotPasswordRequestOTPView(APIView):
     """

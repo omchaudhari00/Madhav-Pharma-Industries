@@ -5,7 +5,7 @@ import {
   ShoppingBag, Settings as SettingsIcon, TrendingUp,
   CheckCircle, XCircle, AlertCircle, Eye, EyeOff, Edit3,
   Trash2, Plus, ArrowLeft, UserPlus, Star, IndianRupee,
-  RefreshCw, Lock, LogOut, X, PenLine
+  RefreshCw, Lock, LogOut, X, PenLine, UserCheck, CheckSquare, Square
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { generateInvoicePDF } from '../../utils/InvoiceGenerator';
@@ -163,20 +163,22 @@ export const AdminDashboard: React.FC = () => {
   const loadCustomers = async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/accounts/users/?role=customer`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/accounts/users/?role=Customer`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
         const data = await res.json();
         setCustomers(data.map((user: any) => ({
           id: user.id,
-          name: `${user.first_name} ${user.last_name}`.trim() || user.company_name || 'Individual Customer',
+          name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.company_name || user.email?.split('@')[0] || 'Individual Customer',
           email: user.email,
           phone: user.mobile_number,
-          stage: user.is_verified ? 'Customer' : 'Lead',
+          stage: user.customer_stage || (user.orders_count > 0 ? 'Customer' : 'Lead'),
           ordersCount: user.orders_count || 0,
-          totalSpent: user.total_spent ? `₹${user.total_spent}` : '₹0',
-          status: user.is_active ? 'Active' : 'Deactivated'
+          totalSpent: user.total_spent ? `₹${Number(user.total_spent).toLocaleString()}` : '₹0',
+          status: user.is_active ? 'Active' : 'Deactivated',
+          assigned_sales_person: user.assigned_sales_person,
+          assigned_sales_person_name: user.assigned_sales_person_name
         })));
       }
     } catch (e) {
@@ -327,6 +329,12 @@ export const AdminDashboard: React.FC = () => {
   const [showSalesPassword, setShowSalesPassword] = useState(false);
   const [showSalesConfirmPassword, setShowSalesConfirmPassword] = useState(false);
 
+  // Customer Assignment Modal State
+  const [assigningSalesPerson, setAssigningSalesPerson] = useState<any | null>(null);
+  const [selectedCustomerIds, setSelectedCustomerIds] = useState<number[]>([]);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isSavingAssignment, setIsSavingAssignment] = useState(false);
+
   const loadSalesUsers = async () => {
     if (!token) return;
     try {
@@ -337,11 +345,13 @@ export const AdminDashboard: React.FC = () => {
         const data = await res.json();
         setSalesUsers(data.map((user: any) => ({
           id: user.id,
-          name: `${user.first_name} ${user.last_name}`.trim() || user.email,
+          name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email,
           email: user.email,
           phone: user.mobile_number,
-          activeQuotes: 0,
-          closedDeals: 0
+          activeQuotes: user.active_quotes_count || 0,
+          closedDeals: user.closed_deals_count || 0,
+          assignedCustomersCount: user.assigned_customers_count || 0,
+          isActive: user.is_active !== false
         })));
       }
     } catch (e) {
@@ -349,9 +359,91 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const openAssignModal = async (salesUser: any) => {
+    setAssigningSalesPerson(salesUser);
+    await loadCustomers();
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/accounts/users/?role=Customer`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const preselected = data
+          .filter((c: any) => c.assigned_sales_person === salesUser.id)
+          .map((c: any) => c.id);
+        setSelectedCustomerIds(preselected);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setIsAssignModalOpen(true);
+  };
+
+  const handleToggleCustomerSelection = (customerId: number) => {
+    setSelectedCustomerIds(prev => 
+      prev.includes(customerId) ? prev.filter(id => id !== customerId) : [...prev, customerId]
+    );
+  };
+
+  const handleSaveAssignment = async () => {
+    if (!assigningSalesPerson || !token) return;
+    setIsSavingAssignment(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/accounts/sales-users/${assigningSalesPerson.id}/assign/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ customer_ids: selectedCustomerIds })
+      });
+      if (res.ok) {
+        alert(`Customers successfully assigned to ${assigningSalesPerson.name}!`);
+        setIsAssignModalOpen(false);
+        setAssigningSalesPerson(null);
+        loadSalesUsers();
+        loadCustomers();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to save customer assignments');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error updating customer assignments.');
+    } finally {
+      setIsSavingAssignment(false);
+    }
+  };
+
+  const handleToggleSalesAccess = async (salesUser: any) => {
+    if (!token) return;
+    const actionName = salesUser.isActive ? 'revoke' : 'restore';
+    if (!confirm(`Are you sure you want to ${actionName} portal access for ${salesUser.name}?`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/accounts/sales-users/${salesUser.id}/toggle-status/`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        alert(data.message || `Access status updated successfully.`);
+        loadSalesUsers();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to update access status.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error updating access status.');
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'sales') {
       loadSalesUsers();
+      loadCustomers();
     }
   }, [activeTab, token]);
 
@@ -762,6 +854,7 @@ export const AdminDashboard: React.FC = () => {
                       <th className="py-3 px-4">Company Name</th>
                       <th className="py-3 px-4">Contact Details</th>
                       <th className="py-3 px-4">Stage Badge</th>
+                      <th className="py-3 px-4">Assigned Sales Rep</th>
                       <th className="py-3 px-4">Orders Placed</th>
                       <th className="py-3 px-4">Total Revenue</th>
                       <th className="py-3 px-4">Account Status</th>
@@ -774,21 +867,31 @@ export const AdminDashboard: React.FC = () => {
                         <td className="py-4 px-4 font-mono text-neutral-600">#{c.id}</td>
                         <td className="py-4 px-4 font-bold text-neutral-900">{c.name}</td>
                         <td className="py-4 px-4">
-                          <div className="text-neutral-200">{c.email}</div>
+                          <div className="text-neutral-900 font-medium">{c.email}</div>
                           <div className="text-xs text-neutral-600">{c.phone}</div>
                         </td>
                         <td className="py-4 px-4">
                           <div className={`inline-flex items-center justify-center px-3 py-1 rounded-xl border text-xs font-extrabold uppercase tracking-wide whitespace-nowrap shadow-sm ${c.stage === 'Lead'
-                              ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
-                              : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40'
+                              ? 'bg-amber-500/15 text-amber-700 border-amber-500/40'
+                              : 'bg-emerald-500/15 text-emerald-700 border-emerald-500/40'
                             }`}>
                             {c.stage === 'Lead' ? 'New Customer' : 'Customer'}
                           </div>
                         </td>
-                        <td className="py-4 px-4 font-mono text-neutral-900">{c.ordersCount} orders</td>
-                        <td className="py-4 px-4 font-bold text-[#d4a373]">{c.totalSpent}</td>
                         <td className="py-4 px-4">
-                          <div className={`inline-flex items-center justify-center px-3 py-1 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${c.status === 'Active' ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30' : 'text-red-400 bg-red-500/15 border-red-500/30'
+                          {c.assigned_sales_person_name ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold">
+                              <UserCheck className="w-3.5 h-3.5" />
+                              <span>{c.assigned_sales_person_name}</span>
+                            </span>
+                          ) : (
+                            <span className="text-xs text-neutral-400 italic">Unassigned</span>
+                          )}
+                        </td>
+                        <td className="py-4 px-4 font-mono text-neutral-900">{c.ordersCount} orders</td>
+                        <td className="py-4 px-4 font-bold text-[#b5835a]">{c.totalSpent}</td>
+                        <td className="py-4 px-4">
+                          <div className={`inline-flex items-center justify-center px-3 py-1 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${c.status === 'Active' ? 'text-emerald-700 bg-emerald-500/15 border-emerald-500/30' : 'text-red-700 bg-red-500/15 border-red-500/30'
                             }`}>
                             {c.status}
                           </div>
@@ -796,12 +899,9 @@ export const AdminDashboard: React.FC = () => {
                         <td className="py-4 px-4 flex items-center gap-2">
                           <button
                             onClick={() => handleDeactivateCustomer(c.id)}
-                            className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold"
+                            className="px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold cursor-pointer"
                           >
                             {c.status === 'Active' ? 'Deactivate' : 'Activate'}
-                          </button>
-                          <button className="p-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-700 text-neutral-700" title="Reset Password">
-                            <Lock className="w-4 h-4" />
                           </button>
                         </td>
                       </tr>
@@ -998,21 +1098,41 @@ export const AdminDashboard: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {salesUsers.map(s => (
-                  <div key={s.id} className="p-6 rounded-2xl bg-white border border-neutral-200 flex items-center justify-between">
+                  <div key={s.id} className="p-6 rounded-2xl bg-white border border-neutral-200 flex flex-col justify-between shadow-sm space-y-4">
                     <div>
-                      <h4 className="text-lg font-bold text-neutral-900">{s.name}</h4>
-                      <p className="text-xs text-neutral-600 mt-0.5">{s.email} • {s.phone}</p>
-                      <div className="flex items-center gap-4 mt-4 text-xs font-semibold">
-                        <span className="text-amber-300">{s.activeQuotes} Active Quotes</span>
-                        <span className="text-emerald-400">{s.closedDeals} Deals Closed</span>
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-lg font-bold text-neutral-900">{s.name}</h4>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${s.isActive ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' : 'bg-red-100 text-red-700 border border-red-300'}`}>
+                          {s.isActive ? 'Active' : 'Access Revoked'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-neutral-600 mt-1">{s.email} • {s.phone}</p>
+                      
+                      <div className="flex flex-wrap items-center gap-2 mt-4 text-xs font-semibold">
+                        <span className="text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                          {s.assignedCustomersCount || 0} Assigned Customers
+                        </span>
+                        <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                          {s.closedDeals || 0} Deals Closed
+                        </span>
+                        <span className="text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+                          {s.activeQuotes || 0} Active Quotes
+                        </span>
                       </div>
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <button className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-neutral-900">
+
+                    <div className="flex items-center gap-3 pt-3 border-t border-neutral-100">
+                      <button 
+                        onClick={() => openAssignModal(s)}
+                        className="flex-1 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-xs font-bold text-white shadow-sm transition-all cursor-pointer text-center"
+                      >
                         Assign Customers
                       </button>
-                      <button className="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-xs font-semibold text-red-300">
-                        Revoke Access
+                      <button 
+                        onClick={() => handleToggleSalesAccess(s)}
+                        className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${s.isActive ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'}`}
+                      >
+                        {s.isActive ? 'Revoke Access' : 'Restore Access'}
                       </button>
                     </div>
                   </div>
@@ -1502,6 +1622,121 @@ export const AdminDashboard: React.FC = () => {
                 className="flex-1 py-3.5 rounded-xl bg-[#d4a373] hover:bg-[#c29161] text-black text-xs font-bold uppercase tracking-wider transition-colors"
               >
                 Save New Prices
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Customer Assignment Modal */}
+      {isAssignModalOpen && assigningSalesPerson && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl border border-neutral-200 shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-6 border-b border-neutral-200 flex items-center justify-between bg-neutral-50">
+              <div>
+                <h3 className="text-xl font-bold text-neutral-900 font-serif">Assign Customers to Sales Representative</h3>
+                <p className="text-xs text-neutral-600 mt-1">
+                  Representative: <span className="font-bold text-neutral-900">{assigningSalesPerson.name}</span> ({assigningSalesPerson.email})
+                </p>
+              </div>
+              <button 
+                onClick={() => setIsAssignModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-neutral-200 hover:bg-neutral-300 flex items-center justify-center text-neutral-700 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1 space-y-3">
+              <div className="flex items-center justify-between text-xs text-neutral-600 pb-2 border-b border-neutral-100">
+                <span>Select customers to assign ({selectedCustomerIds.length} selected)</span>
+                <div className="flex gap-2">
+                  <button 
+                    type="button"
+                    onClick={() => setSelectedCustomerIds(customers.map(c => c.id))}
+                    className="text-[#b5835a] hover:underline font-semibold cursor-pointer"
+                  >
+                    Select All
+                  </button>
+                  <span>•</span>
+                  <button 
+                    type="button"
+                    onClick={() => setSelectedCustomerIds([])}
+                    className="text-neutral-500 hover:underline cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+
+              {customers.length === 0 ? (
+                <div className="text-center py-12 text-neutral-400 text-sm">
+                  No customers found in database.
+                </div>
+              ) : (
+                customers.map((cust) => {
+                  const isSelected = selectedCustomerIds.includes(cust.id);
+                  const isAssignedToOther = cust.assigned_sales_person && cust.assigned_sales_person !== assigningSalesPerson.id;
+
+                  return (
+                    <div 
+                      key={cust.id}
+                      onClick={() => handleToggleCustomerSelection(cust.id)}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                        isSelected 
+                          ? 'bg-[#d4a373]/10 border-[#d4a373] text-neutral-900 shadow-sm' 
+                          : 'bg-neutral-50 border-neutral-200 hover:bg-neutral-100 text-neutral-800'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-colors ${
+                          isSelected ? 'bg-[#d4a373] border-[#d4a373] text-black' : 'border-neutral-400 bg-white'
+                        }`}>
+                          {isSelected && <CheckCircle className="w-3.5 h-3.5 stroke-[3]" />}
+                        </div>
+                        <div>
+                          <div className="font-bold text-sm text-neutral-900 flex items-center gap-2">
+                            <span>{cust.name}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                              cust.stage === 'Customer' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                            }`}>
+                              {cust.stage}
+                            </span>
+                          </div>
+                          <div className="text-xs text-neutral-500 mt-0.5">
+                            {cust.email} • {cust.phone || 'No phone'} • {cust.ordersCount} Orders ({cust.totalSpent})
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-right text-xs">
+                        {cust.assigned_sales_person === assigningSalesPerson.id ? (
+                          <span className="text-emerald-600 font-bold">Currently Assigned</span>
+                        ) : isAssignedToOther ? (
+                          <span className="text-amber-600 font-medium">Assigned to: {cust.assigned_sales_person_name}</span>
+                        ) : (
+                          <span className="text-neutral-400 italic">Unassigned</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="p-5 border-t border-neutral-200 bg-neutral-50 flex items-center justify-between gap-3">
+              <button 
+                onClick={() => setIsAssignModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl border border-neutral-300 bg-white hover:bg-neutral-100 text-neutral-800 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSaveAssignment}
+                disabled={isSavingAssignment}
+                className="px-6 py-2.5 rounded-xl bg-[#d4a373] hover:bg-[#c29161] text-black text-xs font-extrabold uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:opacity-50"
+              >
+                {isSavingAssignment ? 'Saving Assignments...' : `Save Assignments (${selectedCustomerIds.length})`}
               </button>
             </div>
           </div>

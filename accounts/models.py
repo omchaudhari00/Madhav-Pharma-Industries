@@ -33,6 +33,13 @@ class User(AbstractUser):
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='Customer')
     is_verified = models.BooleanField(default=False)
+    assigned_sales_person = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_customers'
+    )
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
