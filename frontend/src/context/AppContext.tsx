@@ -499,7 +499,80 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return !!outOfStockProducts[productId];
   };
 
-  const toggleRetailStock = (productId: string) => {
+  const [allProducts, setAllProducts] = useState<ProductShowcaseItem[]>(() => {
+    try {
+      const stored = localStorage.getItem('madhav_all_products');
+      if (stored) {
+        let parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load products from localStorage:', e);
+    }
+    return DEFAULT_PRODUCTS;
+  });
+
+  const loadProductsFromBackend = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/catalog/products/`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped: ProductShowcaseItem[] = data.map((p: any) => ({
+            id: p.code_id || String(p.id),
+            name: p.name,
+            categoryTitle: p.category_title || p.name.split(' ')[0],
+            categorySubtitle: p.category_subtitle || '',
+            titleWhite: p.title_white || p.name.split(' ')[0],
+            titleGold: p.title_gold || '',
+            badgeText: p.badge_text || '',
+            specs: Array.isArray(p.specs) && p.specs.length > 0 ? p.specs : ['100% Pure & Natural', 'Steam Distilled', 'Therapeutic Grade'],
+            cardImage: p.card_image || '/images/bulk_1l.jpg',
+            heroImage: p.hero_image || '/images/bulk_1l.jpg',
+            unitPrice: Number(p.unit_price || p.price || 100),
+            retailPrice: Number(p.retail_price || 299),
+            grade: p.grade || '100% Steam Distilled • Pharma Grade',
+            availability: (p.availability_status as any) || 'In Stock',
+            customImages: Array.isArray(p.custom_images) && p.custom_images.length > 0 ? p.custom_images : undefined,
+            description: p.description || '',
+          }));
+
+          // Sort weight loss oil to top
+          mapped.sort((a, b) => {
+            if (a.id === 'weight-loss-oil') return -1;
+            if (b.id === 'weight-loss-oil') return 1;
+            return 0;
+          });
+
+          // Sync stock status map
+          const newStatusMap: Record<string, { retailOos?: boolean; b2bOos?: boolean; discontinued?: boolean }> = {};
+          data.forEach((p: any) => {
+            const code = p.code_id || String(p.id);
+            newStatusMap[code] = {
+              retailOos: !!p.retail_oos,
+              b2bOos: !!p.b2b_oos,
+              discontinued: !!p.discontinued,
+            };
+          });
+
+          setProductStatusMap(newStatusMap);
+          setAllProducts(mapped);
+          localStorage.setItem('madhav_all_products', JSON.stringify(mapped));
+          localStorage.setItem('madhav_product_status_map', JSON.stringify(newStatusMap));
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load products from backend:', e);
+    }
+  };
+
+  useEffect(() => {
+    loadProductsFromBackend();
+  }, []);
+
+  const toggleRetailStock = async (productId: string) => {
     setProductStatusMap(prev => {
       const current = prev[productId] || {};
       const updated = { ...prev, [productId]: { ...current, retailOos: !current.retailOos } };
@@ -507,24 +580,66 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return updated;
     });
     toggleProductStock(productId); // keep legacy synced
+
+    try {
+      const authToken = localStorage.getItem('madhav_token');
+      await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/catalog/products/toggle_stock/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+        },
+        body: JSON.stringify({ code_id: productId, type: 'retail' })
+      });
+    } catch (e) {
+      console.error('Failed to sync retail stock toggle with backend:', e);
+    }
   };
 
-  const toggleB2BStock = (productId: string) => {
+  const toggleB2BStock = async (productId: string) => {
     setProductStatusMap(prev => {
       const current = prev[productId] || {};
       const updated = { ...prev, [productId]: { ...current, b2bOos: !current.b2bOos } };
       localStorage.setItem('madhav_product_status_map', JSON.stringify(updated));
       return updated;
     });
+
+    try {
+      const authToken = localStorage.getItem('madhav_token');
+      await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/catalog/products/toggle_stock/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+        },
+        body: JSON.stringify({ code_id: productId, type: 'b2b' })
+      });
+    } catch (e) {
+      console.error('Failed to sync b2b stock toggle with backend:', e);
+    }
   };
 
-  const toggleDiscontinued = (productId: string) => {
+  const toggleDiscontinued = async (productId: string) => {
     setProductStatusMap(prev => {
       const current = prev[productId] || {};
       const updated = { ...prev, [productId]: { ...current, discontinued: !current.discontinued } };
       localStorage.setItem('madhav_product_status_map', JSON.stringify(updated));
       return updated;
     });
+
+    try {
+      const authToken = localStorage.getItem('madhav_token');
+      await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/catalog/products/toggle_stock/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+        },
+        body: JSON.stringify({ code_id: productId, type: 'discontinued' })
+      });
+    } catch (e) {
+      console.error('Failed to sync discontinued toggle with backend:', e);
+    }
   };
 
   const isRetailOutOfStock = (productId: string) => {
@@ -539,55 +654,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return !!productStatusMap[productId]?.discontinued;
   };
 
-  const [allProducts, setAllProducts] = useState<ProductShowcaseItem[]>(() => {
-    try {
-      const stored = localStorage.getItem('madhav_all_products');
-      if (stored) {
-        let parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          let updated = false;
-          // Filter out the mistakenly added product
-          if (parsed.find((p: ProductShowcaseItem) => p.id === 'cumin-seed-retail')) {
-            parsed = parsed.filter((p: ProductShowcaseItem) => p.id !== 'cumin-seed-retail');
-            updated = true;
-          }
-          
-          // Merge missing default products (like newly added Weight Loss)
-          DEFAULT_PRODUCTS.forEach(dp => {
-            if (!parsed.find((p: ProductShowcaseItem) => p.id === dp.id)) {
-              parsed.push(dp);
-              updated = true;
-            }
-          });
-
-          // Cleanup tainted customImages from the Edit Price bug
-          parsed.forEach((p: ProductShowcaseItem) => {
-            if (p.customImages && p.customImages.length === 1 && p.customImages[0] === '/images/bulk_1l.jpg') {
-               delete p.customImages;
-               updated = true;
-            }
-          });
-          
-          // Force 'weight-loss-oil' to be first
-          parsed.sort((a: ProductShowcaseItem, b: ProductShowcaseItem) => {
-            if (a.id === 'weight-loss-oil') return -1;
-            if (b.id === 'weight-loss-oil') return 1;
-            return 0;
-          });
-
-          if (updated || parsed[0]?.id !== 'weight-loss-oil') {
-            localStorage.setItem('madhav_all_products', JSON.stringify(parsed));
-          }
-          return parsed;
-        }
-      }
-    } catch (e) {
-      console.error('Failed to load products from localStorage:', e);
-    }
-    return DEFAULT_PRODUCTS;
-  });
-
-  const addProduct = (newProduct: ProductShowcaseItem) => {
+  const addProduct = async (newProduct: ProductShowcaseItem) => {
     setAllProducts(prev => {
       const updated = [...prev, newProduct];
       try {
@@ -597,9 +664,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       return updated;
     });
+
+    try {
+      const authToken = localStorage.getItem('madhav_token');
+      await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/catalog/products/update_details/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+        },
+        body: JSON.stringify({
+          code_id: newProduct.id,
+          name: newProduct.name,
+          category_title: newProduct.categoryTitle,
+          category_subtitle: newProduct.categorySubtitle,
+          title_white: newProduct.titleWhite,
+          title_gold: newProduct.titleGold,
+          badge_text: newProduct.badgeText,
+          specs: newProduct.specs,
+          card_image: newProduct.cardImage,
+          hero_image: newProduct.heroImage,
+          unit_price: newProduct.unitPrice,
+          retail_price: newProduct.retailPrice || newProduct.unitPrice,
+          grade: newProduct.grade,
+          description: newProduct.description || ''
+        })
+      });
+    } catch (e) {
+      console.error('Failed to sync new product to backend:', e);
+    }
   };
 
-  const deleteProduct = (productId: string) => {
+  const deleteProduct = async (productId: string) => {
     setAllProducts(prev => {
       const updated = prev.filter(p => p.id !== productId);
       try {
@@ -611,7 +707,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const updateProductDetails = (id: string, b2bPrice: number, retailPrice: number, customImages?: string[], description?: string) => {
+  const updateProductDetails = async (id: string, b2bPrice: number, retailPrice: number, customImages?: string[], description?: string) => {
     setAllProducts(prev => {
       const updated = prev.map(p => 
         p.id === id ? { ...p, unitPrice: b2bPrice, retailPrice: retailPrice, ...(customImages !== undefined && { customImages }), ...(description !== undefined && { description }) } : p
@@ -623,6 +719,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       return updated;
     });
+
+    try {
+      const authToken = localStorage.getItem('madhav_token');
+      await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/catalog/products/update_details/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+        },
+        body: JSON.stringify({
+          code_id: id,
+          unit_price: b2bPrice,
+          retail_price: retailPrice,
+          custom_images: customImages || [],
+          description: description || ''
+        })
+      });
+    } catch (e) {
+      console.error('Failed to sync product edit with backend:', e);
+    }
   };
 
   return (
