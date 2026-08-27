@@ -2,7 +2,11 @@ import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
-import { AboutSection } from './components/AboutSection';
+import { OurProductsSection } from './components/OurProductsSection';
+import { AboutUsSection } from './components/AboutUsSection';
+import { OurProcessSection } from './components/OurProcessSection';
+import { WhyChooseUsSection } from './components/WhyChooseUsSection';
+import { ContactUsSection } from './components/ContactUsSection';
 import ScrollBackground from './components/ScrollBackground';
 import SmoothScroll from './components/SmoothScroll';
 import { AppProvider, useApp } from './context/AppContext';
@@ -178,7 +182,30 @@ const AppContent: React.FC = () => {
 
                   {/* Products, About Us, and Manufacturing Preview Section */}
                   <div className="bg-transparent text-white relative z-20">
-                    <AboutSection />
+                    <section id="products" className="relative w-full bg-[#B4B3B3] xl:bg-transparent text-neutral-900 xl:text-white py-12 sm:py-16 px-4 sm:px-8 lg:px-12 xl:px-16 max-w-7xl mx-auto rounded-none font-display">
+                      <div id="about" />
+
+                      {/* 1. Our Products Section */}
+                      <OurProductsSection />
+
+                      {/* 2. About Us Section */}
+                      <div className="border-t border-black/10 xl:border-white/10 pt-4 pb-4">
+                        <AboutUsSection />
+                      </div>
+
+                      {/* 3. Our Process Section */}
+                      <div className="pt-16 mt-8 border-t border-black/10 xl:border-white/10">
+                        <OurProcessSection />
+                      </div>
+
+                      {/* 4. Why Choose Us Section */}
+                      <div className="pt-16 mt-8">
+                        <WhyChooseUsSection />
+                      </div>
+                    </section>
+
+                    {/* 5. Contact Us Section */}
+                    <ContactUsSection />
                   </div>
                 </main>
               </div>

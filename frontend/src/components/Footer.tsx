@@ -8,13 +8,12 @@ export const Footer: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <footer className="relative w-full pt-16 pb-8 px-6 sm:px-12 lg:px-16 mt-0 mb-0 bg-neutral-900/30 backdrop-blur-2xl border-t border-white/15 shadow-[0_-16px_48px_0_rgba(0,0,0,0.6)] text-left font-display overflow-hidden rounded-none">
+    <footer className="relative w-full pt-16 pb-8 px-6 sm:px-12 lg:px-16 mt-0 mb-0 bg-[#0a0a0a] backdrop-blur-2xl border-t border-white/15 text-left font-display overflow-hidden rounded-none">
       {/* Top glossy glass edge highlight line */}
       <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/50 to-transparent pointer-events-none" />
 
       {/* Ambient background glass light orbs */}
       <div className="absolute -top-20 -right-20 w-80 h-80 bg-[#d4a373]/20 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-10 xl:gap-12 mb-12">
         {/* Col 1: Brand & Description & Glass Social Buttons */}
