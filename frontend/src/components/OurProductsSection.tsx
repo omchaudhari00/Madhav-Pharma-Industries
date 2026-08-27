@@ -25,16 +25,6 @@ export const PreviewCard: React.FC<{ product: PreviewProduct }> = ({ product }) 
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none z-10" />
       <div className="absolute -top-20 -right-20 w-44 h-44 bg-[#d4a373]/10 rounded-full blur-3xl pointer-events-none group-hover:bg-[#d4a373]/20 transition-colors duration-500" />
 
-      {/* Badge row — matches ProductShowcase: neutral left badge + stock right badge */}
-      <div className="flex items-center justify-between gap-1 mb-2 sm:mb-4 relative z-10">
-        <span className="px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-neutral-800 border border-neutral-600 text-neutral-300 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider truncate max-w-[90px] sm:max-w-none">
-          {product.badge}
-        </span>
-        <span className="px-1.5 sm:px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider">
-          IN STOCK
-        </span>
-      </div>
-
       {/* Image */}
       <div className="relative w-full h-28 sm:h-44 rounded-xl sm:rounded-2xl overflow-hidden bg-neutral-950/60 border border-white/10 mb-2 sm:mb-5 group-hover:border-white/20 transition-colors flex items-center justify-center p-2 sm:p-4">
         <img

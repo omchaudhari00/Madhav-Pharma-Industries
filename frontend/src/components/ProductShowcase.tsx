@@ -178,23 +178,6 @@ export const ProductShowcase: React.FC = () => {
               <div className="absolute -top-20 -right-20 w-44 h-44 bg-neutral-700/10 rounded-full blur-3xl pointer-events-none group-hover:bg-[#d4a373]/10 transition-colors duration-500" />
 
               <div>
-                {/* Header Badge & Stock Tag */}
-                <div className="flex items-center justify-between gap-1 mb-2 sm:mb-4 relative z-10">
-                  <span className="px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-neutral-800 border border-neutral-600 text-neutral-300 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider">
-                    B2B RAW OIL
-                  </span>
-                  {isOos ? (
-                    <span className="px-1.5 sm:px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-0.5">
-                      <AlertCircle className="w-2.5 h-2.5" />
-                      <span>OOS</span>
-                    </span>
-                  ) : (
-                    <span className="px-1.5 sm:px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider">
-                      IN STOCK
-                    </span>
-                  )}
-                </div>
-
                 {/* Product Image Container */}
                 <div className="relative w-full h-28 sm:h-48 rounded-xl sm:rounded-2xl overflow-hidden bg-neutral-950/60 border border-white/10 mb-2 sm:mb-5 group-hover:border-white/20 transition-colors flex items-center justify-center p-2 sm:p-4">
                   <img

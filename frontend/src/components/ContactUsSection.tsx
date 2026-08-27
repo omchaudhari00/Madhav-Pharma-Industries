@@ -168,7 +168,7 @@ export const ContactUsSection: React.FC = () => {
       </section>
 
       {/* Premium Full-Page Glassmorphism Footer Section */}
-      <footer className="relative w-full pt-16 pb-8 px-6 sm:px-12 lg:px-16 mt-0 mb-0 bg-neutral-900/30 backdrop-blur-2xl border-t border-white/15 shadow-[0_-16px_48px_0_rgba(0,0,0,0.6)] text-left font-display overflow-hidden rounded-none">
+      <footer className="relative w-full pt-16 pb-8 px-6 sm:px-12 lg:px-16 mt-0 mb-0 bg-neutral-900/30 backdrop-blur-2xl border-t border-white/15 text-left font-display overflow-hidden rounded-none">
         {/* Top glossy glass edge highlight line */}
         <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/50 to-transparent pointer-events-none" />
 
