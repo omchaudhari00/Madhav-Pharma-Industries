@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1280);
   const { openAuth, openCart, cartTotalCount, user, logout, openRetailCheckout, retailCartTotalCount } = useApp();
   const navigate = useNavigate();
 
@@ -22,6 +23,16 @@ export const Navbar: React.FC = () => {
     handleScroll(); // Check on mount
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Track desktop breakpoint (xl = 1280px) for transparent navbar
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1280);
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Solid on: mobile/iPad always | desktop when scrolled or not on home page
+  const isSolid = !isDesktop || isScrolled || location.pathname !== '/';
 
   // Close mobile menu when tapping outside
   useEffect(() => {
@@ -49,15 +60,16 @@ export const Navbar: React.FC = () => {
   };
 
   return (
+    <>
     <header 
       id="main-navbar-header" 
-      className={`sticky top-0 z-40 w-full transition-all duration-500 ease-in-out ${
-        isScrolled 
-          ? 'bg-neutral-950/95 backdrop-blur-xl border-b border-white/10 shadow-lg' 
+      className={`fixed top-0 left-0 right-0 z-40 w-full h-16 transition-colors duration-300 ${
+        isSolid
+          ? 'bg-neutral-950/95 backdrop-blur-xl border-b border-white/10 shadow-lg'
           : 'bg-transparent border-b border-transparent'
       }`}
     >
-      <nav className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-3 sm:py-4 flex items-center justify-between text-white relative font-display">
+      <nav className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between text-white relative font-display">
         {/* Left: Brand Logo */}
         <a href="#hero" className="flex items-center space-x-2 sm:space-x-2.5 group shrink-0">
           <img 
@@ -149,7 +161,7 @@ export const Navbar: React.FC = () => {
 
         {/* Mobile & iPad Dropdown Menu (Overlay for screens < 1280px) */}
         {mobileMenuOpen && (
-          <div className="fixed top-[60px] left-0 right-0 bottom-0 h-[calc(100dvh-60px)] overflow-y-auto bg-neutral-950/98 backdrop-blur-2xl border-t border-neutral-800 px-6 pt-4 pb-24 flex flex-col space-y-6 xl:hidden z-50 shadow-2xl overscroll-contain">
+          <div className="fixed top-16 left-0 right-0 bottom-0 h-[calc(100dvh-64px)] overflow-y-auto bg-neutral-950/98 backdrop-blur-2xl border-t border-neutral-800 px-6 pt-4 pb-24 flex flex-col space-y-6 xl:hidden z-50 shadow-2xl overscroll-contain">
             <div className="space-y-1">
               <span className="text-[10px] font-bold tracking-widest text-[#d4a373] uppercase block mb-2 px-3">
                 Navigation Menu
@@ -263,6 +275,9 @@ export const Navbar: React.FC = () => {
         )}
       </nav>
     </header>
+    {/* Spacer to prevent content from hiding under fixed navbar */}
+    <div className="h-16 w-full shrink-0" />
+    </>
   );
 };
 

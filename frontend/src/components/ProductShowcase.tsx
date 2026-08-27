@@ -165,68 +165,68 @@ export const ProductShowcase: React.FC = () => {
       </div>
 
       {/* Bulk Product Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 font-display items-stretch">
+      <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6 font-display items-stretch">
         {bulkProducts.map((product) => {
           const isOos = isB2BOutOfStock(product.id);
 
           return (
             <div
               key={product.id}
-              className="relative group rounded-3xl p-6 bg-neutral-900/40 backdrop-blur-2xl border border-white/15 hover:border-[#d4a373]/60 transition-all duration-500 flex flex-col justify-between overflow-hidden shadow-[0_16px_48px_0_rgba(0,0,0,0.4)] hover:-translate-y-1"
+              className="relative group rounded-2xl p-3 sm:p-6 bg-neutral-900/40 backdrop-blur-2xl border border-white/15 hover:border-[#d4a373]/60 transition-all duration-500 flex flex-col justify-between overflow-hidden shadow-[0_8px_24px_0_rgba(0,0,0,0.4)] hover:-translate-y-1"
             >
               <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none z-10" />
               <div className="absolute -top-20 -right-20 w-44 h-44 bg-neutral-700/10 rounded-full blur-3xl pointer-events-none group-hover:bg-[#d4a373]/10 transition-colors duration-500" />
 
               <div>
                 {/* Header Badge & Stock Tag */}
-                <div className="flex items-center justify-between gap-2 mb-4 relative z-10">
-                  <span className="px-3 py-1 rounded-full bg-neutral-800 border border-neutral-600 text-neutral-300 text-[10px] font-extrabold uppercase tracking-wider">
+                <div className="flex items-center justify-between gap-1 mb-2 sm:mb-4 relative z-10">
+                  <span className="px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-neutral-800 border border-neutral-600 text-neutral-300 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider">
                     B2B RAW OIL
                   </span>
                   {isOos ? (
-                    <span className="px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
+                    <span className="px-1.5 sm:px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-0.5">
+                      <AlertCircle className="w-2.5 h-2.5" />
                       <span>OOS</span>
                     </span>
                   ) : (
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-extrabold uppercase tracking-wider">
+                    <span className="px-1.5 sm:px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[8px] sm:text-[10px] font-extrabold uppercase tracking-wider">
                       IN STOCK
                     </span>
                   )}
                 </div>
 
                 {/* Product Image Container */}
-                <div className="relative w-full h-48 rounded-2xl overflow-hidden bg-neutral-950/60 border border-white/10 mb-5 group-hover:border-white/20 transition-colors flex items-center justify-center p-4">
+                <div className="relative w-full h-28 sm:h-48 rounded-xl sm:rounded-2xl overflow-hidden bg-neutral-950/60 border border-white/10 mb-2 sm:mb-5 group-hover:border-white/20 transition-colors flex items-center justify-center p-2 sm:p-4">
                   <img
                     src={product.cardImage}
                     alt={product.name}
                     className="w-full h-full object-contain filter brightness-105 contrast-105 transform group-hover:scale-110 transition-transform duration-700"
                   />
-                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-neutral-950/80 to-transparent pointer-events-none" />
+                  <div className="absolute inset-x-0 bottom-0 h-8 sm:h-16 bg-gradient-to-t from-neutral-950/80 to-transparent pointer-events-none" />
                 </div>
 
                 {/* Product Name & Category */}
-                <div className="mb-4">
-                  <span className="text-[11px] font-bold text-neutral-500 tracking-widest uppercase block mb-1">
+                <div className="mb-2 sm:mb-4">
+                  <span className="text-[9px] sm:text-[11px] font-bold text-neutral-500 tracking-widest uppercase block mb-0.5">
                     {product.categoryTitle} Oil
                   </span>
-                  <h4 className="text-xl font-serif font-bold text-white leading-tight group-hover:text-[#d4a373] transition-colors">
+                  <h4 className="text-sm sm:text-xl font-serif font-bold text-white leading-tight group-hover:text-[#d4a373] transition-colors">
                     {product.name}
                   </h4>
                 </div>
 
                 {/* Price Display */}
-                <div className="mb-4 p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
-                  <span className="text-xs text-neutral-400 font-medium">Per KG Bulk</span>
+                <div className="mb-2 sm:mb-4 p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
+                  <span className="text-[9px] sm:text-xs text-neutral-400 font-medium">Per KG</span>
                   <div className="text-right">
-                    <span className="text-xl font-extrabold text-white">
+                    <span className="text-sm sm:text-xl font-extrabold text-white">
                       ₹{product.unitPrice}
                     </span>
                   </div>
                 </div>
 
                 {/* Specs List */}
-                <div className="mb-6 space-y-1 text-xs text-neutral-300 font-sans-custom">
+                <div className="hidden sm:block mb-6 space-y-1 text-xs text-neutral-300 font-sans-custom">
                   {product.specs.slice(0, 2).map((spec, idx) => (
                     <div key={idx} className="flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
@@ -237,25 +237,27 @@ export const ProductShowcase: React.FC = () => {
               </div>
 
               {/* Bottom Actions */}
-              <div className="pt-4 border-t border-white/10 space-y-2">
+              <div className="pt-2 sm:pt-4 border-t border-white/10 space-y-1.5 sm:space-y-2">
                 <button
                   onClick={() => setViewingBulkProductId(product.id)}
-                  className="w-full py-2.5 px-4 rounded-xl border border-white/20 hover:border-[#d4a373] bg-neutral-950/80 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer hover:bg-neutral-800"
+                  className="w-full py-2 px-2 sm:px-4 rounded-xl border border-white/20 hover:border-[#d4a373] bg-neutral-950/80 text-white font-bold text-[9px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-1 sm:gap-2 transition-all cursor-pointer hover:bg-neutral-800"
                 >
-                  <FileText className="w-3.5 h-3.5 text-neutral-400" />
-                  <span>View 1kg/5kg Specs</span>
+                  <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-neutral-400" />
+                  <span className="hidden sm:inline">View 1kg/5kg Specs</span>
+                  <span className="sm:hidden">Specs</span>
                 </button>
                 <button
                   onClick={() => !isOos && handleShopNow(product)}
                   disabled={isOos}
-                  className={`w-full py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer ${
+                  className={`w-full py-2 sm:py-3 px-2 sm:px-4 rounded-xl font-bold text-[9px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-1 sm:gap-2 transition-all duration-300 cursor-pointer ${
                     isOos
                       ? 'bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed'
                       : 'bg-white hover:bg-neutral-200 text-neutral-950 font-extrabold shadow-md active:scale-95'
                   }`}
                 >
-                  <span>{isOos ? 'OUT OF STOCK' : 'REQUEST BULK QUOTE'}</span>
-                  {!isOos && <ArrowRight className="w-4 h-4" />}
+                  <span className="hidden sm:inline">{isOos ? 'OUT OF STOCK' : 'REQUEST BULK QUOTE'}</span>
+                  <span className="sm:hidden">{isOos ? 'OOS' : 'Quote'}</span>
+                  {!isOos && <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />}
                 </button>
               </div>
             </div>

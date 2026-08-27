@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Space+Grotesk:wght@300..700&family=Syncopate:wght@400;700&family=Syne:wght@400..800&family=Sora:wght@300..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 @import "tailwindcss";
 @import "./components/ScrollStack.css";
 
@@ -37,12 +37,12 @@
   }
 
   :root {
-    font-family: 'Plus Jakarta Sans', 'Syne', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Playfair Display', Georgia, serif;
     color-scheme: dark;
   }
 
   body {
-    font-family: 'Plus Jakarta Sans', 'Syne', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Playfair Display', Georgia, serif;
     background-color: #000000;
     color: #ffffff;
     color-scheme: dark;
@@ -50,15 +50,15 @@
 }
 
 .font-brand {
-  font-family: 'Syncopate', 'Syne', sans-serif;
+  font-family: 'Playfair Display', Georgia, serif;
 }
 
 .font-display {
-  font-family: 'Plus Jakarta Sans', 'Syne', 'Sora', sans-serif;
+  font-family: 'Playfair Display', Georgia, serif;
 }
 
 .font-sans-custom {
-  font-family: 'Plus Jakarta Sans', 'Space Grotesk', sans-serif;
+  font-family: 'Playfair Display', Georgia, serif;
 }
 
 /* Rotating badge animation */

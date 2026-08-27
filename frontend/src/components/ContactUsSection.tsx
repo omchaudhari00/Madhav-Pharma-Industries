@@ -105,48 +105,8 @@ export const ContactUsSection: React.FC = () => {
                 Reach out to Madhav Pharma Industries for inquiries, wholesale orders, or product support.
               </p>
 
-              {/* 2x2 Glassmorphism Contact Grid */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-6 mb-8 font-sans-custom">
-                <div className="flex flex-col items-center text-center xl:flex-row xl:items-start xl:text-left space-y-2 xl:space-y-0 xl:space-x-4">
-                  <div className="p-2.5 sm:p-3.5 bg-neutral-900/10 xl:bg-white/5 backdrop-blur-md border border-neutral-900/20 xl:border-white/15 rounded-2xl text-[#d4a373] shadow-sm">
-                    <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-[#d4a373]" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-xs sm:text-sm text-neutral-900 xl:text-white font-display">Phone Number</h4>
-                    <p className="text-[11px] sm:text-xs text-neutral-900 xl:text-neutral-300 mt-0.5 font-semibold xl:font-normal">+91 9023385917</p>
-                  </div>
-                </div>
 
-                <div className="flex flex-col items-center text-center xl:flex-row xl:items-start xl:text-left space-y-2 xl:space-y-0 xl:space-x-4">
-                  <div className="p-2.5 sm:p-3.5 bg-neutral-900/10 xl:bg-white/5 backdrop-blur-md border border-neutral-900/20 xl:border-white/15 rounded-2xl text-[#d4a373] shadow-sm">
-                    <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-[#d4a373]" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-xs sm:text-sm text-neutral-900 xl:text-white font-display">Email Address</h4>
-                    <p className="text-[10px] sm:text-xs text-neutral-900 xl:text-neutral-300 mt-0.5 font-semibold xl:font-normal break-all sm:break-normal">madhavpharmaindustries@gmail.com</p>
-                  </div>
-                </div>
 
-                <div className="flex flex-col items-center text-center xl:flex-row xl:items-start xl:text-left space-y-2 xl:space-y-0 xl:space-x-4">
-                  <div className="p-2.5 sm:p-3.5 bg-neutral-900/10 xl:bg-white/5 backdrop-blur-md border border-neutral-900/20 xl:border-white/15 rounded-2xl text-[#d4a373] shadow-sm">
-                    <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-[#d4a373]" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-xs sm:text-sm text-neutral-900 xl:text-white font-display">Whatsapp</h4>
-                    <p className="text-[11px] sm:text-xs text-neutral-900 xl:text-neutral-300 mt-0.5 font-semibold xl:font-normal">+91 9023385917</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-center text-center xl:flex-row xl:items-start xl:text-left space-y-2 xl:space-y-0 xl:space-x-4">
-                  <div className="p-2.5 sm:p-3.5 bg-neutral-900/10 xl:bg-white/5 backdrop-blur-md border border-neutral-900/20 xl:border-white/15 rounded-2xl text-[#d4a373] shadow-sm">
-                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-[#d4a373]" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-xs sm:text-sm text-neutral-900 xl:text-white font-display">Our Facility</h4>
-                    <p className="text-[11px] sm:text-xs text-neutral-900 xl:text-neutral-300 mt-0.5 font-semibold xl:font-normal">Gujarat, India</p>
-                  </div>
-                </div>
-              </div>
 
             {/* Embedded Google Map with Glass Frame */}
             <div className="w-full relative h-56 sm:h-64 rounded-3xl overflow-hidden border border-white/15 bg-neutral-900/40 backdrop-blur-xl shadow-xl group">
