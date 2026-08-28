@@ -1,0 +1,129 @@
+import React from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Navbar } from './components/Navbar';
+import { HeroSection } from './components/HeroSection';
+import { OurProductsSection } from './components/OurProductsSection';
+import { AboutUsSection } from './components/AboutUsSection';
+import { OurProcessSection } from './components/OurProcessSection';
+import { WhyChooseUsSection } from './components/WhyChooseUsSection';
+import { ContactUsSection } from './components/ContactUsSection';
+import ScrollBackground from './components/ScrollBackground';
+import SmoothScroll from './components/SmoothScroll';
+import { AppProvider, useApp } from './context/AppContext';
+import { CartModal } from './components/CartModal';
+import { AuthModal } from './components/AuthModal';
+import { RetailCheckoutModal } from './components/RetailCheckoutModal';
+import { LegalModals } from './components/LegalModals';
+import { AdminDashboard } from './components/portals/AdminDashboard';
+import { SalesDashboard } from './components/portals/SalesDashboard';
+import { CustomerDashboard } from './components/portals/CustomerDashboard';
+import { ShopPage } from './components/ShopPage';
+import { ProductDetailPage } from './components/ProductDetailPage';
+import { FloatingCartButton } from './components/FloatingCartButton';
+// Self-contained demo of the /api/products/ endpoints; safe to remove.
+import ProductsPage from './pages/ProductsPage';
+
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { user } = useApp();
+  if (!user) return <Navigate to="/" replace />;
+  if (allowedRoles && !allowedRoles.includes(user.role)) return <Navigate to="/" replace />;
+  return <>{children}</>;
+};
+
+const AppContent = () => {
+  const location = useLocation();
+  const [isLoading, setIsLoading] = React.useState(true);
+  const previousPath = React.useRef(location.pathname);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  React.useEffect(() => {
+    if (location.pathname !== previousPath.current) {
+      const isEnteringCustomerSide = location.pathname.startsWith('/customer');
+      const isExitingCustomerSideToStorefront = previousPath.current.startsWith('/customer') && (location.pathname === '/' || location.pathname.startsWith('/products'));
+      previousPath.current = location.pathname;
+      if (isEnteringCustomerSide || isExitingCustomerSideToStorefront) {
+        setIsLoading(true);
+        const timer = setTimeout(() => setIsLoading(false), 800);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [location.pathname]);
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center">
+        <div className="relative">
+          <div className="absolute inset-0 bg-[#d4a373] blur-3xl opacity-20 rounded-full animate-pulse"></div>
+          <img src="/images/favicon-circle.png" alt="Madhav Pharma Loading" className="w-28 h-28 object-contain animate-spin-coin relative z-10" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Routes>
+        <Route path="/admin" element={<ProtectedRoute allowedRoles={['Admin']}><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/sales" element={<ProtectedRoute allowedRoles={['Sales']}><SalesDashboard /></ProtectedRoute>} />
+        <Route path="/customer" element={<ProtectedRoute allowedRoles={['Customer', 'Admin', 'Sales']}><CustomerDashboard /></ProtectedRoute>} />
+        <Route path="/products" element={<><ShopPage /><RetailCheckoutModal /><AuthModal /><LegalModals /></>} />
+        <Route path="/api-demo" element={<ProductsPage />} />
+        <Route path="/product/:id" element={<><ProductDetailPage /><RetailCheckoutModal /><AuthModal /><LegalModals /></>} />
+        <Route path="/*" element={
+          <SmoothScroll>
+            <div className="min-h-screen bg-transparent text-white selection:bg-neutral-800 selection:text-white font-display relative">
+              <ScrollBackground />
+              <div className="relative z-10">
+                <Navbar />
+                <main>
+                  <div className="relative w-full overflow-hidden">
+                    <div className="block xl:hidden absolute inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
+                      <img src="/images/home-about-gy.png" alt="Madhav Pharma Home Background" className="w-full h-full object-cover object-[51%_top] filter brightness-75 contrast-105" />
+                    </div>
+                    <div className="relative z-10">
+                      <HeroSection />
+                    </div>
+                  </div>
+                  <div className="bg-transparent text-white relative z-20">
+                    <section id="products" className="relative w-full bg-[#B4B3B3] xl:bg-transparent text-neutral-900 xl:text-white py-12 sm:py-16 px-4 sm:px-8 lg:px-12 xl:px-16 max-w-7xl mx-auto rounded-none font-display">
+                      <div id="about" />
+                      <OurProductsSection />
+                      <div className="border-t border-black/10 xl:border-white/10 pt-4 pb-4">
+                        <AboutUsSection />
+                      </div>
+                      <div className="pt-16 mt-8 border-t border-black/10 xl:border-white/10">
+                        <OurProcessSection />
+                      </div>
+                      <div className="pt-16 mt-8">
+                        <WhyChooseUsSection />
+                      </div>
+                    </section>
+                    <ContactUsSection />
+                  </div>
+                </main>
+              </div>
+              <CartModal />
+              <RetailCheckoutModal />
+              <AuthModal />
+              <LegalModals />
+            </div>
+          </SmoothScroll>
+        } />
+      </Routes>
+      <FloatingCartButton />
+      <LegalModals />
+    </>
+  );
+};
+
+export default function App() {
+  return (
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
+  );
+}

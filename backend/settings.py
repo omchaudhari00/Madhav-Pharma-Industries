@@ -87,6 +87,7 @@ INSTALLED_APPS = [
     'quotations',
     'orders',
     'interactions',
+    'api',
 ]
 
 MIDDLEWARE = [
@@ -124,12 +125,30 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600
-    )
-}
+# How Django connects to PostgreSQL
+# ---------------------------------
+# Every credential is read from the .env file at the project root (loaded by
+# load_dotenv above), so no password is ever written into this file.
+#
+# Managed hosts such as Render or Railway hand you a single DATABASE_URL instead
+# of separate fields. If that variable is present it wins, which keeps deploys
+# working unchanged; local development falls through to the DB_* variables.
+if os.getenv('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(conn_max_age=600)
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', 'madhav_pharma'),
+            'USER': os.getenv('DB_USER', 'postgres'),
+            'PASSWORD': os.getenv('DB_PASSWORD', ''),
+            'HOST': os.getenv('DB_HOST', 'localhost'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+            'CONN_MAX_AGE': 600,
+        }
+    }
 
 
 # Password validation
@@ -168,6 +187,29 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# How React is served by Django
+# -----------------------------
+# `npm run build` compiles the React app into frontend/dist -- index.html plus a
+# hashed assets/ folder and everything from frontend/public.
+#
+# WHITENOISE_ROOT tells the WhiteNoise middleware (already listed in MIDDLEWARE,
+# directly after SecurityMiddleware) to serve that folder at the URL root. A
+# request for /assets/index-abc123.js is answered by WhiteNoise straight from
+# disk, before Django's URL resolver ever runs.
+#
+# Requests that do NOT match a real file -- '/', '/products', '/admin-portal' --
+# fall through to backend/urls.py, where a catch-all route returns index.html so
+# React Router can handle the path in the browser. That is why the frontend and
+# the API can share one port: there is only one server, and it decides per
+# request whether the path is a static file, an /api/ endpoint, or a React route.
+FRONTEND_DIST = BASE_DIR / 'frontend' / 'dist'
+
+WHITENOISE_ROOT = FRONTEND_DIST
+# Serve index.html for '/' (and for any directory path).
+WHITENOISE_INDEX_FILE = True
+# In development, notice a fresh `npm run build` without restarting the server.
+WHITENOISE_AUTOREFRESH = DEBUG
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
