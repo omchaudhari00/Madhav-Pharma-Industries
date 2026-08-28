@@ -98,7 +98,7 @@ const ShopCard: React.FC<{ product: ShopProduct }> = ({ product }) => {
 /* ─── Main Shop Page ─── */
 export const ShopPage: React.FC = () => {
   const navigate = useNavigate();
-  const { allProducts } = useApp();
+  const { allProducts, isDiscontinued } = useApp();
 
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const [isHeroHovered, setIsHeroHovered] = useState(false);
@@ -115,33 +115,35 @@ export const ShopPage: React.FC = () => {
     });
   }, []);
 
-  const shopProducts: ShopProduct[] = allProducts.map(p => {
-    if (p.id === 'weight-loss-oil') {
-      return {
-        id: `${p.id}-herbal`,
-        baseId: p.id,
-        name: p.name,
-        shortName: `${p.categoryTitle} ${p.categorySubtitle}`,
-        image: p.customImages !== undefined ? (p.customImages[0] || '/images/favicon-circle.png') : p.cardImage,
-        badgeText: p.badgeText,
-        category: 'herbal',
-        price: p.retailPrice || 349,
-        priceLabel: 'Price per 50ml bottle',
-      };
-    } else {
-      return {
-        id: `${p.id}-bulk`,
-        baseId: p.id,
-        name: `${p.categoryTitle} Essential Oil (Bulk)`,
-        shortName: `${p.categoryTitle} Oil (Bulk)`,
-        image: p.customImages !== undefined ? (p.customImages[0] || '/images/bulk_1l.jpg') : (p.id === 'cumin-seed-oil' ? (p.cardImage || '/images/bulk_1l.jpg') : p.cardImage || '/images/bulk_1l.jpg'),
-        badgeText: 'B2B RAW OIL',
-        category: 'bulk',
-        price: p.unitPrice,
-        priceLabel: 'Starting at (1L)',
-      };
-    }
-  });
+  const shopProducts: ShopProduct[] = (allProducts || [])
+    .filter(p => !isDiscontinued(p.id))
+    .map(p => {
+      if (p.id === 'weight-loss-oil') {
+        return {
+          id: `${p.id}-herbal`,
+          baseId: p.id,
+          name: p.name,
+          shortName: `${p.categoryTitle} ${p.categorySubtitle}`,
+          image: p.customImages !== undefined && p.customImages.length > 0 ? (p.customImages[0] || '/images/favicon-circle.png') : (p.cardImage || '/images/weight-loss-oil.jpg'),
+          badgeText: p.badgeText || '100% Natural',
+          category: 'herbal',
+          price: p.retailPrice || 349,
+          priceLabel: 'Price per 50ml bottle',
+        };
+      } else {
+        return {
+          id: `${p.id}-bulk`,
+          baseId: p.id,
+          name: `${p.categoryTitle} Essential Oil (Bulk)`,
+          shortName: `${p.categoryTitle} Oil (Bulk)`,
+          image: p.customImages !== undefined && p.customImages.length > 0 ? (p.customImages[0] || '/images/bulk_1l.jpg') : (p.cardImage || '/images/bulk_1l.jpg'),
+          badgeText: p.badgeText || 'B2B RAW OIL',
+          category: 'bulk',
+          price: p.unitPrice || 0,
+          priceLabel: 'Starting at (1L)',
+        };
+      }
+    });
 
   // Curated Visual Configs per Product
   const productConfigs: Record<string, {
@@ -520,14 +522,14 @@ export const ShopPage: React.FC = () => {
               {/* Arrow Cycle Buttons */}
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setActiveHeroIndex(prev => (prev - 1 + heroSlides.length) % heroSlides.length)}
+                  onClick={() => setActiveHeroIndex(prev => (heroSlides.length > 0 ? (prev - 1 + heroSlides.length) % heroSlides.length : 0))}
                   className="w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 border border-white/15 text-white/80 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                   aria-label="Previous Product"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  onClick={() => setActiveHeroIndex(prev => (prev + 1) % heroSlides.length)}
+                  onClick={() => setActiveHeroIndex(prev => (heroSlides.length > 0 ? (prev + 1) % heroSlides.length : 0))}
                   className="w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 border border-white/15 text-white/80 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                   aria-label="Next Product"
                 >
