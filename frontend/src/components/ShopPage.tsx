@@ -126,23 +126,37 @@ export const ShopPage: React.FC = () => {
     }
   });
 
-  // Hero Slides Data with Curated Brand Accents, Floating Elements & Matching Panel Tints
-  const heroSlides = [
-    {
-      id: 'cumin-seed-oil-bulk',
+  // Curated Visual Configs per Product
+  const productConfigs: Record<string, {
+    wordmark: string;
+    panelGradient: string;
+    glowColor: string;
+    accentColor: string;
+    badgeStyle: string;
+    buttonStyle: string;
+    dotsActive: string;
+    fallbackImage: string;
+    fallbackTitle: string;
+    fallbackTagline: string;
+    fallbackBadge: string;
+    fallbackPrice: number;
+    priceLabel: string;
+    ingredients: Array<{ type: string; label: string; pos: string; delay: string }>;
+  }> = {
+    'cumin-seed-oil': {
       wordmark: 'CUMIN',
-      title: 'Pure Steam-Distilled Cumin Seed Oil',
-      tagline: 'High-potency therapeutic Jeera extract crafted for digestive balance, immunity, and vitality.',
-      badge: '100% PURE THERAPEUTIC',
-      price: 2200,
-      priceLabel: 'Starting at 1L Bulk Container',
-      image: '/images/bulk_1l.jpg',
       panelGradient: 'from-[#342010] via-[#23150a] to-[#150c05]',
       glowColor: 'bg-[#d4a373]/25',
       accentColor: 'text-[#d4a373]',
       badgeStyle: 'bg-[#d4a373]/15 border-[#d4a373]/35 text-[#d4a373]',
       buttonStyle: 'bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 shadow-[0_0_30px_rgba(212,163,115,0.4)]',
       dotsActive: 'bg-[#d4a373]',
+      fallbackImage: '/images/bulk_1l.jpg',
+      fallbackTitle: 'Pure Steam-Distilled Cumin Seed Oil',
+      fallbackTagline: 'High-potency therapeutic Jeera extract crafted for digestive balance, immunity, and vitality.',
+      fallbackBadge: '100% PURE THERAPEUTIC',
+      fallbackPrice: 2200,
+      priceLabel: 'Starting at 1L Bulk Container',
       ingredients: [
         { type: 'seed-cluster', label: 'Cumin Seeds', pos: 'top-8 right-12 sm:top-12 sm:right-16', delay: '0s' },
         { type: 'leaf', label: 'Botanical Leaf', pos: 'bottom-16 left-6 sm:bottom-20 sm:left-10', delay: '1s' },
@@ -150,21 +164,20 @@ export const ShopPage: React.FC = () => {
         { type: 'seed', label: 'Jeera Grain', pos: 'bottom-8 right-24 sm:bottom-10 sm:right-32', delay: '1.5s' },
       ],
     },
-    {
-      id: 'weight-loss-oil-herbal',
+    'weight-loss-oil': {
       wordmark: 'HERBAL',
-      title: 'Completely Natural Weight Loss Remedy',
-      tagline: 'Researched Ayurvedic metabolic formulation designed to burn fat naturally and revitalize body wellness.',
-      badge: '100% AYURVEDIC FORMULATION',
-      price: 349,
-      priceLabel: 'Price per 50ml therapeutic bottle',
-      image: '/images/weight-loss-oil.jpg',
       panelGradient: 'from-[#152a1c] via-[#0d1d13] to-[#07120a]',
       glowColor: 'bg-emerald-500/25',
       accentColor: 'text-emerald-400',
       badgeStyle: 'bg-emerald-500/15 border-emerald-500/35 text-emerald-400',
       buttonStyle: 'bg-emerald-400 hover:bg-emerald-300 text-neutral-950 shadow-[0_0_30px_rgba(52,211,153,0.4)]',
       dotsActive: 'bg-emerald-400',
+      fallbackImage: '/images/weight-loss-oil.jpg',
+      fallbackTitle: 'Completely Natural Weight Loss Remedy',
+      fallbackTagline: 'Researched Ayurvedic metabolic formulation designed to burn fat naturally and revitalize body wellness.',
+      fallbackBadge: '100% AYURVEDIC FORMULATION',
+      fallbackPrice: 349,
+      priceLabel: 'Price per 50ml therapeutic bottle',
       ingredients: [
         { type: 'leaf', label: 'Herbal Leaf', pos: 'top-10 left-10 sm:top-14 sm:left-16', delay: '0.5s' },
         { type: 'leaf-sprig', label: 'Botanical Sprig', pos: 'bottom-14 right-10 sm:bottom-16 sm:right-16', delay: '1.2s' },
@@ -172,21 +185,20 @@ export const ShopPage: React.FC = () => {
         { type: 'seed', label: 'Ayurvedic Seed', pos: 'bottom-20 left-16 sm:bottom-24 sm:left-24', delay: '1.8s' },
       ],
     },
-    {
-      id: 'fennel-seed-oil-bulk',
+    'fennel-seed-oil': {
       wordmark: 'FENNEL',
-      title: 'Natural Steam-Distilled Fennel Seed Oil',
-      tagline: 'Sweet, aromatic Saunf essence steam-distilled for gourmet infusion and holistic wellness.',
-      badge: 'FOOD & WELLNESS GRADE',
-      price: 85,
-      priceLabel: 'Starting at 1L Bulk Container',
-      image: '/images/fennel-oil.png',
       panelGradient: 'from-[#1a2d1f] via-[#112015] to-[#09130c]',
       glowColor: 'bg-emerald-600/20',
       accentColor: 'text-emerald-300',
       badgeStyle: 'bg-emerald-500/15 border-emerald-500/35 text-emerald-300',
       buttonStyle: 'bg-emerald-400 hover:bg-emerald-300 text-neutral-950 shadow-[0_0_30px_rgba(52,211,153,0.4)]',
       dotsActive: 'bg-emerald-300',
+      fallbackImage: '/images/fennel-oil.png',
+      fallbackTitle: 'Natural Steam-Distilled Fennel Seed Oil',
+      fallbackTagline: 'Sweet, aromatic Saunf essence steam-distilled for gourmet infusion and holistic wellness.',
+      fallbackBadge: 'FOOD & WELLNESS GRADE',
+      fallbackPrice: 85,
+      priceLabel: 'Starting at 1L Bulk Container',
       ingredients: [
         { type: 'seed-cluster', label: 'Fennel Seeds', pos: 'top-12 left-12 sm:top-16 sm:left-20', delay: '0.3s' },
         { type: 'leaf', label: 'Saunf Leaf', pos: 'bottom-12 right-12 sm:bottom-16 sm:right-20', delay: '1.4s' },
@@ -194,21 +206,20 @@ export const ShopPage: React.FC = () => {
         { type: 'seed', label: 'Sweet Seed', pos: 'bottom-16 left-8 sm:bottom-20 sm:left-14', delay: '0.8s' },
       ],
     },
-    {
-      id: 'ajwain-seed-oil-bulk',
+    'ajwain-seed-oil': {
       wordmark: 'AJWAIN',
-      title: 'Pure Concentrated Ajwain Seed Oil',
-      tagline: 'Intensely aromatic carom extract delivering fast-acting therapeutic relief and digestive comfort.',
-      badge: 'PHARMA GRADE POTENCY',
-      price: 95,
-      priceLabel: 'Starting at 1L Bulk Container',
-      image: '/images/ajwain-oil.png',
       panelGradient: 'from-[#351c14] via-[#24120c] to-[#140906]',
       glowColor: 'bg-amber-600/20',
       accentColor: 'text-amber-400',
       badgeStyle: 'bg-amber-500/15 border-amber-500/35 text-amber-400',
       buttonStyle: 'bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow-[0_0_30px_rgba(245,158,11,0.4)]',
       dotsActive: 'bg-amber-400',
+      fallbackImage: '/images/ajwain-oil.png',
+      fallbackTitle: 'Pure Concentrated Ajwain Seed Oil',
+      fallbackTagline: 'Intensely aromatic carom extract delivering fast-acting therapeutic relief and digestive comfort.',
+      fallbackBadge: 'PHARMA GRADE POTENCY',
+      fallbackPrice: 95,
+      priceLabel: 'Starting at 1L Bulk Container',
       ingredients: [
         { type: 'seed-cluster', label: 'Ajwain Florets', pos: 'top-10 right-14 sm:top-14 sm:right-20', delay: '0.2s' },
         { type: 'leaf', label: 'Herbal Flourish', pos: 'top-20 left-8 sm:top-24 sm:left-14', delay: '1.6s' },
@@ -216,21 +227,20 @@ export const ShopPage: React.FC = () => {
         { type: 'seed', label: 'Carom Seed', pos: 'bottom-14 left-14 sm:bottom-18 sm:left-20', delay: '1.1s' },
       ],
     },
-    {
-      id: 'black-seed-oil-bulk',
+    'black-seed-oil': {
       wordmark: 'KALONJI',
-      title: 'Pure Nigella Sativa Black Seed Oil',
-      tagline: 'Ancient miracle elixir cold-extracted and rich in Thymoquinone for deep whole-body rejuvenation.',
-      badge: 'PREMIUM COLD EXTRACT',
-      price: 150,
-      priceLabel: 'Starting at 1L Bulk Container',
-      image: '/images/all-oils.png',
       panelGradient: 'from-[#251e2c] via-[#18121d] to-[#0d0910]',
       glowColor: 'bg-amber-500/18',
       accentColor: 'text-[#e5c07b]',
       badgeStyle: 'bg-[#e5c07b]/15 border-[#e5c07b]/35 text-[#e5c07b]',
       buttonStyle: 'bg-[#e5c07b] hover:bg-[#d6af66] text-neutral-950 shadow-[0_0_30px_rgba(229,192,123,0.4)]',
       dotsActive: 'bg-[#e5c07b]',
+      fallbackImage: '/images/all-oils.png',
+      fallbackTitle: 'Pure Nigella Sativa Black Seed Oil',
+      fallbackTagline: 'Ancient miracle elixir cold-extracted and rich in Thymoquinone for deep whole-body rejuvenation.',
+      fallbackBadge: 'PREMIUM COLD EXTRACT',
+      fallbackPrice: 150,
+      priceLabel: 'Starting at 1L Bulk Container',
       ingredients: [
         { type: 'seed-cluster', label: 'Black Kalonji Seeds', pos: 'top-12 left-10 sm:top-16 sm:left-16', delay: '0.4s' },
         { type: 'leaf', label: 'Nigella Herb', pos: 'bottom-16 right-12 sm:bottom-20 sm:right-20', delay: '1.3s' },
@@ -238,7 +248,58 @@ export const ShopPage: React.FC = () => {
         { type: 'seed', label: 'Nigella Seed', pos: 'bottom-10 left-16 sm:bottom-14 sm:left-24', delay: '0.9s' },
       ],
     },
-  ];
+  };
+
+  // Dynamic Hero Slides derived live from allProducts (reflecting admin price & image edits)
+  const heroSlides = allProducts
+    .filter(p => !isDiscontinued(p.id))
+    .map(p => {
+      const cfg = productConfigs[p.id] || {
+        wordmark: p.categoryTitle.toUpperCase(),
+        panelGradient: 'from-[#251e2c] via-[#18121d] to-[#0d0910]',
+        glowColor: 'bg-[#d4a373]/25',
+        accentColor: 'text-[#d4a373]',
+        badgeStyle: 'bg-[#d4a373]/15 border-[#d4a373]/35 text-[#d4a373]',
+        buttonStyle: 'bg-[#d4a373] hover:bg-[#c29161] text-neutral-950 shadow-[0_0_30px_rgba(212,163,115,0.4)]',
+        dotsActive: 'bg-[#d4a373]',
+        fallbackImage: '/images/bulk_1l.jpg',
+        fallbackTitle: p.name,
+        fallbackTagline: p.description || '',
+        fallbackBadge: p.badgeText || '100% PURE',
+        fallbackPrice: p.unitPrice,
+        priceLabel: p.id === 'weight-loss-oil' ? 'Price per 50ml bottle' : 'Starting at 1L Bulk Container',
+        ingredients: [],
+      };
+
+      const isHerbal = p.id === 'weight-loss-oil';
+      const targetId = isHerbal ? `${p.id}-herbal` : `${p.id}-bulk`;
+      const dynamicPrice = isHerbal
+        ? (p.retailPrice !== undefined ? p.retailPrice : cfg.fallbackPrice)
+        : (p.unitPrice !== undefined ? p.unitPrice : cfg.fallbackPrice);
+
+      const dynamicImage = (p.customImages && p.customImages.length > 0 && p.customImages[0])
+        ? p.customImages[0]
+        : (p.cardImage || p.heroImage || cfg.fallbackImage);
+
+      return {
+        id: targetId,
+        baseId: p.id,
+        wordmark: cfg.wordmark,
+        title: p.name || cfg.fallbackTitle,
+        tagline: p.description || cfg.fallbackTagline,
+        badge: p.badgeText || cfg.fallbackBadge,
+        price: dynamicPrice,
+        priceLabel: cfg.priceLabel,
+        image: dynamicImage,
+        panelGradient: cfg.panelGradient,
+        glowColor: cfg.glowColor,
+        accentColor: cfg.accentColor,
+        badgeStyle: cfg.badgeStyle,
+        buttonStyle: cfg.buttonStyle,
+        dotsActive: cfg.dotsActive,
+        ingredients: cfg.ingredients,
+      };
+    });
 
   // Preload all product images
   useEffect(() => {
@@ -248,7 +309,7 @@ export const ShopPage: React.FC = () => {
         img.src = slide.image;
       }
     });
-  }, []);
+  }, [heroSlides]);
 
   // Auto-cycle every 3 seconds, pause on hover
   useEffect(() => {
@@ -432,7 +493,7 @@ export const ShopPage: React.FC = () => {
                     key={s.id}
                     onClick={() => setActiveHeroIndex(idx)}
                     className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                      idx === activeHeroIndex ? `w-8 ${heroSlides[activeHeroIndex].dotsActive}` : 'w-2 bg-white/30 hover:bg-white/60'
+                      idx === activeHeroIndex ? `w-8 ${heroSlides[activeHeroIndex]?.dotsActive || 'bg-[#d4a373]'}` : 'w-2 bg-white/30 hover:bg-white/60'
                     }`}
                     aria-label={`Slide to ${s.wordmark}`}
                   />
