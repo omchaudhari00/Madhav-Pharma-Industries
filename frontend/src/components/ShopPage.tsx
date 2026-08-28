@@ -26,7 +26,7 @@ interface ShopProduct {
   priceLabel: string;
 }
 
-/* ─── Minimal Product Card ─── */
+/* ─── Premium Glassmorphic Product Card ─── */
 const ShopCard: React.FC<{ product: ShopProduct }> = ({ product }) => {
   const navigate = useNavigate();
   const { isRetailOutOfStock, isB2BOutOfStock, isDiscontinued } = useApp();
@@ -39,13 +39,13 @@ const ShopCard: React.FC<{ product: ShopProduct }> = ({ product }) => {
   return (
     <div
       onClick={() => navigate(`/product/${product.id}`)}
-      className="group relative rounded-2xl bg-white border border-neutral-200 hover:border-[#d4a373]/60 transition-all duration-400 overflow-hidden flex flex-col shadow-md hover:shadow-[0_8px_30px_rgba(212,163,115,0.18)] hover:-translate-y-1 cursor-pointer"
+      className="group relative rounded-2xl bg-neutral-900/80 backdrop-blur-xl border border-white/15 hover:border-[#d4a373]/60 transition-all duration-400 overflow-hidden flex flex-col shadow-xl hover:shadow-[0_12px_36px_rgba(0,0,0,0.35)] hover:-translate-y-1 cursor-pointer"
     >
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
-      <div className="absolute -top-12 -right-12 w-32 h-32 bg-[#d4a373]/8 rounded-full blur-2xl pointer-events-none group-hover:bg-[#d4a373]/15 transition-colors duration-500" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none z-10" />
+      <div className="absolute -top-12 -right-12 w-32 h-32 bg-[#d4a373]/10 rounded-full blur-2xl pointer-events-none group-hover:bg-[#d4a373]/20 transition-colors duration-500" />
 
-      {/* Image */}
-      <div className="relative w-full h-52 bg-neutral-50 border-b border-neutral-200 overflow-hidden flex items-center justify-center p-6">
+      {/* Image Container */}
+      <div className="relative w-full h-44 sm:h-56 bg-neutral-950/60 border-b border-white/10 overflow-hidden flex items-center justify-center p-4 sm:p-6">
         <img
           src={product.image}
           alt={product.name}
@@ -53,24 +53,41 @@ const ShopCard: React.FC<{ product: ShopProduct }> = ({ product }) => {
             e.currentTarget.onerror = null;
             e.currentTarget.src = '/images/bulk_1l.jpg';
           }}
-          className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 brightness-105"
+          className="w-full h-full object-contain filter brightness-105 contrast-105 group-hover:scale-110 transition-transform duration-700"
         />
-        <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-neutral-900/70 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-neutral-950/80 to-transparent pointer-events-none" />
+
+        {/* Badge */}
+        <span className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-[#d4a373]/20 border border-[#d4a373]/40 text-[#d4a373] text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider shadow-sm z-10">
+          {product.badgeText}
+        </span>
+
+        {/* Stock status indicator */}
+        {isOos ? (
+          <span className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1 z-10">
+            <AlertCircle className="w-3 h-3" />
+            <span>OOS</span>
+          </span>
+        ) : (
+          <span className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider z-10">
+            IN STOCK
+          </span>
+        )}
       </div>
 
       {/* Content */}
-      <div className="p-5 flex flex-col flex-1">
-        <h3 className="text-base font-serif font-bold text-black leading-tight mb-2 group-hover:text-[#d4a373] transition-colors">
+      <div className="p-4 sm:p-5 flex flex-col flex-1">
+        <h3 className="text-sm sm:text-base font-serif font-bold text-white leading-tight mb-2 group-hover:text-[#d4a373] transition-colors line-clamp-2">
           {product.name}
         </h3>
 
-        <div className="mt-auto pt-4 border-t border-neutral-200 flex items-center justify-between">
+        <div className="mt-auto pt-3 sm:pt-4 border-t border-white/10 flex items-center justify-between">
           <div>
-            <span className="text-[10px] text-neutral-500 block mb-0.5">{product.priceLabel}</span>
-            <span className="text-xl font-extrabold text-[#d4a373]">&#8377;{product.price.toLocaleString('en-IN')}</span>
+            <span className="text-[9px] sm:text-[10px] text-neutral-400 block mb-0.5">{product.priceLabel}</span>
+            <span className="text-base sm:text-xl font-extrabold text-[#d4a373]">&#8377;{product.price.toLocaleString('en-IN')}</span>
           </div>
-          <div className="w-8 h-8 rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center group-hover:bg-[#d4a373] group-hover:text-black group-hover:border-[#d4a373] transition-all text-black">
-            <ChevronRight className="w-4 h-4" />
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center group-hover:bg-[#d4a373] group-hover:text-black group-hover:border-[#d4a373] transition-all text-white">
+            <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
         </div>
       </div>
@@ -323,9 +340,9 @@ export const ShopPage: React.FC = () => {
   }, [isHeroHovered, heroSlides.length]);
 
   return (
-    <div className="min-h-screen bg-white text-white font-display relative selection:bg-neutral-200 selection:text-black flex flex-col">
-      {/* Background Ambience Layer - White */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-white">
+    <div className="min-h-screen bg-[#B4B3B3] text-white font-display relative selection:bg-neutral-800 selection:text-white flex flex-col">
+      {/* Background Ambience Layer - Fixed Lighter Warm Charcoal-Grey (#B4B3B3) */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#B4B3B3]">
         <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#d4a373]/15 rounded-full blur-[140px]" />
         <div className="absolute top-2/3 -right-32 w-96 h-96 bg-emerald-600/10 rounded-full blur-[140px]" />
       </div>
@@ -340,7 +357,7 @@ export const ShopPage: React.FC = () => {
           <div className="mb-8">
             <button
               onClick={() => navigate('/')}
-              className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-neutral-600 hover:text-black transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-neutral-900 hover:text-black transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4 text-[#8a5d2b]" />
               <span>Back to Home</span>
@@ -524,13 +541,13 @@ export const ShopPage: React.FC = () => {
           <main id="collection-grid" className="w-full scroll-mt-24">
             {/* Section Header */}
             <div className="mb-10 text-center">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-black mb-3">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-neutral-950 mb-3">
                 Madhav Pharma Collection
               </h2>
-              <p className="text-sm sm:text-base text-neutral-500 font-sans-custom max-w-2xl mx-auto leading-relaxed">
+              <p className="text-sm sm:text-base text-neutral-800 font-sans-custom max-w-2xl mx-auto leading-relaxed font-medium">
                 100% natural essential oils and therapeutic remedies. Carefully steam-distilled and formulated for your wellness and vitality.
               </p>
-              <div className="h-px bg-gradient-to-r from-transparent via-[#d4a373]/50 to-transparent mt-8 max-w-2xl mx-auto" />
+              <div className="h-px bg-gradient-to-r from-transparent via-[#d4a373]/60 to-transparent mt-8 max-w-2xl mx-auto" />
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 max-w-5xl mx-auto">
