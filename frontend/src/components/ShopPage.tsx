@@ -4,8 +4,6 @@ import {
   ArrowDown,
   Sparkles,
   ShoppingBag,
-  Droplets,
-  Leaf,
   ChevronRight,
   AlertCircle,
 } from 'lucide-react';
@@ -160,7 +158,6 @@ export const ShopPage: React.FC = () => {
     fallbackBadge: string;
     fallbackPrice: number;
     priceLabel: string;
-    ingredients: Array<{ type: string; label: string; pos: string; delay: string }>;
   }> = {
     'cumin-seed-oil': {
       wordmark: 'CUMIN',
@@ -176,12 +173,6 @@ export const ShopPage: React.FC = () => {
       fallbackBadge: '100% PURE THERAPEUTIC',
       fallbackPrice: 2200,
       priceLabel: 'Starting at 1L Bulk Container',
-      ingredients: [
-        { type: 'seed-cluster', label: 'Cumin Seeds', pos: 'top-8 right-12 sm:top-12 sm:right-16', delay: '0s' },
-        { type: 'leaf', label: 'Botanical Leaf', pos: 'bottom-16 left-6 sm:bottom-20 sm:left-10', delay: '1s' },
-        { type: 'drop', label: 'Pure Extract', pos: 'top-20 left-12 sm:top-24 sm:left-16', delay: '2s' },
-        { type: 'seed', label: 'Jeera Grain', pos: 'bottom-8 right-24 sm:bottom-10 sm:right-32', delay: '1.5s' },
-      ],
     },
     'weight-loss-oil': {
       wordmark: 'HERBAL',
@@ -197,12 +188,6 @@ export const ShopPage: React.FC = () => {
       fallbackBadge: '100% AYURVEDIC FORMULATION',
       fallbackPrice: 349,
       priceLabel: 'Price per 50ml therapeutic bottle',
-      ingredients: [
-        { type: 'leaf', label: 'Herbal Leaf', pos: 'top-10 left-10 sm:top-14 sm:left-16', delay: '0.5s' },
-        { type: 'leaf-sprig', label: 'Botanical Sprig', pos: 'bottom-14 right-10 sm:bottom-16 sm:right-16', delay: '1.2s' },
-        { type: 'drop', label: 'Herbal Essence', pos: 'top-16 right-20 sm:top-20 sm:right-28', delay: '2.2s' },
-        { type: 'seed', label: 'Ayurvedic Seed', pos: 'bottom-20 left-16 sm:bottom-24 sm:left-24', delay: '1.8s' },
-      ],
     },
     'fennel-seed-oil': {
       wordmark: 'FENNEL',
@@ -218,12 +203,6 @@ export const ShopPage: React.FC = () => {
       fallbackBadge: 'FOOD & WELLNESS GRADE',
       fallbackPrice: 85,
       priceLabel: 'Starting at 1L Bulk Container',
-      ingredients: [
-        { type: 'seed-cluster', label: 'Fennel Seeds', pos: 'top-12 left-12 sm:top-16 sm:left-20', delay: '0.3s' },
-        { type: 'leaf', label: 'Saunf Leaf', pos: 'bottom-12 right-12 sm:bottom-16 sm:right-20', delay: '1.4s' },
-        { type: 'drop', label: 'Aromatic Drop', pos: 'top-8 right-24 sm:top-12 sm:right-32', delay: '2.1s' },
-        { type: 'seed', label: 'Sweet Seed', pos: 'bottom-16 left-8 sm:bottom-20 sm:left-14', delay: '0.8s' },
-      ],
     },
     'ajwain-seed-oil': {
       wordmark: 'AJWAIN',
@@ -239,12 +218,6 @@ export const ShopPage: React.FC = () => {
       fallbackBadge: 'PHARMA GRADE POTENCY',
       fallbackPrice: 95,
       priceLabel: 'Starting at 1L Bulk Container',
-      ingredients: [
-        { type: 'seed-cluster', label: 'Ajwain Florets', pos: 'top-10 right-14 sm:top-14 sm:right-20', delay: '0.2s' },
-        { type: 'leaf', label: 'Herbal Flourish', pos: 'top-20 left-8 sm:top-24 sm:left-14', delay: '1.6s' },
-        { type: 'drop', label: 'Potent Extract', pos: 'bottom-12 right-20 sm:bottom-16 sm:right-28', delay: '2.4s' },
-        { type: 'seed', label: 'Carom Seed', pos: 'bottom-14 left-14 sm:bottom-18 sm:left-20', delay: '1.1s' },
-      ],
     },
     'black-seed-oil': {
       wordmark: 'KALONJI',
@@ -260,17 +233,11 @@ export const ShopPage: React.FC = () => {
       fallbackBadge: 'PREMIUM COLD EXTRACT',
       fallbackPrice: 150,
       priceLabel: 'Starting at 1L Bulk Container',
-      ingredients: [
-        { type: 'seed-cluster', label: 'Black Kalonji Seeds', pos: 'top-12 left-10 sm:top-16 sm:left-16', delay: '0.4s' },
-        { type: 'leaf', label: 'Nigella Herb', pos: 'bottom-16 right-12 sm:bottom-20 sm:right-20', delay: '1.3s' },
-        { type: 'drop', label: 'Golden Drop', pos: 'top-14 right-20 sm:top-18 sm:right-28', delay: '2.0s' },
-        { type: 'seed', label: 'Nigella Seed', pos: 'bottom-10 left-16 sm:bottom-14 sm:left-24', delay: '0.9s' },
-      ],
     },
   };
 
   // Dynamic Hero Slides derived live from allProducts (reflecting admin price & image edits)
-  const heroSlides = allProducts
+  const heroSlides = (allProducts || [])
     .filter(p => !isDiscontinued(p.id))
     .map(p => {
       const cfg = productConfigs[p.id] || {
@@ -287,7 +254,6 @@ export const ShopPage: React.FC = () => {
         fallbackBadge: p.badgeText || '100% PURE',
         fallbackPrice: p.unitPrice,
         priceLabel: p.id === 'weight-loss-oil' ? 'Price per 50ml bottle' : 'Starting at 1L Bulk Container',
-        ingredients: [],
       };
 
       const isHerbal = p.id === 'weight-loss-oil';
@@ -316,7 +282,6 @@ export const ShopPage: React.FC = () => {
         badgeStyle: cfg.badgeStyle,
         buttonStyle: cfg.buttonStyle,
         dotsActive: cfg.dotsActive,
-        ingredients: cfg.ingredients,
       };
     });
 
@@ -457,30 +422,12 @@ export const ShopPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Right Column: Prominent Product Bottle + Floating Ingredients */}
+                    {/* Right Column: Prominent Product Bottle */}
                     <div className="lg:col-span-5 w-full flex items-center justify-center relative min-h-[320px] sm:min-h-[380px] lg:min-h-[460px]">
                       {/* Ambient Glowing Blob behind Bottle */}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-10">
                         <div className={`w-[260px] sm:w-[340px] lg:w-[400px] h-[260px] sm:h-[340px] lg:h-[400px] ${slide.glowColor} rounded-full blur-[80px] sm:blur-[110px] transform scale-110`} />
                       </div>
-
-                      {/* Floating Ingredients */}
-                      {slide.ingredients.map((item, iIdx) => (
-                        <div
-                          key={iIdx}
-                          className={`absolute ${item.pos} pointer-events-none z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm border border-white/15 text-[11px] font-medium text-white/90 shadow-lg animate-pulse`}
-                          style={{ animationDuration: '3.5s', animationDelay: item.delay }}
-                        >
-                          {item.type === 'leaf' || item.type === 'leaf-sprig' ? (
-                            <Leaf className="w-3.5 h-3.5 text-emerald-400" />
-                          ) : item.type === 'drop' ? (
-                            <Droplets className="w-3.5 h-3.5 text-amber-300" />
-                          ) : (
-                            <div className="w-2.5 h-2.5 rounded-full bg-[#d4a373] shadow-sm" />
-                          )}
-                          <span className="hidden sm:inline text-[10px] font-sans-custom">{item.label}</span>
-                        </div>
-                      ))}
 
                       {/* Prominent Bottle Image */}
                       <div
