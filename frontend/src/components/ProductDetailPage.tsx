@@ -64,7 +64,7 @@ export const ProductDetailPage: React.FC = () => {
 
   if (isHerbal) {
     productName = baseProduct.name;
-    price = baseProduct.retailPrice || 299;
+    price = baseProduct.retailPrice !== undefined && baseProduct.retailPrice !== null ? baseProduct.retailPrice : (baseProduct.unitPrice || 0);
     priceLabel = 'Price per bottle';
     sizeLabel = '50ml';
     category = 'Therapeutic Formulation';

@@ -88,7 +88,7 @@ export const OurProductsSection: React.FC = () => {
         id: `${p.id}-herbal`,
         name: p.name,
         image: p.customImages !== undefined ? (p.customImages[0] || '/images/favicon-circle.png') : p.cardImage,
-        price: `₹${(p.retailPrice || 299).toLocaleString('en-IN')}`,
+        price: `₹${(p.retailPrice !== undefined && p.retailPrice !== null ? p.retailPrice : (p.unitPrice || 0)).toLocaleString('en-IN')}`,
         type: 'herbal' as const,
         badge: p.badgeText || 'HERBAL REMEDY',
         specs: ['50ml Bottle', p.grade.split('•')[1]?.trim() || p.grade],

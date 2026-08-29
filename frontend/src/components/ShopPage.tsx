@@ -125,7 +125,7 @@ export const ShopPage: React.FC = () => {
           image: p.customImages !== undefined && p.customImages.length > 0 ? (p.customImages[0] || '/images/favicon-circle.png') : (p.cardImage || '/images/weight-loss-oil.jpg'),
           badgeText: p.badgeText || '100% Natural',
           category: 'herbal',
-          price: p.retailPrice || 349,
+          price: p.retailPrice !== undefined && p.retailPrice !== null ? p.retailPrice : (p.unitPrice || 0),
           priceLabel: 'Price per 50ml bottle',
         };
       } else {
@@ -137,7 +137,7 @@ export const ShopPage: React.FC = () => {
           image: p.customImages !== undefined && p.customImages.length > 0 ? (p.customImages[0] || '/images/bulk_1l.jpg') : (p.cardImage || '/images/bulk_1l.jpg'),
           badgeText: p.badgeText || 'B2B RAW OIL',
           category: 'bulk',
-          price: p.unitPrice || 0,
+          price: p.unitPrice !== undefined && p.unitPrice !== null ? p.unitPrice : 0,
           priceLabel: 'Starting at (1L)',
         };
       }
@@ -156,7 +156,6 @@ export const ShopPage: React.FC = () => {
     fallbackTitle: string;
     fallbackTagline: string;
     fallbackBadge: string;
-    fallbackPrice: number;
     priceLabel: string;
   }> = {
     'cumin-seed-oil': {
@@ -171,7 +170,6 @@ export const ShopPage: React.FC = () => {
       fallbackTitle: 'Pure Steam-Distilled Cumin Seed Oil',
       fallbackTagline: 'High-potency therapeutic Jeera extract crafted for digestive balance, immunity, and vitality.',
       fallbackBadge: '100% PURE THERAPEUTIC',
-      fallbackPrice: 2200,
       priceLabel: 'Starting at 1L Bulk Container',
     },
     'weight-loss-oil': {
@@ -186,7 +184,6 @@ export const ShopPage: React.FC = () => {
       fallbackTitle: 'Completely Natural Weight Loss Remedy',
       fallbackTagline: 'Researched Ayurvedic metabolic formulation designed to burn fat naturally and revitalize body wellness.',
       fallbackBadge: '100% AYURVEDIC FORMULATION',
-      fallbackPrice: 349,
       priceLabel: 'Price per 50ml therapeutic bottle',
     },
     'fennel-seed-oil': {
@@ -201,7 +198,6 @@ export const ShopPage: React.FC = () => {
       fallbackTitle: 'Natural Steam-Distilled Fennel Seed Oil',
       fallbackTagline: 'Sweet, aromatic Saunf essence steam-distilled for gourmet infusion and holistic wellness.',
       fallbackBadge: 'FOOD & WELLNESS GRADE',
-      fallbackPrice: 85,
       priceLabel: 'Starting at 1L Bulk Container',
     },
     'ajwain-seed-oil': {
@@ -216,7 +212,6 @@ export const ShopPage: React.FC = () => {
       fallbackTitle: 'Pure Concentrated Ajwain Seed Oil',
       fallbackTagline: 'Intensely aromatic carom extract delivering fast-acting therapeutic relief and digestive comfort.',
       fallbackBadge: 'PHARMA GRADE POTENCY',
-      fallbackPrice: 95,
       priceLabel: 'Starting at 1L Bulk Container',
     },
     'black-seed-oil': {
@@ -231,7 +226,6 @@ export const ShopPage: React.FC = () => {
       fallbackTitle: 'Pure Nigella Sativa Black Seed Oil',
       fallbackTagline: 'Ancient miracle elixir cold-extracted and rich in Thymoquinone for deep whole-body rejuvenation.',
       fallbackBadge: 'PREMIUM COLD EXTRACT',
-      fallbackPrice: 150,
       priceLabel: 'Starting at 1L Bulk Container',
     },
   };
@@ -252,15 +246,14 @@ export const ShopPage: React.FC = () => {
         fallbackTitle: p.name,
         fallbackTagline: p.description || '',
         fallbackBadge: p.badgeText || '100% PURE',
-        fallbackPrice: p.unitPrice,
         priceLabel: p.id === 'weight-loss-oil' ? 'Price per 50ml bottle' : 'Starting at 1L Bulk Container',
       };
 
       const isHerbal = p.id === 'weight-loss-oil';
       const targetId = isHerbal ? `${p.id}-herbal` : `${p.id}-bulk`;
       const dynamicPrice = isHerbal
-        ? (p.retailPrice !== undefined ? p.retailPrice : cfg.fallbackPrice)
-        : (p.unitPrice !== undefined ? p.unitPrice : cfg.fallbackPrice);
+        ? (p.retailPrice !== undefined && p.retailPrice !== null ? p.retailPrice : (p.unitPrice || 0))
+        : (p.unitPrice !== undefined && p.unitPrice !== null ? p.unitPrice : 0);
 
       const dynamicImage = (p.customImages && p.customImages.length > 0 && p.customImages[0])
         ? p.customImages[0]
