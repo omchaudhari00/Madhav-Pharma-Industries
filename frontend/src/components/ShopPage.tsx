@@ -324,9 +324,9 @@ export const ShopPage: React.FC = () => {
             </button>
           </div>
 
-          {/* ─── Hero Section with Per-Product Cycling Content ─── */}
+          {/* ─── Hero Section with Per-Product Cycling Content (Fully Mobile Optimized) ─── */}
           <section
-            className="relative w-full rounded-[28px] sm:rounded-[36px] overflow-hidden min-h-[540px] sm:min-h-[580px] lg:min-h-[620px] mb-16 sm:mb-24 shadow-[0_30px_70px_rgba(0,0,0,0.4)] border border-white/20 bg-neutral-950/75 backdrop-blur-md"
+            className="relative w-full rounded-[24px] sm:rounded-[36px] overflow-hidden min-h-[580px] sm:min-h-[620px] lg:min-h-[540px] mb-12 sm:mb-20 shadow-[0_30px_70px_rgba(0,0,0,0.4)] border border-white/20 bg-neutral-950/75 backdrop-blur-md"
             onMouseEnter={() => setIsHeroHovered(true)}
             onMouseLeave={() => setIsHeroHovered(false)}
           >
@@ -345,7 +345,7 @@ export const ShopPage: React.FC = () => {
               return (
                 <div
                   key={slide.id}
-                  className={`absolute inset-0 transition-all duration-700 ease-in-out flex flex-col justify-between p-6 sm:p-10 lg:p-14 ${
+                  className={`absolute inset-0 transition-all duration-700 ease-in-out flex flex-col justify-between p-4 sm:p-8 lg:p-12 pb-14 sm:pb-16 ${
                     isActive ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-[0.98] pointer-events-none z-0'
                   }`}
                 >
@@ -354,78 +354,36 @@ export const ShopPage: React.FC = () => {
 
                   {/* Giant Bold Background Text Wordmark */}
                   <div className="absolute inset-0 flex items-center justify-center lg:justify-end lg:pr-10 pointer-events-none select-none overflow-hidden">
-                    <span className="text-[100px] sm:text-[150px] md:text-[200px] lg:text-[240px] xl:text-[280px] font-serif font-black tracking-tighter text-white/[0.07] uppercase leading-none whitespace-nowrap transform translate-y-4">
+                    <span className="text-[70px] sm:text-[140px] md:text-[180px] lg:text-[220px] xl:text-[260px] font-serif font-black tracking-tighter text-white/[0.07] uppercase leading-none whitespace-nowrap transform translate-y-4">
                       {slide.wordmark}
                     </span>
                   </div>
 
-                  {/* Main Grid Content */}
-                  <div className="relative z-20 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center flex-1 my-auto">
-                    {/* Left Column: Text & CTAs */}
-                    <div className="lg:col-span-7 flex flex-col items-start text-left">
-                      {/* Slide Index + Eyebrow Pill */}
-                      <div className="flex items-center gap-3 mb-5">
-                        <span className="text-xs sm:text-sm font-mono font-bold text-white/50 tracking-wider">
-                          0{idx + 1} / 0{heroSlides.length}
-                        </span>
-                        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-extrabold uppercase tracking-wider ${slide.badgeStyle}`}>
-                          <Sparkles className="w-3.5 h-3.5" />
-                          <span>{slide.badge}</span>
-                        </div>
-                      </div>
-
-                      {/* Large Headline */}
-                      <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[50px] font-serif font-bold text-white tracking-tight leading-[1.12] mb-4">
-                        {slide.title}
-                      </h1>
-
-                      {/* Tagline */}
-                      <p className="text-base sm:text-lg text-neutral-300 font-sans-custom leading-relaxed mb-6 max-w-xl">
-                        {slide.tagline}
-                      </p>
-
-                      {/* Price Tag Highlight */}
-                      <div className="flex items-baseline gap-2 mb-8 px-4 py-2 rounded-xl bg-black/25 border border-white/10">
-                        <span className="text-xs text-neutral-400">{slide.priceLabel}:</span>
-                        <span className={`text-xl font-extrabold ${slide.accentColor}`}>
-                          &#8377;{slide.price.toLocaleString('en-IN')}
-                        </span>
-                      </div>
-
-                      {/* CTA Buttons */}
-                      <div className="flex flex-wrap items-center gap-4">
-                        <button
-                          onClick={() => navigate(`/product/${slide.id}`)}
-                          className={`inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-extrabold text-sm uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer ${slide.buttonStyle}`}
-                        >
-                          <ShoppingBag className="w-4 h-4" />
-                          <span>Explore Product</span>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            const el = document.getElementById('collection-grid');
-                            if (el) el.scrollIntoView({ behavior: 'smooth' });
-                          }}
-                          className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-sm uppercase tracking-wider transition-all duration-300 cursor-pointer"
-                        >
-                          <span>View Full Grid</span>
-                          <ArrowDown className="w-4 h-4" />
-                        </button>
-                      </div>
+                  {/* Top Slide Meta: Index + Badge (Visible on all screens) */}
+                  <div className="relative z-20 flex items-center justify-between w-full mb-1 sm:mb-4">
+                    <span className="text-xs sm:text-sm font-mono font-bold text-white/50 tracking-wider">
+                      0{idx + 1} / 0{heroSlides.length}
+                    </span>
+                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] sm:text-xs font-extrabold uppercase tracking-wider ${slide.badgeStyle}`}>
+                      <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      <span>{slide.badge}</span>
                     </div>
+                  </div>
 
-                    {/* Right Column: Prominent Product Bottle */}
-                    <div className="lg:col-span-5 w-full flex items-center justify-center relative min-h-[320px] sm:min-h-[380px] lg:min-h-[460px]">
+                  {/* Responsive Content Grid: Mobile Stacks gracefully, Desktop Side-by-side */}
+                  <div className="relative z-20 grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-6 lg:gap-10 items-center flex-1 my-auto">
+                    
+                    {/* Mobile: Bottle Shows First/Middle (Order 1 on mobile, Order 2 on desktop) */}
+                    <div className="order-1 lg:order-2 lg:col-span-5 w-full flex items-center justify-center relative py-1 sm:py-2 lg:py-0">
                       {/* Ambient Glowing Blob behind Bottle */}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-10">
-                        <div className={`w-[260px] sm:w-[340px] lg:w-[400px] h-[260px] sm:h-[340px] lg:h-[400px] ${slide.glowColor} rounded-full blur-[80px] sm:blur-[110px] transform scale-110`} />
+                        <div className={`w-[160px] sm:w-[240px] lg:w-[380px] h-[160px] sm:h-[240px] lg:h-[380px] ${slide.glowColor} rounded-full blur-[50px] sm:blur-[80px] lg:blur-[110px] transform scale-110`} />
                       </div>
 
                       {/* Prominent Bottle Image */}
                       <div
                         onClick={() => navigate(`/product/${slide.id}`)}
-                        className="relative cursor-pointer group flex items-center justify-center w-full max-w-[320px] sm:max-w-[380px] lg:max-w-[440px] h-[300px] sm:h-[360px] lg:h-[420px]"
+                        className="relative cursor-pointer group flex items-center justify-center w-full max-w-[180px] sm:max-w-[240px] lg:max-w-[380px] h-[150px] sm:h-[200px] lg:h-[360px]"
                       >
                         <img
                           src={slide.image}
@@ -434,25 +392,69 @@ export const ShopPage: React.FC = () => {
                             e.currentTarget.onerror = null;
                             e.currentTarget.src = '/images/bulk_1l.jpg';
                           }}
-                          className="max-h-[280px] sm:max-h-[340px] lg:max-h-[400px] w-auto object-contain filter brightness-105 contrast-105 drop-shadow-[0_25px_50px_rgba(0,0,0,0.9)] group-hover:scale-105 transition-transform duration-500"
+                          className="max-h-[140px] sm:max-h-[190px] lg:max-h-[350px] w-auto object-contain filter brightness-105 contrast-105 drop-shadow-[0_15px_35px_rgba(0,0,0,0.8)] group-hover:scale-105 transition-transform duration-500"
                         />
                       </div>
                     </div>
+
+                    {/* Text & CTAs (Order 2 on mobile, Order 1 on desktop) */}
+                    <div className="order-2 lg:order-1 lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left">
+                      {/* Large Headline */}
+                      <h1 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl xl:text-[44px] font-serif font-bold text-white tracking-tight leading-tight sm:leading-[1.15] mb-1.5 sm:mb-3">
+                        {slide.title}
+                      </h1>
+
+                      {/* Tagline */}
+                      <p className="text-xs sm:text-sm lg:text-base text-neutral-300 font-sans-custom leading-relaxed mb-2.5 sm:mb-4 max-w-xl line-clamp-2 sm:line-clamp-3">
+                        {slide.tagline}
+                      </p>
+
+                      {/* Price Tag Highlight */}
+                      <div className="flex items-baseline gap-2 mb-3 sm:mb-6 px-3.5 py-1.5 rounded-xl bg-black/35 border border-white/15">
+                        <span className="text-[11px] sm:text-xs text-neutral-400">{slide.priceLabel}:</span>
+                        <span className={`text-base sm:text-xl font-extrabold ${slide.accentColor}`}>
+                          &#8377;{slide.price.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+
+                      {/* CTA Buttons */}
+                      <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-4 w-full sm:w-auto">
+                        <button
+                          onClick={() => navigate(`/product/${slide.id}`)}
+                          className={`inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-full font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer w-full sm:w-auto ${slide.buttonStyle}`}
+                        >
+                          <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <span>Explore Product</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            const el = document.getElementById('collection-grid');
+                            if (el) el.scrollIntoView({ behavior: 'smooth' });
+                          }}
+                          className="hidden sm:inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-sm uppercase tracking-wider transition-all duration-300 cursor-pointer"
+                        >
+                          <span>View Full Grid</span>
+                          <ArrowDown className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
                   </div>
                 </div>
               );
             })}
 
             {/* Bottom Controls Bar (Dot Indicators + Navigation) */}
-            <div className="absolute bottom-4 inset-x-0 z-30 flex items-center justify-between px-6 sm:px-10 pointer-events-auto">
+            <div className="absolute bottom-3 sm:bottom-4 inset-x-0 z-30 flex items-center justify-between px-4 sm:px-8 lg:px-10 pointer-events-auto">
               {/* Minimal Dot Indicators */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 {heroSlides.map((s, idx) => (
                   <button
                     key={s.id}
                     onClick={() => setActiveHeroIndex(idx)}
                     className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                      idx === activeHeroIndex ? `w-8 ${heroSlides[activeHeroIndex]?.dotsActive || 'bg-[#d4a373]'}` : 'w-2 bg-white/30 hover:bg-white/60'
+                      idx === activeHeroIndex ? `w-6 sm:w-8 ${heroSlides[activeHeroIndex]?.dotsActive || 'bg-[#d4a373]'}` : 'w-2 bg-white/30 hover:bg-white/60'
                     }`}
                     aria-label={`Slide to ${s.wordmark}`}
                   />
@@ -463,14 +465,14 @@ export const ShopPage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setActiveHeroIndex(prev => (heroSlides.length > 0 ? (prev - 1 + heroSlides.length) % heroSlides.length : 0))}
-                  className="w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 border border-white/15 text-white/80 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/40 hover:bg-black/70 border border-white/15 text-white/80 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                   aria-label="Previous Product"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setActiveHeroIndex(prev => (heroSlides.length > 0 ? (prev + 1) % heroSlides.length : 0))}
-                  className="w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 border border-white/15 text-white/80 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/40 hover:bg-black/70 border border-white/15 text-white/80 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                   aria-label="Next Product"
                 >
                   <ChevronRight className="w-3.5 h-3.5" />
