@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /products
+Allow: /product/*
+Disallow: /admin
+Disallow: /sales
+Disallow: /customer
+Disallow: /api/
+
+Sitemap: https://madhavpharmaindustries.com/sitemap.xml

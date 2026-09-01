@@ -14,12 +14,14 @@ import { CartModal } from './components/CartModal';
 import { AuthModal } from './components/AuthModal';
 import { RetailCheckoutModal } from './components/RetailCheckoutModal';
 import { LegalModals } from './components/LegalModals';
-import { AdminDashboard } from './components/portals/AdminDashboard';
-import { SalesDashboard } from './components/portals/SalesDashboard';
-import { CustomerDashboard } from './components/portals/CustomerDashboard';
 import { ShopPage } from './components/ShopPage';
 import { ProductDetailPage } from './components/ProductDetailPage';
 import { FloatingCartButton } from './components/FloatingCartButton';
+
+// Lazy-loaded portals for bundle optimization
+const AdminDashboard = React.lazy(() => import('./components/portals/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const SalesDashboard = React.lazy(() => import('./components/portals/SalesDashboard').then(m => ({ default: m.SalesDashboard })));
+const CustomerDashboard = React.lazy(() => import('./components/portals/CustomerDashboard').then(m => ({ default: m.CustomerDashboard })));
 
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
   const { user } = useApp();
@@ -113,20 +115,38 @@ const AppContent: React.FC = () => {
     <>
       <ScrollToTopOnNav />
       <Routes>
-        {/* Portals */}
+        {/* Portals with Code-Splitting */}
         <Route path="/admin" element={
           <ProtectedRoute allowedRoles={['Admin']}>
-            <AdminDashboard />
+            <React.Suspense fallback={
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950">
+                <img src="/images/favicon-circle.png" alt="Loading Admin Portal..." className="w-24 h-24 object-contain animate-spin-coin relative z-10" />
+              </div>
+            }>
+              <AdminDashboard />
+            </React.Suspense>
           </ProtectedRoute>
         } />
         <Route path="/sales" element={
           <ProtectedRoute allowedRoles={['Sales']}>
-            <SalesDashboard />
+            <React.Suspense fallback={
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950">
+                <img src="/images/favicon-circle.png" alt="Loading Sales Portal..." className="w-24 h-24 object-contain animate-spin-coin relative z-10" />
+              </div>
+            }>
+              <SalesDashboard />
+            </React.Suspense>
           </ProtectedRoute>
         } />
         <Route path="/customer" element={
           <ProtectedRoute allowedRoles={['Customer', 'Admin', 'Sales']}>
-            <CustomerDashboard />
+            <React.Suspense fallback={
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950">
+                <img src="/images/favicon-circle.png" alt="Loading Customer Portal..." className="w-24 h-24 object-contain animate-spin-coin relative z-10" />
+              </div>
+            }>
+              <CustomerDashboard />
+            </React.Suspense>
           </ProtectedRoute>
         } />
         {/* /products — Dedicated Shop Page */}
