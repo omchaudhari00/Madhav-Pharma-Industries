@@ -4,7 +4,7 @@ from .views import (
     CheckUserView, LoginView, RequestOTPView, ResendOTPView, VerifyOTPAndRegisterView,
     AdminDashboardStatsView, UserListView, ManageSalesUserView, AddressViewSet,
     ForgotPasswordRequestOTPView, ForgotPasswordResetView, UpdateProfileView,
-    AssignCustomersView, ToggleSalesUserStatusView
+    AssignCustomersView, ToggleSalesUserStatusView, CaptchaChallengeView
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -13,6 +13,7 @@ router.register(r'addresses', AddressViewSet, basename='address')
 
 urlpatterns = [
     path('profile/update/', UpdateProfileView.as_view(), name='update_profile'),
+    path('captcha/', CaptchaChallengeView.as_view(), name='captcha_challenge'),
     path('check-user/', CheckUserView.as_view(), name='check_user'),
     path('login/', LoginView.as_view(), name='login'),
     path('register/request-otp/', RequestOTPView.as_view(), name='request_otp'),

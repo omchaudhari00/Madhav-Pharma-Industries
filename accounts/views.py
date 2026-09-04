@@ -5,10 +5,11 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone
 from datetime import timedelta
-import random
+import time
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Q
+from django.contrib.auth.hashers import check_password
 
 from .models import User, CustomerProfile, OTPRecord, Address
 from .serializers import (
@@ -17,6 +18,12 @@ from .serializers import (
     UserSerializer, CustomerProfileSerializer, AddressSerializer
 )
 from .permissions import IsAdminUser, IsSalesUser, IsAdminOrSalesUser
+from .captcha import generate_captcha, verify_captcha
+
+# Pre-computed Argon2 hash used for constant-time comparisons when a user is not found
+DUMMY_ARGON2_HASH = (
+    "argon2$argon2id$v=19$m=102400,t=2,p=8$TFBSWkZVTzdBaWVBcmxtN24xVjZTaQ$QcZTyoWpmz+6mj8GLsF7KOGFRXbzC2uPeY8IdYvO7gI"
+)
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -25,17 +32,26 @@ def get_tokens_for_user(user):
         'access': str(refresh.access_token),
     }
 
-class CheckUserView(APIView):
+class CaptchaChallengeView(APIView):
+    """
+    Returns a cryptographically signed human-verification puzzle.
+    Used as an anti-bot fallback when failed attempts are detected.
+    """
     permission_classes = [AllowAny]
+    throttle_scope = 'auth'
+
+    def get(self, request):
+        return Response({"captcha": generate_captcha()})
+
+class CheckUserView(APIView):
+    """
+    Decommissioned to eliminate user enumeration. Always returns a neutral response.
+    """
+    permission_classes = [AllowAny]
+    throttle_scope = 'auth'
 
     def post(self, request):
-        serializer = CheckUserSerializer(data=request.data)
-        if serializer.is_valid():
-            identifier = serializer.validated_data['identifier'].strip()
-            exists = User.objects.filter(email=identifier).exists() or \
-                     User.objects.filter(mobile_number=identifier).exists()
-            return Response({"exists": exists})
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "Endpoint decommissioned for security compliance."})
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
@@ -43,21 +59,90 @@ class LoginView(APIView):
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            identifier = serializer.validated_data['identifier'].strip()
-            password = serializer.validated_data['password']
-            
-            user = User.objects.filter(email__iexact=identifier.lower()).first() or User.objects.filter(mobile_number=identifier).first()
-            
-            if user and user.check_password(password):
-                tokens = get_tokens_for_user(user)
+        if not serializer.is_valid():
+            return Response({"error": "Please provide a valid email and password."}, status=status.HTTP_400_BAD_REQUEST)
+
+        identifier = serializer.validated_data['identifier'].strip()
+        password = serializer.validated_data['password']
+        captcha_token = serializer.validated_data.get('captcha_token', '').strip()
+        captcha_answer = serializer.validated_data.get('captcha_answer', '').strip()
+
+        user = User.objects.filter(email__iexact=identifier.lower()).first() or \
+               User.objects.filter(mobile_number=identifier).first()
+
+        # 1. Check account lockout if user exists
+        if user and user.is_locked():
+            lockout_time = user.locked_until.strftime("%H:%M UTC") if user.locked_until else "15 minutes"
+            return Response({
+                "error": f"Account is temporarily locked due to excessive failed sign-in attempts. Please try again after {lockout_time} or reset your password.",
+                "locked": True
+            }, status=status.HTTP_429_TOO_MANY_REQUESTS)
+
+        # 2. Check if CAPTCHA verification is required (after 3 failed attempts)
+        captcha_threshold = getattr(settings, 'AUTH_CAPTCHA_THRESHOLD', 3)
+        if user and user.failed_login_attempts >= captcha_threshold:
+            if not captcha_token or not captcha_answer:
                 return Response({
-                    "message": "Login successful",
-                    "tokens": tokens,
-                    "user": UserSerializer(user).data
-                })
-            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                    "error": "Security verification required. Please solve the challenge to sign in.",
+                    "requires_captcha": True,
+                    "captcha": generate_captcha()
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            is_valid_captcha, captcha_err = verify_captcha(captcha_token, captcha_answer)
+            if not is_valid_captcha:
+                return Response({
+                    "error": captcha_err,
+                    "requires_captcha": True,
+                    "captcha": generate_captcha()
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        # 3. Validate password with timing attack normalization
+        if user:
+            is_valid_pw = user.check_password(password)
+        else:
+            # Run against dummy Argon2 hash to normalize response timing to ~50-100ms
+            check_password(password, DUMMY_ARGON2_HASH)
+            is_valid_pw = False
+
+        if not is_valid_pw:
+            if user:
+                user.increment_failed_attempts()
+                if user.is_locked():
+                    return Response({
+                        "error": "Account has been temporarily locked for 15 minutes due to 5 consecutive failed attempts.",
+                        "locked": True
+                    }, status=status.HTTP_429_TOO_MANY_REQUESTS)
+                if user.failed_login_attempts >= captcha_threshold:
+                    return Response({
+                        "error": "Invalid credentials. Security verification challenge required.",
+                        "requires_captcha": True,
+                        "captcha": generate_captcha()
+                    }, status=status.HTTP_401_UNAUTHORIZED)
+
+            return Response({
+                "error": "Invalid credentials. Please check your email and password."
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 4. Check active and verified status (Strict server-side verification requirement)
+        if not user.is_active:
+            return Response({
+                "error": "This account is inactive. Please contact support at contact@madhavpharmaindustries.com."
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        if not user.is_verified:
+            return Response({
+                "error": "Please verify your email address before signing in. Check your inbox for your verification code.",
+                "unverified": True
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        # 5. Successful login: reset lockout counters
+        user.reset_lockout()
+        tokens = get_tokens_for_user(user)
+        return Response({
+            "message": "Login successful",
+            "tokens": tokens,
+            "user": UserSerializer(user).data
+        })
 
 class RequestOTPView(APIView):
     permission_classes = [AllowAny]
@@ -65,47 +150,75 @@ class RequestOTPView(APIView):
 
     def post(self, request):
         serializer = RegistrationRequestSerializer(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data.get('email', '').strip().lower()
-            mobile_number = serializer.validated_data.get('mobile_number', '').strip()
-            
-            if User.objects.filter(email__iexact=email).exists():
-                return Response({"error": "An account with this email address already exists. Please sign in instead."}, status=status.HTTP_400_BAD_REQUEST)
-            if User.objects.filter(mobile_number=mobile_number).exists():
-                return Response({"error": "An account with this phone number already exists. Please use a different phone number or sign in."}, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            first_error = next(iter(serializer.errors.values()))[0] if serializer.errors else "Invalid registration details."
+            return Response({"error": str(first_error), "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Generate OTP (Mocked for now)
-            otp = str(random.randint(100000, 999999))
-            
-            OTPRecord.objects.create(
-                email=email,
-                mobile_number=mobile_number,
-                otp=otp,
-                expires_at=timezone.now() + timedelta(minutes=10)
+        email = serializer.validated_data.get('email', '').strip().lower()
+        mobile_number = serializer.validated_data.get('mobile_number', '').strip()
+
+        # Check if account already exists (Anti-Enumeration: return identical message and notify user)
+        existing_user = User.objects.filter(email__iexact=email).first() or \
+                        User.objects.filter(mobile_number=mobile_number).first()
+
+        if existing_user:
+            # Anti-Enumeration: Send email to existing account notifying them of registration attempt
+            subject = "Madhav Pharma Industries - Registration Attempt Notification"
+            message = (
+                f"Hello,\n\n"
+                f"Someone recently attempted to register a new account using this email address at Madhav Pharma Industries.\n\n"
+                f"If you already have an account, you can sign in directly or use our password reset page if you have forgotten your credentials.\n\n"
+                f"If this was not you, no action is needed and your account remains secure.\n\n"
+                f"Regards,\nMadhav Pharma Industries"
             )
-            
-            # Send OTP email using Django Gmail SMTP
-            subject = "Madhav Pharma Industries - Your Verification OTP"
-            message = f"Hello,\n\nYour 6-digit verification code is: {otp}\n\nThis OTP is valid for 10 minutes. Do not share this code with anyone.\n\nRegards,\nMadhav Pharma Industries"
-            email_sent = True
             try:
-                if email:
+                if existing_user.email:
                     send_mail(
                         subject=subject,
                         message=message,
                         from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[email],
-                        fail_silently=False,
+                        recipient_list=[existing_user.email],
+                        fail_silently=True,
                     )
             except Exception as e:
-                print(f"[Email Error] Failed to send OTP email to {email}: {e}")
-                return Response({"error": f"Server Email Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
+                print(f"[Email Notification Error]: {e}")
+
+            # Return identical response to prevent enumeration
             return Response({
-                "message": "OTP sent successfully to your email. Please verify."
-            })
-        first_error = next(iter(serializer.errors.values()))[0] if serializer.errors else "Invalid registration details."
-        return Response({"error": str(first_error), "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                "message": "If this email address is eligible for registration, a 6-digit verification code has been sent."
+            }, status=status.HTTP_200_OK)
+
+        # User does not exist: create cryptographically hashed OTP record
+        record, raw_otp = OTPRecord.create_otp(
+            email=email,
+            mobile_number=mobile_number,
+            purpose='registration',
+            validity_minutes=10
+        )
+
+        subject = "Madhav Pharma Industries - Your Verification Code"
+        message = (
+            f"Hello,\n\n"
+            f"Your 6-digit registration verification code is: {raw_otp}\n\n"
+            f"This code is valid for 10 minutes and can only be used once. Do not share this code with anyone.\n\n"
+            f"Regards,\nMadhav Pharma Industries"
+        )
+        try:
+            if email:
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[email],
+                    fail_silently=False,
+                )
+        except Exception as e:
+            print(f"[Email Error] Failed to send OTP email to {email}: {e}")
+            return Response({"error": "Failed to send verification code. Please check server email service."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({
+            "message": "If this email address is eligible for registration, a 6-digit verification code has been sent."
+        }, status=status.HTTP_200_OK)
 
 class ResendOTPView(APIView):
     permission_classes = [AllowAny]
@@ -118,30 +231,32 @@ class ResendOTPView(APIView):
         if not email and not mobile_number:
             return Response({"error": "Email or mobile number is required to resend OTP."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if email and User.objects.filter(email__iexact=email).exists():
-            return Response({"error": "An account with this email address already exists. Please sign in instead."}, status=status.HTTP_400_BAD_REQUEST)
-        if mobile_number and User.objects.filter(mobile_number=mobile_number).exists():
-            return Response({"error": "An account with this phone number already exists. Please use a different phone number or sign in."}, status=status.HTTP_400_BAD_REQUEST)
+        # Anti-enumeration check
+        existing_user = User.objects.filter(email__iexact=email).first() if email else None
+        if not existing_user and mobile_number:
+            existing_user = User.objects.filter(mobile_number=mobile_number).first()
 
-        # Invalidate previous unused OTP records for this email/mobile
-        OTPRecord.objects.filter(
+        if existing_user:
+            # Simulate timing and return generic response
+            time.sleep(0.3)
+            return Response({
+                "message": "If this email address is eligible for registration, a new verification code has been sent."
+            }, status=status.HTTP_200_OK)
+
+        record, raw_otp = OTPRecord.create_otp(
             email=email,
             mobile_number=mobile_number,
-            is_used=False
-        ).update(is_used=True)
-
-        # Generate fresh OTP
-        otp = str(random.randint(100000, 999999))
-        OTPRecord.objects.create(
-            email=email,
-            mobile_number=mobile_number,
-            otp=otp,
-            expires_at=timezone.now() + timedelta(minutes=10)
+            purpose='registration',
+            validity_minutes=10
         )
 
-        subject = "Madhav Pharma Industries - Your Verification OTP (Resend)"
-        message = f"Hello,\n\nYour new 6-digit verification code is: {otp}\n\nThis OTP is valid for 10 minutes. Do not share this code with anyone.\n\nRegards,\nMadhav Pharma Industries"
-        email_sent = True
+        subject = "Madhav Pharma Industries - Your Verification Code (Resend)"
+        message = (
+            f"Hello,\n\n"
+            f"Your new 6-digit verification code is: {raw_otp}\n\n"
+            f"This code is valid for 10 minutes. Do not share this code with anyone.\n\n"
+            f"Regards,\nMadhav Pharma Industries"
+        )
         try:
             if email:
                 send_mail(
@@ -152,12 +267,12 @@ class ResendOTPView(APIView):
                     fail_silently=False,
                 )
         except Exception as e:
-            print(f"[Email Error] Failed to resend OTP email to {email}: {e}")
-            return Response({"error": "Failed to send OTP to your email. Please ensure the server email configuration is correct."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print(f"[Email Error] Failed to resend OTP to {email}: {e}")
+            return Response({"error": "Failed to send verification code."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({
-            "message": "A new OTP has been sent to your email."
-        })
+            "message": "If this email address is eligible for registration, a new verification code has been sent."
+        }, status=status.HTTP_200_OK)
 
 class VerifyOTPAndRegisterView(APIView):
     permission_classes = [AllowAny]
@@ -165,68 +280,70 @@ class VerifyOTPAndRegisterView(APIView):
 
     def post(self, request):
         serializer = OTPVerificationSerializer(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data.get('email')
-            mobile_number = serializer.validated_data.get('mobile_number')
-            otp = serializer.validated_data['otp']
-            
-            record = OTPRecord.objects.filter(
-                email=email, 
-                mobile_number=mobile_number, 
-                otp=otp, 
-                is_used=False,
-                expires_at__gte=timezone.now()
-            ).first()
-            
-            if not record:
-                return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
-                
-            record.is_used = True
-            record.save()
-            
-            if email and User.objects.filter(email__iexact=email).exists():
-                return Response({"error": "An account with this email address already exists. Please sign in instead."}, status=status.HTTP_400_BAD_REQUEST)
-            if mobile_number and User.objects.filter(mobile_number=mobile_number).exists():
-                return Response({"error": "An account with this phone number already exists. Please use a different phone number or sign in."}, status=status.HTTP_400_BAD_REQUEST)
-            
-            # Create user
-            user = User.objects.create_user(
-                email=email,
-                mobile_number=mobile_number,
-                password=serializer.validated_data['password'],
-                first_name=serializer.validated_data.get('first_name', ''),
-                last_name=serializer.validated_data.get('last_name', ''),
-                role='Customer',
-                is_verified=True
-            )
-            
-            profile = CustomerProfile.objects.create(user=user)
-            address_text = serializer.validated_data.get('address', '').strip()
-            city = serializer.validated_data.get('city', '').strip()
-            state = serializer.validated_data.get('state', '').strip()
-            postal_code = serializer.validated_data.get('postal_code', '').strip()
-            
-            if address_text or city or postal_code:
-                Address.objects.create(
-                    customer=profile,
-                    address_line_1=address_text,
-                    city=city,
-                    state=state,
-                    postal_code=postal_code,
-                    country='India',
-                    is_default=True
-                )
-            
-            tokens = get_tokens_for_user(user)
-            
+        if not serializer.is_valid():
+            first_error = next(iter(serializer.errors.values()))[0] if serializer.errors else "Invalid verification details."
+            return Response({"error": str(first_error), "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        email = serializer.validated_data.get('email', '').strip().lower()
+        mobile_number = serializer.validated_data.get('mobile_number', '').strip()
+        otp = serializer.validated_data['otp'].strip()
+
+        # Find latest active OTP record
+        record_query = Q(purpose='registration', is_used=False, expires_at__gte=timezone.now())
+        if email:
+            record_query &= Q(email__iexact=email)
+        elif mobile_number:
+            record_query &= Q(mobile_number=mobile_number)
+
+        record = OTPRecord.objects.filter(record_query).order_by('-created_at').first()
+        if not record or not record.verify(otp):
             return Response({
-                "message": "Registration successful",
-                "tokens": tokens,
-                "user": UserSerializer(user).data
-            }, status=status.HTTP_201_CREATED)
-            
-        first_error = next(iter(serializer.errors.values()))[0] if serializer.errors else "Invalid verification details."
-        return Response({"error": str(first_error), "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                "error": "Invalid or expired verification code. Please request a new code."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if user already exists
+        if (email and User.objects.filter(email__iexact=email).exists()) or \
+           (mobile_number and User.objects.filter(mobile_number=mobile_number).exists()):
+            return Response({
+                "error": "An account with these credentials already exists. Please sign in instead."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create user with Argon2 password hashing and verified status
+        user = User.objects.create_user(
+            email=email if email else None,
+            mobile_number=mobile_number if mobile_number else None,
+            password=serializer.validated_data['password'],
+            first_name=serializer.validated_data.get('first_name', '').strip(),
+            last_name=serializer.validated_data.get('last_name', '').strip(),
+            role='Customer',
+            is_verified=True,
+            is_active=True
+        )
+
+        profile = CustomerProfile.objects.create(user=user)
+        address_text = serializer.validated_data.get('address', '').strip()
+        city = serializer.validated_data.get('city', '').strip()
+        state = serializer.validated_data.get('state', '').strip()
+        postal_code = serializer.validated_data.get('postal_code', '').strip()
+
+        if address_text or city or postal_code:
+            Address.objects.create(
+                customer=profile,
+                address_line_1=address_text or 'Not provided',
+                city=city or 'Not provided',
+                state=state or 'Not provided',
+                postal_code=postal_code or 'Not provided',
+                country='India',
+                is_default=True
+            )
+
+        tokens = get_tokens_for_user(user)
+        return Response({
+            "message": "Registration successful. Welcome to Madhav Pharma Industries.",
+            "tokens": tokens,
+            "user": UserSerializer(user).data
+        }, status=status.HTTP_201_CREATED)
+
 
 class AdminDashboardStatsView(APIView):
     permission_classes = [IsAdminUser]
@@ -381,7 +498,8 @@ class ToggleSalesUserStatusView(APIView):
 class ForgotPasswordRequestOTPView(APIView):
     """
     Step 1: User provides their registered email or phone number.
-    A 6-digit OTP is generated and emailed to them.
+    Anti-Enumeration: returns identical 200 response and uniform timing whether account exists or not.
+    Cryptographic OTP: stores SHA-256 hash, valid for 15 minutes, single-use.
     """
     permission_classes = [AllowAny]
     throttle_scope = 'auth'
@@ -393,58 +511,54 @@ class ForgotPasswordRequestOTPView(APIView):
             return Response({'error': 'Please enter your email address or mobile number.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Find the user by email or mobile number
-        user = User.objects.filter(email__iexact=identifier).first()
-        if not user:
-            user = User.objects.filter(mobile_number=identifier.strip()).first()
+        user = User.objects.filter(email__iexact=identifier).first() or \
+               User.objects.filter(mobile_number=identifier).first()
 
-        if not user:
-            return Response({'error': 'No account found with this email address or mobile number.'}, status=status.HTTP_404_NOT_FOUND)
-
-        if not user.email:
-            return Response({
-                'error': 'Password reset is currently only available for accounts with a registered email address. For phone-only accounts, please contact support at contact@madhavpharmaindustries.com or call +91 90233 85917.'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        # Generate OTP
-        otp = str(random.randint(100000, 999999))
-        OTPRecord.objects.create(
-            email=user.email,
-            mobile_number=user.mobile_number or '',
-            otp=otp,
-            expires_at=timezone.now() + timedelta(minutes=10)
-        )
-
-        # Send OTP email
-        subject = "Madhav Pharma Industries - Password Reset OTP"
-        message = (
-            f"Hello {user.first_name or 'Valued Customer'},\n\n"
-            f"Your password reset verification code is: {otp}\n\n"
-            f"This OTP is valid for 10 minutes. Do not share this code with anyone.\n"
-            f"If you did not request a password reset, please ignore this email.\n\n"
-            f"Regards,\nMadhav Pharma Industries"
-        )
-        try:
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False,
+        if user and user.email:
+            record, raw_otp = OTPRecord.create_otp(
+                email=user.email,
+                mobile_number=user.mobile_number or '',
+                user=user,
+                purpose='password_reset',
+                validity_minutes=15
             )
-        except Exception as e:
-            print(f"[Email Error] Failed to send password reset OTP to {user.email}: {e}")
-            return Response({'error': f'Failed to send OTP email. Server error: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+            # Send OTP email
+            subject = "Madhav Pharma Industries - Password Reset Code"
+            message = (
+                f"Hello {user.first_name or 'Valued Customer'},\n\n"
+                f"Your single-use password reset verification code is: {raw_otp}\n\n"
+                f"This code is valid for 15 minutes. It can only be used once.\n"
+                f"If you did not request a password reset, please ignore this email.\n\n"
+                f"Regards,\nMadhav Pharma Industries"
+            )
+            try:
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                print(f"[Email Error] Failed to send password reset OTP to {user.email}: {e}")
+                # Internal log; do not leak failure or user existence to caller
+
+        else:
+            # Timing attack mitigation: simulate email dispatch latency
+            time.sleep(0.35)
+
+        # Anti-enumeration: exact same response regardless of user existence, NO leaked email_hint
         return Response({
-            'message': 'A password reset OTP has been sent to your registered email address.',
-            'email_hint': user.email[:3] + '***' + user.email[user.email.index('@'):]
-        })
+            'message': 'If an account exists with this email address or phone number, a 6-digit password reset code has been sent.'
+        }, status=status.HTTP_200_OK)
 
 
 class ForgotPasswordResetView(APIView):
     """
     Step 2: User provides the OTP and a new password.
-    If the OTP is valid, the password is updated.
+    Validates single-use hashed OTP, updates password with Argon2, resets lockouts,
+    and invalidates all remaining OTP records for this user.
     """
     permission_classes = [AllowAny]
     throttle_scope = 'auth'
@@ -455,40 +569,43 @@ class ForgotPasswordResetView(APIView):
         new_password = request.data.get('new_password', '')
 
         if not identifier or not otp or not new_password:
-            return Response({'error': 'Email/phone, OTP, and new password are all required.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Email/phone, verification code, and new password are all required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if len(new_password) < 8:
             return Response({'error': 'Password must be at least 8 characters long.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Find the user
-        user = User.objects.filter(email__iexact=identifier).first()
-        if not user:
-            user = User.objects.filter(mobile_number=identifier.strip()).first()
+        user = User.objects.filter(email__iexact=identifier).first() or \
+               User.objects.filter(mobile_number=identifier).first()
 
         if not user:
-            return Response({'error': 'No account found with this email address or mobile number.'}, status=status.HTTP_404_NOT_FOUND)
+            # Timing attack mitigation
+            check_password(new_password, DUMMY_ARGON2_HASH)
+            return Response({'error': 'Invalid or expired verification code. Please request a new code.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Verify OTP across email and/or mobile_number
-        otp_filter = Q(otp=otp, is_used=False, expires_at__gte=timezone.now())
+        # Verify OTP record across email and/or mobile_number
+        record_query = Q(purpose='password_reset', is_used=False, expires_at__gte=timezone.now())
         if user.email:
-            otp_filter &= (Q(email__iexact=user.email) | Q(mobile_number=user.mobile_number or ''))
+            record_query &= Q(email__iexact=user.email)
         else:
-            otp_filter &= Q(mobile_number=user.mobile_number)
+            record_query &= Q(mobile_number=user.mobile_number)
 
-        record = OTPRecord.objects.filter(otp_filter).first()
+        record = OTPRecord.objects.filter(record_query).order_by('-created_at').first()
 
-        if not record:
-            return Response({'error': 'Invalid or expired OTP. Please request a new one.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not record or not record.verify(otp):
+            return Response({'error': 'Invalid or expired verification code. Please request a new code.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Mark OTP as used
-        record.is_used = True
-        record.save()
+        # Invalidate all remaining active OTPs for this user
+        OTPRecord.objects.filter(user=user, is_used=False).update(is_used=True)
 
-        # Update password
+        # Update password using Argon2 slow KDF
         user.set_password(new_password)
+        # Clear lockout counters
+        user.reset_lockout()
         user.save()
 
-        return Response({'message': 'Password has been reset successfully. You can now sign in with your new password.'})
+        return Response({'message': 'Password has been reset successfully. You can now sign in with your new password.'}, status=status.HTTP_200_OK)
+
 
 
 class AddressViewSet(viewsets.ModelViewSet):

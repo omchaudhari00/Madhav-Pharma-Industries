@@ -1,6 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+from datetime import timedelta
+from django.conf import settings
+import hashlib
+import hmac
+import secrets
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email=None, mobile_number=None, password=None, **extra_fields):
@@ -33,6 +39,8 @@ class User(AbstractUser):
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='Customer')
     is_verified = models.BooleanField(default=False)
+    failed_login_attempts = models.PositiveIntegerField(default=0)
+    locked_until = models.DateTimeField(null=True, blank=True)
     assigned_sales_person = models.ForeignKey(
         'self',
         on_delete=models.SET_NULL,
@@ -45,6 +53,25 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
+
+    def is_locked(self):
+        if self.locked_until and self.locked_until > timezone.now():
+            return True
+        return False
+
+    def increment_failed_attempts(self):
+        self.failed_login_attempts += 1
+        max_attempts = getattr(settings, 'AUTH_LOCKOUT_MAX_ATTEMPTS', 5)
+        lockout_duration = getattr(settings, 'AUTH_LOCKOUT_DURATION_MINUTES', 15)
+        if self.failed_login_attempts >= max_attempts:
+            self.locked_until = timezone.now() + timedelta(minutes=lockout_duration)
+        self.save(update_fields=['failed_login_attempts', 'locked_until'])
+
+    def reset_lockout(self):
+        if self.failed_login_attempts > 0 or self.locked_until is not None:
+            self.failed_login_attempts = 0
+            self.locked_until = None
+            self.save(update_fields=['failed_login_attempts', 'locked_until'])
 
     def __str__(self):
         return self.email or str(self.mobile_number)
@@ -92,10 +119,67 @@ class OTPRecord(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='otps', null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
     mobile_number = models.CharField(max_length=20, null=True, blank=True)
-    otp = models.CharField(max_length=6)
+    otp_hash = models.CharField(max_length=64, default='')
+    token_hash = models.CharField(max_length=64, null=True, blank=True)
+    purpose = models.CharField(max_length=30, default='registration')
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
+    attempts = models.PositiveIntegerField(default=0)
     is_used = models.BooleanField(default=False)
+
+    @classmethod
+    def generate_otp_code(cls):
+        # Cryptographically secure 6-digit numerical token
+        return str(secrets.randbelow(900000) + 100000)
+
+    @staticmethod
+    def hash_value(value: str) -> str:
+        return hashlib.sha256(value.strip().encode('utf-8')).hexdigest()
+
+    @classmethod
+    def create_otp(cls, email=None, mobile_number=None, user=None, purpose='registration', validity_minutes=10):
+        # Invalidate existing active OTPs for the same target & purpose
+        q = models.Q(purpose=purpose, is_used=False)
+        if email:
+            q &= models.Q(email__iexact=email)
+        elif mobile_number:
+            q &= models.Q(mobile_number=mobile_number)
+        cls.objects.filter(q).update(is_used=True)
+
+        raw_otp = cls.generate_otp_code()
+        otp_hash = cls.hash_value(raw_otp)
+        record = cls.objects.create(
+            user=user,
+            email=email.lower().strip() if email else None,
+            mobile_number=mobile_number.strip() if mobile_number else None,
+            otp_hash=otp_hash,
+            purpose=purpose,
+            expires_at=timezone.now() + timedelta(minutes=validity_minutes),
+            is_used=False,
+            attempts=0
+        )
+        return record, raw_otp
+
+    def verify(self, raw_otp: str) -> bool:
+        if self.is_used or timezone.now() > self.expires_at:
+            return False
+        
+        self.attempts += 1
+        if self.attempts > 3:
+            # Exceeded maximum guess attempts for this OTP: burn it immediately
+            self.is_used = True
+            self.save(update_fields=['attempts', 'is_used'])
+            return False
+
+        hashed_input = self.hash_value(raw_otp)
+        if hmac.compare_digest(self.otp_hash, hashed_input):
+            self.is_used = True
+            self.save(update_fields=['attempts', 'is_used'])
+            return True
+
+        self.save(update_fields=['attempts'])
+        return False
     
     def __str__(self):
-        return f"OTP for {self.email or self.mobile_number}"
+        return f"OTP ({self.purpose}) for {self.email or self.mobile_number}"
+

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { X, Mail, Lock, Phone, User, CheckCircle2, ArrowRight, ShieldCheck, KeyRound, AlertCircle, MapPin, Eye, EyeOff } from 'lucide-react';
+import { X, Mail, Lock, Phone, User, CheckCircle2, ArrowRight, ShieldCheck, KeyRound, AlertCircle, MapPin, Eye, EyeOff, ShieldAlert } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +16,10 @@ export const AuthModal: React.FC = () => {
   const [signInError, setSignInError] = useState('');
   const [signInLoading, setSignInLoading] = useState(false);
   const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [requiresCaptcha, setRequiresCaptcha] = useState(false);
+  const [captchaQuestion, setCaptchaQuestion] = useState('');
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaAnswer, setCaptchaAnswer] = useState('');
 
   // Sign Up State
   const [signUpStep, setSignUpStep] = useState<'form' | 'otp'>('form');
@@ -109,18 +113,26 @@ export const AuthModal: React.FC = () => {
     const emailTrim = signInIdentifier.trim().toLowerCase();
 
     try {
+      const payload: Record<string, string> = {
+        identifier: emailTrim,
+        password: signInPassword,
+      };
+      if (requiresCaptcha) {
+        payload.captcha_token = captchaToken;
+        payload.captcha_answer = captchaAnswer;
+      }
+
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/accounts/login/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          identifier: emailTrim,
-          password: signInPassword,
-        }),
+        body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
+        setRequiresCaptcha(false);
+        setCaptchaAnswer('');
         const userObj = {
           email: data.user?.email || (emailTrim.includes('@') ? emailTrim : ''),
           mobile_number: data.user?.mobile_number || (!emailTrim.includes('@') ? emailTrim : ''),
@@ -139,6 +151,12 @@ export const AuthModal: React.FC = () => {
         setSignInLoading(false);
         return;
       } else {
+        if (data.requires_captcha && data.captcha) {
+          setRequiresCaptcha(true);
+          setCaptchaQuestion(data.captcha.question || '');
+          setCaptchaToken(data.captcha.captcha_token || '');
+          setCaptchaAnswer('');
+        }
         setSignInError(data.error || 'Invalid credentials. Please verify your email and password.');
       }
     } catch (err) {
@@ -147,6 +165,7 @@ export const AuthModal: React.FC = () => {
       setSignInLoading(false);
     }
   };
+
 
   // Forgot Password: Request OTP
   const handleForgotRequestOTP = async (e: React.FormEvent) => {
@@ -477,12 +496,33 @@ export const AuthModal: React.FC = () => {
               </button>
             </div>
 
+            {requiresCaptcha && (
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 space-y-2 text-left">
+                <div className="flex items-center space-x-2 text-xs text-amber-300 font-semibold">
+                  <ShieldAlert className="w-4 h-4 flex-shrink-0" />
+                  <span>Security Verification Required</span>
+                </div>
+                <p className="text-xs text-neutral-300 font-mono">
+                  {captchaQuestion}
+                </p>
+                <input
+                  type="text"
+                  required
+                  placeholder="Type your answer here"
+                  value={captchaAnswer}
+                  onChange={(e) => setCaptchaAnswer(e.target.value)}
+                  className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+            )}
+
             {signInError && (
               <div className="flex items-center space-x-2 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-3">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span>{signInError}</span>
               </div>
             )}
+
 
             <button
               type="submit"

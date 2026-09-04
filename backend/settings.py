@@ -132,6 +132,20 @@ DATABASES = {
 }
 
 
+# Password Hashing & Security KDF
+# Primary: Argon2id (Winner of the Password Hashing Competition)
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]
+
+# Account Lockout & Anti-Brute-Force Settings
+AUTH_LOCKOUT_MAX_ATTEMPTS = 5
+AUTH_LOCKOUT_DURATION_MINUTES = 15
+AUTH_CAPTCHA_THRESHOLD = 3
+
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -141,6 +155,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 8}
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',

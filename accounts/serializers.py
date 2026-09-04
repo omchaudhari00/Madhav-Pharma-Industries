@@ -108,6 +108,8 @@ class CheckUserSerializer(serializers.Serializer):
 class LoginSerializer(serializers.Serializer):
     identifier = serializers.CharField()
     password = serializers.CharField(write_only=True)
+    captcha_token = serializers.CharField(required=False, allow_blank=True)
+    captcha_answer = serializers.CharField(required=False, allow_blank=True)
 
 class RegistrationRequestSerializer(serializers.Serializer):
     first_name = serializers.CharField()
@@ -115,6 +117,8 @@ class RegistrationRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
     mobile_number = serializers.CharField()
     password = serializers.CharField(write_only=True)
+    captcha_token = serializers.CharField(required=False, allow_blank=True)
+    captcha_answer = serializers.CharField(required=False, allow_blank=True)
 
     def validate_password(self, value):
         if len(value) > 100:
@@ -126,16 +130,10 @@ class RegistrationRequestSerializer(serializers.Serializer):
         return value
 
     def validate_email(self, value):
-        email_clean = value.strip().lower()
-        if User.objects.filter(email__iexact=email_clean).exists():
-            raise serializers.ValidationError("An account with this email address already exists. Please sign in instead.")
-        return email_clean
+        return value.strip().lower()
 
     def validate_mobile_number(self, value):
-        mobile_clean = value.strip()
-        if User.objects.filter(mobile_number=mobile_clean).exists():
-            raise serializers.ValidationError("An account with this phone number already exists. Please use a different phone number or sign in.")
-        return mobile_clean
+        return value.strip()
 
 class OTPVerificationSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False)
@@ -152,13 +150,7 @@ class OTPVerificationSerializer(serializers.Serializer):
     postal_code = serializers.CharField(required=False, allow_blank=True)
 
     def validate_email(self, value):
-        email_clean = value.strip().lower()
-        if User.objects.filter(email__iexact=email_clean).exists():
-            raise serializers.ValidationError("An account with this email address already exists. Please sign in instead.")
-        return email_clean
+        return value.strip().lower() if value else ''
 
     def validate_mobile_number(self, value):
-        mobile_clean = value.strip()
-        if User.objects.filter(mobile_number=mobile_clean).exists():
-            raise serializers.ValidationError("An account with this phone number already exists. Please use a different phone number or sign in.")
-        return mobile_clean
+        return value.strip() if value else ''
