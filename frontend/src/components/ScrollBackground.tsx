@@ -15,7 +15,9 @@ export default function ScrollBackground() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const frameCount = 300;
+    const startFrame = 11; // Cut first 10 frames (starts at frame 11)
+    const endFrame = 300;
+    const frameCount = endFrame - startFrame + 1; // 290 active frames (11 to 300)
     const images: HTMLImageElement[] = [];
     let lastDrawnFrame = -1;
     let targetFrameIndex = 0;
@@ -95,15 +97,15 @@ export default function ScrollBackground() {
     let framesLoaded = 0;
     const requiredFrames = 5; // Start animation after 5 frames are loaded
 
-    function loadFrame(i: number) {
+    function loadFrame(frameNum: number) {
       if (isAborted) return;
-      if (i < 1 || i > frameCount) return;
-      const idx = i - 1;
+      if (frameNum < startFrame || frameNum > endFrame) return;
+      const idx = frameNum - startFrame;
       if (images[idx]) return;
 
       const img = new Image();
       img.decoding = 'async';
-      const frameNumber = String(i).padStart(3, '0');
+      const frameNumber = String(frameNum).padStart(3, '0');
       img.src = `/scroll-frames/ezgif-frame-${frameNumber}.jpg`;
       images[idx] = img;
 
@@ -133,11 +135,11 @@ export default function ScrollBackground() {
     }
 
     // Immediately load last frame first for phone permanent background, then first frame for desktop
-    loadFrame(frameCount);
-    loadFrame(1);
+    loadFrame(endFrame);
+    loadFrame(startFrame);
 
-    // Preload remaining frames
-    for (let i = 1; i <= frameCount; i++) {
+    // Preload remaining frames (starting from frame 11)
+    for (let i = startFrame; i <= endFrame; i++) {
       loadFrame(i);
     }
 

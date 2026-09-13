@@ -154,7 +154,7 @@ input[type="number"] {
 
 /* Responsive Background for Portals and Fallback */
 .bg-responsive-fallback {
-  background-image: url('/scroll-frames/ezgif-frame-001.jpg');
+  background-image: url('/scroll-frames/ezgif-frame-011.jpg');
   background-position: center;
   transform: scaleX(-1);
   background-size: cover;
