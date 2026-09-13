@@ -5,11 +5,18 @@ from catalog.models import Product
 class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
-    rating = models.PositiveSmallIntegerField() # 1 to 5
-    comment = models.TextField()
-    is_approved = models.BooleanField(default=False)
+    rating = models.PositiveSmallIntegerField()  # 1 to 5
+    comment = models.TextField(blank=True, null=True)  # Optional text
     review_date = models.DateTimeField(auto_now_add=True)
-    
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['product', 'customer'],
+                name='unique_product_customer_review'
+            )
+        ]
+
     def __str__(self):
         return f"{self.rating} star by {self.customer} for {self.product.name}"
 

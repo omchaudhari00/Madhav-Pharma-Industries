@@ -98,7 +98,7 @@ export const AdminDashboard: React.FC = () => {
   } = useApp();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'quotes' | 'customers' | 'products' | 'sales' | 'orders' | 'settings' | 'logs'
+    'overview' | 'quotes' | 'customers' | 'products' | 'sales' | 'orders' | 'settings' | 'logs' | 'reviews'
   >('overview');
 
   // Add Product Modal State
@@ -507,6 +507,53 @@ export const AdminDashboard: React.FC = () => {
     }
   }, [activeTab, token]);
 
+  // Reviews tab state
+  const [allReviews, setAllReviews] = useState<any[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+
+  const loadAllReviews = async () => {
+    if (!token) return;
+    setReviewsLoading(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/interactions/reviews/`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAllReviews(Array.isArray(data) ? data : []);
+      }
+    } catch (e) {
+      console.error('Failed to load reviews', e);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: number) => {
+    if (!token) return;
+    if (!confirm('Delete this review? This action cannot be undone.')) return;
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/interactions/reviews/${reviewId}/`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok || res.status === 204) {
+        setAllReviews(prev => prev.filter(r => r.id !== reviewId));
+      } else {
+        alert('Failed to delete review.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error deleting review.');
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'reviews') {
+      loadAllReviews();
+    }
+  }, [activeTab, token]);
+
   
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
@@ -598,6 +645,7 @@ export const AdminDashboard: React.FC = () => {
             { id: 'products', label: 'Products & Pricing', icon: Package },
             { id: 'sales', label: 'Sales Team', icon: Briefcase },
             { id: 'orders', label: 'Orders & Invoices', icon: ShoppingBag },
+            { id: 'reviews', label: 'Customer Reviews', icon: Star },
             { id: 'settings', label: 'Company & GST Settings', icon: SettingsIcon },
             { id: 'logs', label: 'Logs', icon: AlertCircle },
           ].map((tab) => {
@@ -1517,6 +1565,85 @@ export const AdminDashboard: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* Tab: Customer Reviews */}
+          {activeTab === 'reviews' && (
+            <div className="p-8 rounded-3xl bg-white border border-neutral-200 shadow-sm space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-serif font-bold text-neutral-900">Customer Reviews</h3>
+                  <p className="text-sm text-neutral-600 mt-1">All product reviews from customers. Delete non-genuine reviews here.</p>
+                </div>
+                <button
+                  onClick={loadAllReviews}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                >
+                  <RefreshCw className="w-4 h-4" /> Refresh
+                </button>
+              </div>
+
+              {reviewsLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="w-8 h-8 border-2 border-[#d4a373] border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-neutral-200 text-neutral-600 text-xs uppercase tracking-wider font-semibold">
+                        <th className="py-3 px-4">Reviewer</th>
+                        <th className="py-3 px-4">Product ID</th>
+                        <th className="py-3 px-4">Rating</th>
+                        <th className="py-3 px-4">Comment</th>
+                        <th className="py-3 px-4">Date</th>
+                        <th className="py-3 px-4">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-100 text-sm">
+                      {allReviews.length > 0 ? allReviews.map((review: any) => (
+                        <tr key={review.id} className="hover:bg-neutral-50 transition-colors">
+                          <td className="py-4 px-4 font-semibold text-neutral-900">{review.customer_name || `User #${review.customer}`}</td>
+                          <td className="py-4 px-4 text-neutral-500 font-mono text-xs">{review.product}</td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-1">
+                              {[1,2,3,4,5].map(s => (
+                                <svg key={s} width={14} height={14} viewBox="0 0 24 24" fill={review.rating >= s ? '#d4a373' : '#e5e7eb'}>
+                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                </svg>
+                              ))}
+                              <span className="text-xs font-bold text-neutral-600 ml-1">{review.rating}/5</span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4 text-neutral-600 max-w-xs">
+                            <span className="line-clamp-2">{review.comment || <span className="italic text-neutral-400">No comment</span>}</span>
+                          </td>
+                          <td className="py-4 px-4 text-neutral-500 text-xs whitespace-nowrap">
+                            {new Date(review.review_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}
+                          </td>
+                          <td className="py-4 px-4">
+                            <button
+                              onClick={() => handleDeleteReview(review.id)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold transition-colors cursor-pointer"
+                              title="Delete this review"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Delete
+                            </button>
+                          </td>
+                        </tr>
+                      )) : (
+                        <tr>
+                          <td colSpan={6} className="py-12 text-center text-neutral-400">
+                            <Star className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                            <p className="text-sm">No reviews found.</p>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
         </div>

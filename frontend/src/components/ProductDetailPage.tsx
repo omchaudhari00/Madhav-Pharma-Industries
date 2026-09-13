@@ -4,6 +4,7 @@ import { ArrowLeft, ShoppingCart, Zap, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
+import { ProductReviews } from './ProductReviews';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -407,6 +408,9 @@ export const ProductDetailPage: React.FC = () => {
 
           </div>
         </div>
+
+        {/* Customer Reviews Section */}
+        <ProductReviews productId={baseId} />
 
         {/* Landing Page Footer */}
         <Footer />

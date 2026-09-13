@@ -3,12 +3,8 @@ from .models import Review, Notification
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('product', 'customer', 'rating', 'is_approved', 'review_date')
-    list_filter = ('is_approved', 'rating')
-    actions = ['approve_reviews']
-
-    def approve_reviews(self, request, queryset):
-        queryset.update(is_approved=True)
+    list_display = ('product', 'customer', 'rating', 'review_date')
+    list_filter = ('rating',)
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):

@@ -1,16 +1,22 @@
 from rest_framework import serializers
 from .models import Review, Notification, ActivityLog
-from accounts.serializers import UserSerializer
-from catalog.serializers import ProductSerializer
 
 class ReviewSerializer(serializers.ModelSerializer):
-    customer_details = UserSerializer(source='customer', read_only=True)
-    product_details = ProductSerializer(source='product', read_only=True)
-    
+    customer_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Review
-        fields = '__all__'
-        read_only_fields = ['is_approved', 'customer']
+        fields = ['id', 'product', 'customer', 'customer_name', 'rating', 'comment', 'review_date']
+        read_only_fields = ['customer']
+
+    def get_customer_name(self, obj):
+        name = f"{obj.customer.first_name} {obj.customer.last_name}".strip()
+        return name if name else obj.customer.email.split('@')[0]
+
+    def validate_rating(self, value):
+        if value < 1 or value > 5:
+            raise serializers.ValidationError("Rating must be between 1 and 5.")
+        return value
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
