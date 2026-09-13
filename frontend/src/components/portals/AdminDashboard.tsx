@@ -166,6 +166,10 @@ export const AdminDashboard: React.FC = () => {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/accounts/users/?role=Customer`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (res.status === 401) {
+        logout();
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         setCustomers(data.map((user: any) => ({
@@ -212,6 +216,10 @@ export const AdminDashboard: React.FC = () => {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/accounts/admin/stats/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (res.status === 401) {
+        logout();
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         setStats(data);
@@ -227,6 +235,10 @@ export const AdminDashboard: React.FC = () => {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/orders/orders/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (res.status === 401) {
+        logout();
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -265,6 +277,10 @@ export const AdminDashboard: React.FC = () => {
             ...(token ? { 'Authorization': `Bearer ${token}` } : {})
           }
         });
+        if (res.status === 401) {
+          logout();
+          return;
+        }
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data)) {
@@ -492,6 +508,10 @@ export const AdminDashboard: React.FC = () => {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/interactions/logs/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (res.status === 401) {
+        logout();
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         setLogs(data);
@@ -518,6 +538,10 @@ export const AdminDashboard: React.FC = () => {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/interactions/reviews/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (res.status === 401) {
+        logout();
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         setAllReviews(Array.isArray(data) ? data : []);

@@ -7,6 +7,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from .models import Review, Notification, ActivityLog
 from .serializers import ReviewSerializer, NotificationSerializer, ActivityLogSerializer
 from accounts.models import User
+from catalog.models import Product
 from quotations.models import Quotation
 from orders.models import Order, Payment
 
@@ -19,14 +20,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
     def get_queryset(self):
-        return Review.objects.all().order_by('-review_date')
+        return Review.objects.all().select_related('product', 'customer').order_by('-review_date')
 
     def perform_create(self, serializer):
         user = self.request.user
         if not hasattr(user, 'role') or user.role != 'Customer':
             raise PermissionDenied("Only customers can submit reviews.")
-        product_id = self.request.data.get('product')
-        if Review.objects.filter(product_id=product_id, customer=user).exists():
+        product = serializer.validated_data.get('product')
+        if Review.objects.filter(product=product, customer=user).exists():
             raise ValidationError({"detail": "You have already reviewed this product."})
         serializer.save(customer=user)
 
@@ -47,7 +48,26 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        reviews = Review.objects.filter(product_id=product_id).order_by('-review_date')
+        # Resolve product by PK (if integer) or by code_id
+        prod = None
+        if str(product_id).isdigit():
+            prod = Product.objects.filter(id=int(product_id)).first()
+        if not prod:
+            prod = Product.objects.filter(code_id=product_id).first()
+        if not prod:
+            prod = Product.objects.filter(code_id__iexact=product_id).first()
+
+        if not prod:
+            return Response({
+                'reviews': [],
+                'stats': {
+                    'average': 0,
+                    'total': 0,
+                    'breakdown': {'5': 0, '4': 0, '3': 0, '2': 0, '1': 0}
+                }
+            })
+
+        reviews = Review.objects.filter(product=prod).select_related('customer').order_by('-review_date')
         count = reviews.count()
 
         if count > 0:

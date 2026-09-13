@@ -144,7 +144,7 @@ interface ProductReviewsProps {
 const REVIEWS_PREVIEW_COUNT = 3;
 
 export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
-  const { user, token, openAuth } = useApp();
+  const { user, token, openAuth, logout } = useApp();
 
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [stats, setStats] = useState<RatingStats | null>(null);
@@ -231,7 +231,12 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
         setHasReviewed(true);
         await fetchReviews();
       } else {
-        const data = await res.json();
+        if (res.status === 401) {
+          logout();
+          setSubmitMsg({ type: 'error', text: 'Your session has expired. Please sign in again to submit your review.' });
+          return;
+        }
+        const data = await res.json().catch(() => ({}));
         const errText =
           data?.detail ||
           data?.non_field_errors?.[0] ||

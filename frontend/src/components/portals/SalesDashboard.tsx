@@ -67,6 +67,10 @@ export const SalesDashboard: React.FC = () => {
           'Authorization': `Bearer ${token}`
         }
       });
+      if (res.status === 401) {
+        logout();
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -120,6 +124,10 @@ export const SalesDashboard: React.FC = () => {
             ...(token ? { 'Authorization': `Bearer ${token}` } : {})
           }
         });
+        if (res.status === 401) {
+          logout();
+          return;
+        }
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data) && data.length > 0) {
@@ -245,6 +253,10 @@ export const SalesDashboard: React.FC = () => {
             ...(token ? { 'Authorization': `Bearer ${token}` } : {})
           }
         });
+        if (res.status === 401) {
+          logout();
+          return;
+        }
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data)) {

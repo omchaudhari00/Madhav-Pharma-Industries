@@ -231,13 +231,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     // Load stored auth on mount
     try {
-      const storedUser = localStorage.getItem('madhav_user');
       const storedToken = localStorage.getItem('madhav_token');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      }
+      const storedUser = localStorage.getItem('madhav_user');
       if (storedToken) {
-        setToken(storedToken);
+        let isExpired = false;
+        try {
+          const parts = storedToken.split('.');
+          if (parts.length === 3) {
+            const payload = JSON.parse(atob(parts[1]));
+            if (payload.exp && payload.exp * 1000 < Date.now()) {
+              isExpired = true;
+            }
+          }
+        } catch {
+          isExpired = true;
+        }
+
+        if (isExpired) {
+          localStorage.removeItem('madhav_token');
+          localStorage.removeItem('madhav_user');
+          setUser(null);
+          setToken(null);
+        } else {
+          setToken(storedToken);
+          if (storedUser) {
+            setUser(JSON.parse(storedUser));
+          }
+        }
       }
       const storedCart = localStorage.getItem('madhav_cart');
       if (storedCart) {
@@ -381,6 +401,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.removeItem('madhav_retail_cart');
     localStorage.removeItem('madhav_retail_orders_list');
   };
+
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      logout();
+    };
+    window.addEventListener('madhav:auth_expired', handleAuthExpired);
+    return () => window.removeEventListener('madhav:auth_expired', handleAuthExpired);
+  }, []);
 
   const openAuth = (tab: 'signin' | 'signup' = 'signin') => {
     setAuthModalTab(tab);
@@ -840,4 +868,8 @@ export const useApp = () => {
     throw new Error('useApp must be used within an AppProvider');
   }
   return context;
+};
+
+export const triggerAuthExpired = () => {
+  window.dispatchEvent(new CustomEvent('madhav:auth_expired'));
 };

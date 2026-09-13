@@ -1,12 +1,34 @@
 from rest_framework import serializers
 from .models import Review, Notification, ActivityLog
+from catalog.models import Product
+
+class ProductSlugOrPKRelatedField(serializers.RelatedField):
+    def get_queryset(self):
+        return Product.objects.all()
+
+    def to_representation(self, value):
+        return value.code_id or str(value.id)
+
+    def to_internal_value(self, data):
+        if isinstance(data, int) or (isinstance(data, str) and data.isdigit()):
+            prod = Product.objects.filter(id=int(data)).first()
+            if prod:
+                return prod
+        prod = Product.objects.filter(code_id=str(data)).first()
+        if not prod:
+            prod = Product.objects.filter(code_id__iexact=str(data)).first()
+        if prod:
+            return prod
+        raise serializers.ValidationError(f"Product '{data}' does not exist.")
 
 class ReviewSerializer(serializers.ModelSerializer):
+    product = ProductSlugOrPKRelatedField()
+    product_name = serializers.CharField(source='product.name', read_only=True)
     customer_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
-        fields = ['id', 'product', 'customer', 'customer_name', 'rating', 'comment', 'review_date']
+        fields = ['id', 'product', 'product_name', 'customer', 'customer_name', 'rating', 'comment', 'review_date']
         read_only_fields = ['customer']
 
     def get_customer_name(self, obj):

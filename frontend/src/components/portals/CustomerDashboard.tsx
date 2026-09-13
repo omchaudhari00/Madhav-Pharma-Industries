@@ -118,6 +118,10 @@ export const CustomerDashboard: React.FC = () => {
         body: JSON.stringify(profileData)
       });
       const data = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        logout();
+        return;
+      }
       if (res.ok) {
         if (data.user) {
           login(data.user, token);
@@ -142,6 +146,10 @@ export const CustomerDashboard: React.FC = () => {
             ...(token ? { 'Authorization': `Bearer ${token}` } : {})
           }
         });
+        if (res.status === 401) {
+          logout();
+          return;
+        }
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data)) {
@@ -190,6 +198,10 @@ export const CustomerDashboard: React.FC = () => {
           const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/orders/orders/`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
+          if (res.status === 401) {
+            logout();
+            return;
+          }
           if (res.ok) {
             const data = await res.json();
             if (Array.isArray(data)) {
@@ -245,6 +257,10 @@ export const CustomerDashboard: React.FC = () => {
           const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com'}/api/accounts/addresses/`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
+          if (res.status === 401) {
+            logout();
+            return;
+          }
           if (res.ok) {
             const data = await res.json();
             if (data.length > 0) {
