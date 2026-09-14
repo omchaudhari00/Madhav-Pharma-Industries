@@ -21,6 +21,7 @@ interface ShopProduct {
   badgeText: string;
   category: 'herbal' | 'bulk';
   price: number;
+  mrp?: number;
   priceLabel: string;
 }
 
@@ -33,6 +34,10 @@ const ShopCard: React.FC<{ product: ShopProduct }> = ({ product }) => {
   const isOos = product.category === 'herbal' ? isRetailOutOfStock(product.baseId) : isB2BOutOfStock(product.baseId);
 
   if (discontinued) return null;
+
+  const discountPercent = product.mrp && product.mrp > product.price
+    ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
+    : 0;
 
   return (
     <div
@@ -82,10 +87,22 @@ const ShopCard: React.FC<{ product: ShopProduct }> = ({ product }) => {
         <div className="mt-auto pt-3 sm:pt-4 border-t border-white/10 flex items-center justify-between">
           <div>
             <span className="text-[9px] sm:text-[10px] text-neutral-400 block mb-0.5">{product.priceLabel}</span>
-            <span className="text-base sm:text-xl font-extrabold text-[#d4a373]">&#8377;{product.price.toLocaleString('en-IN')}</span>
+            <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
+              <span className="text-base sm:text-xl font-extrabold text-[#d4a373]">&#8377;{product.price.toLocaleString('en-IN')}</span>
+              {product.mrp && product.mrp > product.price && (
+                <span className="text-xs text-neutral-400 line-through">&#8377;{product.mrp.toLocaleString('en-IN')}</span>
+              )}
+            </div>
           </div>
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center group-hover:bg-[#d4a373] group-hover:text-black group-hover:border-[#d4a373] transition-all text-white">
-            <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <div className="flex items-center gap-2">
+            {discountPercent > 0 && (
+              <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[9px] sm:text-[10px] font-extrabold">
+                {discountPercent}% OFF
+              </span>
+            )}
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center group-hover:bg-[#d4a373] group-hover:text-black group-hover:border-[#d4a373] transition-all text-white">
+              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </div>
           </div>
         </div>
       </div>
@@ -108,40 +125,46 @@ export const ShopPage: React.FC = () => {
     document.body.scrollTop = 0;
     requestAnimationFrame(() => {
       window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
     });
   }, []);
 
-  const shopProducts: ShopProduct[] = (allProducts || [])
-    .filter(p => !isDiscontinued(p.id))
-    .map(p => {
-      if (p.id === 'weight-loss-oil') {
-        return {
-          id: `${p.id}-herbal`,
-          baseId: p.id,
-          name: p.name,
-          shortName: `${p.categoryTitle} ${p.categorySubtitle}`,
-          image: p.customImages !== undefined && p.customImages.length > 0 ? (p.customImages[0] || '/images/favicon-circle.png') : (p.cardImage || '/images/weight-loss-oil.jpg'),
-          badgeText: p.badgeText || '100% Natural',
-          category: 'herbal',
-          price: p.retailPrice !== undefined && p.retailPrice !== null ? p.retailPrice : (p.unitPrice || 0),
-          priceLabel: 'Price per 50ml bottle',
-        };
-      } else {
-        return {
-          id: `${p.id}-bulk`,
-          baseId: p.id,
-          name: `${p.categoryTitle} Essential Oil (Bulk)`,
-          shortName: `${p.categoryTitle} Oil (Bulk)`,
-          image: p.customImages !== undefined && p.customImages.length > 0 ? (p.customImages[0] || '/images/bulk_1l.jpg') : (p.cardImage || '/images/bulk_1l.jpg'),
-          badgeText: p.badgeText || 'B2B RAW OIL',
-          category: 'bulk',
-          price: p.unitPrice !== undefined && p.unitPrice !== null ? p.unitPrice : 0,
-          priceLabel: 'Starting at (1L)',
-        };
-      }
-    });
+  // Filter out discontinued products
+  const activeProducts = allProducts.filter(p => !isDiscontinued(p.id));
+
+  // Build the complete array of all products for the bottom grid
+  const shopProducts: ShopProduct[] = activeProducts.map((p) => {
+    if (p.id === 'weight-loss-oil') {
+      const price = p.retailPrice !== undefined && p.retailPrice !== null ? p.retailPrice : (p.unitPrice || 0);
+      const mrp = p.mrp && p.mrp > price ? p.mrp : Math.round((price * 1.43) / 10) * 10 - 1;
+      return {
+        id: `${p.id}-herbal`,
+        baseId: p.id,
+        name: p.name,
+        shortName: `${p.categoryTitle} ${p.categorySubtitle}`,
+        image: p.customImages !== undefined && p.customImages.length > 0 ? (p.customImages[0] || '/images/favicon-circle.png') : (p.cardImage || '/images/weight-loss-oil.jpg'),
+        badgeText: p.badgeText || '100% Natural',
+        category: 'herbal',
+        price: price,
+        mrp: mrp,
+        priceLabel: 'Price per 50ml bottle',
+      };
+    } else {
+      const price = p.unitPrice !== undefined && p.unitPrice !== null ? p.unitPrice : 0;
+      const mrp = Math.round((price * 1.25) / 100) * 100;
+      return {
+        id: `${p.id}-bulk`,
+        baseId: p.id,
+        name: `${p.categoryTitle} Essential Oil (Bulk)`,
+        shortName: `${p.categoryTitle} Oil (Bulk)`,
+        image: p.customImages !== undefined && p.customImages.length > 0 ? (p.customImages[0] || '/images/bulk_1l.jpg') : (p.cardImage || '/images/bulk_1l.jpg'),
+        badgeText: p.badgeText || 'B2B RAW OIL',
+        category: 'bulk',
+        price: price,
+        mrp: mrp,
+        priceLabel: 'Starting at (1L)',
+      };
+    }
+  });
 
   // Curated Visual Configs per Product
   const productConfigs: Record<string, {

@@ -101,6 +101,8 @@ export const RetailCheckoutModal: React.FC = () => {
   }, [user, isRetailCheckoutOpen]);
 
   const totalINR = retailCartItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
+  const totalMRP = retailCartItems.reduce((acc, item) => acc + item.quantity * (item.mrp && item.mrp > item.unitPrice ? item.mrp : item.unitPrice), 0);
+  const totalSavings = Math.max(0, totalMRP - totalINR);
 
   const handleProceedToCheckout = () => {
     if (retailCartItems.length === 0) {
@@ -744,11 +746,23 @@ export const RetailCheckoutModal: React.FC = () => {
                             <h4 className="text-sm font-bold text-white truncate">
                               {item.name}
                             </h4>
-                            <span className="text-xs text-[#d4a373] font-medium block">
-                              {item.sizeLabel} • ₹{item.unitPrice} each
-                            </span>
+                            <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                              <span className="text-xs text-[#d4a373] font-bold">
+                                {item.sizeLabel} &bull; &#8377;{item.unitPrice} each
+                              </span>
+                              {item.mrp && item.mrp > item.unitPrice && (
+                                <span className="text-[11px] text-neutral-500 line-through">
+                                  &#8377;{item.mrp}
+                                </span>
+                              )}
+                              {item.mrp && item.mrp > item.unitPrice && (
+                                <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                                  {Math.round(((item.mrp - item.unitPrice) / item.mrp) * 100)}% OFF
+                                </span>
+                              )}
+                            </div>
                             <span className="text-[11px] text-emerald-400 font-medium block mt-0.5">
-                              ✓ Guaranteed 100% Steam Distilled Purity
+                              Guaranteed 100% Steam Distilled Purity
                             </span>
                           </div>
                         </div>
@@ -758,7 +772,7 @@ export const RetailCheckoutModal: React.FC = () => {
                             Qty: {item.quantity}
                           </span>
                           <span className="text-base font-extrabold text-white">
-                            ₹{(item.quantity * item.unitPrice).toLocaleString()}
+                            &#8377;{(item.quantity * item.unitPrice).toLocaleString()}
                           </span>
                         </div>
                       </div>
@@ -770,9 +784,15 @@ export const RetailCheckoutModal: React.FC = () => {
                 <div className="p-6 rounded-3xl bg-neutral-900/80 border border-amber-500/30 space-y-4 shadow-xl">
                   <div className="space-y-2 text-xs sm:text-sm text-neutral-300">
                     <div className="flex justify-between">
-                      <span className="text-neutral-400">Items ({retailCartItems.length}):</span>
-                      <span className="font-mono text-white">₹{totalINR}.00</span>
+                      <span className="text-neutral-400">Items Total (MRP):</span>
+                      <span className="font-mono text-neutral-300">&#8377;{totalMRP}.00</span>
                     </div>
+                    {totalSavings > 0 && (
+                      <div className="flex justify-between text-emerald-400">
+                        <span className="font-medium">Promotional Discount:</span>
+                        <span className="font-mono font-bold">-&#8377;{totalSavings}.00</span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-neutral-400">Express Insured Delivery:</span>
                       <span className="text-emerald-400 font-bold uppercase">FREE</span>
@@ -780,10 +800,19 @@ export const RetailCheckoutModal: React.FC = () => {
                     <div className="border-t border-neutral-800 pt-3 flex items-center justify-between">
                       <span className="text-base font-bold text-white">Order Total Payable:</span>
                       <span className="text-2xl font-serif font-extrabold text-[#d4a373]">
-                        ₹{totalINR}.00
+                        &#8377;{totalINR}.00
                       </span>
                     </div>
                   </div>
+
+                  {totalSavings > 0 && (
+                    <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                      <p className="text-xs text-emerald-400 font-semibold flex items-center justify-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>You are saving &#8377;{totalSavings}.00 on this order!</span>
+                      </p>
+                    </div>
+                  )}
 
                   <button
                     type="submit"
@@ -850,9 +879,21 @@ export const RetailCheckoutModal: React.FC = () => {
                               <h4 className="text-sm font-bold text-white truncate">
                                 {item.name}
                               </h4>
-                              <span className="text-xs text-[#d4a373] font-medium block">
-                                {item.sizeLabel} • ₹{item.unitPrice} each
-                              </span>
+                              <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                <span className="text-xs text-[#d4a373] font-bold">
+                                  {item.sizeLabel} &bull; &#8377;{item.unitPrice} each
+                                </span>
+                                {item.mrp && item.mrp > item.unitPrice && (
+                                  <span className="text-[11px] text-neutral-500 line-through">
+                                    &#8377;{item.mrp}
+                                  </span>
+                                )}
+                                {item.mrp && item.mrp > item.unitPrice && (
+                                  <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                                    {Math.round(((item.mrp - item.unitPrice) / item.mrp) * 100)}% OFF
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
 
@@ -894,19 +935,38 @@ export const RetailCheckoutModal: React.FC = () => {
                     </div>
 
                     {/* Cart Footer Bar */}
-                    <div className="p-6 border-t border-neutral-800 bg-neutral-900/30 rounded-3xl mt-6">
-                      <div className="flex items-center justify-between text-sm mb-3">
-                        <span className="text-neutral-400">Total Bottles</span>
+                    <div className="p-6 border-t border-neutral-800 bg-neutral-900/30 rounded-3xl mt-6 space-y-2.5">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-neutral-400">Total Items</span>
                         <span className="font-bold text-white">
-                          {retailCartItems.reduce((sum, item) => sum + item.quantity, 0)} bottle(s)
+                          {retailCartItems.reduce((sum, item) => sum + item.quantity, 0)} item(s)
                         </span>
                       </div>
-                      <div className="flex items-center justify-between text-base mb-6">
-                        <span className="text-neutral-300 font-medium">Estimated Pricing</span>
-                        <span className="font-extrabold text-white text-lg">
-                          ₹{totalINR}.00
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-neutral-400">Total MRP Value</span>
+                        <span className="text-neutral-300 font-mono">&#8377;{totalMRP}.00</span>
+                      </div>
+                      {totalSavings > 0 && (
+                        <div className="flex items-center justify-between text-sm text-emerald-400">
+                          <span className="font-medium">Promotional Discount</span>
+                          <span className="font-mono font-bold">-&#8377;{totalSavings}.00</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between text-base pt-2 border-t border-neutral-800">
+                        <span className="text-neutral-200 font-bold">Estimated Total Payable</span>
+                        <span className="font-extrabold text-[#d4a373] text-xl">
+                          &#8377;{totalINR}.00
                         </span>
                       </div>
+
+                      {totalSavings > 0 && (
+                        <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                          <p className="text-xs text-emerald-400 font-semibold flex items-center justify-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>You are saving &#8377;{totalSavings}.00 on this order!</span>
+                          </p>
+                        </div>
+                      )}
 
                       <button
                         onClick={handleProceedToCheckout}

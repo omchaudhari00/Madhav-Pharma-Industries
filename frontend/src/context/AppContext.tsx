@@ -28,6 +28,7 @@ export interface RetailCartItem {
   sizeLabel: string;
   quantity: number;
   unitPrice: number;
+  mrp?: number;
   imageUrl: string;
 }
 
@@ -44,6 +45,7 @@ export interface ProductShowcaseItem {
   heroImage: string;
   unitPrice: number;
   retailPrice?: number;
+  mrp?: number;
   price5L?: number;
   customImages5L?: string[];
   description5L?: string;
@@ -67,6 +69,7 @@ export const DEFAULT_PRODUCTS: ProductShowcaseItem[] = [
     heroImage: '/images/weight-loss-oil.jpg',
     unitPrice: 150,
     retailPrice: 349,
+    mrp: 499,
     grade: '100% Natural Herbal & Ayurvedic',
     availability: 'In Stock',
   },
@@ -83,6 +86,7 @@ export const DEFAULT_PRODUCTS: ProductShowcaseItem[] = [
     heroImage: '/images/cumin_hero.jpg',
     unitPrice: 2200,
     retailPrice: 299,
+    mrp: 449,
     grade: '100% Pure • Premium Therapeutic Grade',
     availability: 'In Stock',
   },
@@ -100,6 +104,7 @@ export const DEFAULT_PRODUCTS: ProductShowcaseItem[] = [
     heroImage: '/images/bulk_1l.jpg',
     unitPrice: 85,
     retailPrice: 249,
+    mrp: 399,
     grade: '100% Steam Distilled • Food & Wellness Grade',
     availability: 'In Stock',
   },
@@ -116,6 +121,7 @@ export const DEFAULT_PRODUCTS: ProductShowcaseItem[] = [
     heroImage: '/images/bulk_1l.jpg',
     unitPrice: 95,
     retailPrice: 279,
+    mrp: 429,
     grade: '100% Steam Distilled • Pharma Grade',
     availability: 'In Stock',
   },
@@ -132,6 +138,7 @@ export const DEFAULT_PRODUCTS: ProductShowcaseItem[] = [
     heroImage: '/images/bulk_1l.jpg',
     unitPrice: 150,
     retailPrice: 349,
+    mrp: 499,
     grade: '100% Steam Distilled • Pharma & Wellness Grade',
     availability: 'In Stock',
   },
@@ -573,6 +580,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             heroImage: p.hero_image || '/images/bulk_1l.jpg',
             unitPrice: Number(p.unit_price || p.price || 100),
             retailPrice: Number(p.retail_price || 299),
+            mrp: p.mrp ? Number(p.mrp) : (p.code_id === 'weight-loss-oil' ? 499 : (p.code_id === 'cumin-seed-oil' ? 449 : (p.code_id === 'fennel-seed-oil' ? 399 : (p.code_id === 'ajwain-seed-oil' ? 429 : undefined)))),
             price5L: p.price_5l ? Number(p.price_5l) : undefined,
             grade: p.grade || '100% Steam Distilled • Pharma Grade',
             availability: (p.availability_status as any) || 'In Stock',

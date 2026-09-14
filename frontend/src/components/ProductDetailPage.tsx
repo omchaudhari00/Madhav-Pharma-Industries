@@ -55,6 +55,7 @@ export const ProductDetailPage: React.FC = () => {
   // Generate specific details based on the variant
   let productName = baseProduct.name;
   let price = 0;
+  let mrp = 0;
   let priceLabel = '';
   let sizeLabel = '';
   let specs: string[] = [];
@@ -66,6 +67,9 @@ export const ProductDetailPage: React.FC = () => {
   if (isHerbal) {
     productName = baseProduct.name;
     price = baseProduct.retailPrice !== undefined && baseProduct.retailPrice !== null ? baseProduct.retailPrice : (baseProduct.unitPrice || 0);
+    mrp = baseProduct.mrp && baseProduct.mrp > price 
+      ? baseProduct.mrp 
+      : Math.round((price * 1.43) / 10) * 10 - 1;
     priceLabel = 'Price per bottle';
     sizeLabel = '50ml';
     category = 'Therapeutic Formulation';
@@ -75,6 +79,7 @@ export const ProductDetailPage: React.FC = () => {
     if (selectedSize === '1l') {
       productName = `${baseProduct.categoryTitle} Essential Oil (1 Litre)`;
       price = baseProduct.unitPrice;
+      mrp = Math.round((price * 1.25) / 100) * 100;
       priceLabel = 'Price per 1 Litre bottle';
       sizeLabel = '1L';
       category = 'B2B Raw Material';
@@ -84,6 +89,7 @@ export const ProductDetailPage: React.FC = () => {
     } else {
       productName = `${baseProduct.categoryTitle} Essential Oil (5 Litre)`;
       price = baseProduct.price5L ? Number(baseProduct.price5L) : (baseProduct.unitPrice * 5);
+      mrp = Math.round((price * 1.22) / 100) * 100;
       priceLabel = 'Price per 5 Litre drum';
       sizeLabel = '5L';
       category = 'B2B Bulk Material';
@@ -92,6 +98,9 @@ export const ProductDetailPage: React.FC = () => {
       defaultImage = '/images/bulk_5l.jpg';
     }
   }
+
+  const discountPercent = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
+  const savingsPerUnit = mrp > price ? mrp - price : 0;
 
   let customImagesForVariant: string[] | undefined = undefined;
   if (isBulk && selectedSize === '5l') {
@@ -116,6 +125,7 @@ export const ProductDetailPage: React.FC = () => {
       name: productName,
       sizeLabel: sizeLabel,
       unitPrice: price,
+      mrp: mrp,
       imageUrl: currentImage,
     }, qty);
   };
@@ -127,6 +137,7 @@ export const ProductDetailPage: React.FC = () => {
       name: productName,
       sizeLabel: sizeLabel,
       unitPrice: price,
+      mrp: mrp,
       imageUrl: currentImage,
     }, qty);
   };
@@ -346,18 +357,44 @@ export const ProductDetailPage: React.FC = () => {
             {/* Right: Pricing Box (At the exact same level) */}
             <div>
               <div className="bg-neutral-50 border border-neutral-200 rounded-3xl p-6 sm:p-7 shadow-md space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div>
                     <span className="text-xs font-bold text-neutral-500 uppercase tracking-widest block mb-1">
                       {priceLabel}
                     </span>
-                    <div className="text-4xl sm:text-5xl font-extrabold text-[#8a5d2b]">
-                      &#8377;{price.toLocaleString('en-IN')}
+                    
+                    {/* Discount Pricing Row */}
+                    <div className="flex flex-wrap items-baseline gap-2.5 sm:gap-3 mt-1">
+                      <div className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#8a5d2b]">
+                        &#8377;{price.toLocaleString('en-IN')}
+                      </div>
+                      {mrp > price && (
+                        <div className="text-lg sm:text-xl font-medium text-neutral-400 line-through">
+                          &#8377;{mrp.toLocaleString('en-IN')}
+                        </div>
+                      )}
+                      {discountPercent > 0 && (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-extrabold tracking-wide uppercase">
+                          {discountPercent}% OFF
+                        </span>
+                      )}
                     </div>
+
+                    {/* Savings Indicator */}
+                    {savingsPerUnit > 0 && (
+                      <p className="text-xs text-emerald-700 font-semibold mt-2 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>You Save &#8377;{(savingsPerUnit * qty).toLocaleString('en-IN')}{qty > 1 ? ` (&#8377;${savingsPerUnit.toLocaleString('en-IN')} per bottle)` : ''}</span>
+                      </p>
+                    )}
+
+                    <p className="text-[11px] text-neutral-500 mt-1">
+                      Inclusive of all taxes &bull; Free Insured Delivery
+                    </p>
                   </div>
 
                   {!isOos && (
-                    <div className="flex flex-col items-start sm:items-end">
+                    <div className="flex flex-col items-start sm:items-end shrink-0">
                       <span className="text-xs font-bold text-neutral-500 uppercase tracking-widest block mb-1.5">
                         Quantity
                       </span>
@@ -400,7 +437,7 @@ export const ProductDetailPage: React.FC = () => {
                     }`}
                   >
                     <Zap className="w-4 h-4" />
-                    <span>Buy Now</span>
+                    <span>Buy Now &bull; &#8377;{(price * qty).toLocaleString('en-IN')}</span>
                   </button>
                 </div>
               </div>

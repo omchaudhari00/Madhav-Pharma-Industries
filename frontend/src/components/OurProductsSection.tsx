@@ -8,6 +8,8 @@ export interface PreviewProduct {
   name: string;
   image: string;
   price: string;
+  mrp?: string;
+  discountPercent?: number;
   type: 'herbal' | 'bulk';
   badge: string;
   specs: string[];
@@ -49,12 +51,24 @@ export const PreviewCard: React.FC<{ product: PreviewProduct }> = ({ product }) 
         </h4>
       </div>
 
-      {/* Price display box */}
+      {/* Price display box with Discount Format */}
       <div className="mb-2 sm:mb-4 p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
         <span className="text-[9px] sm:text-xs text-neutral-400 font-medium">
           {product.type === 'herbal' ? 'Per 50ml bottle' : 'Per litre (bulk)'}
         </span>
-        <span className="text-sm sm:text-xl font-extrabold text-white">{product.price}</span>
+        <div className="text-right">
+          <div className="flex items-baseline gap-1.5 justify-end">
+            <span className="text-sm sm:text-xl font-extrabold text-white">{product.price}</span>
+            {product.mrp && (
+              <span className="text-[10px] sm:text-xs text-neutral-400 line-through">{product.mrp}</span>
+            )}
+          </div>
+          {product.discountPercent && product.discountPercent > 0 ? (
+            <span className="text-[9px] font-extrabold text-emerald-400 block">
+              {product.discountPercent}% OFF
+            </span>
+          ) : null}
+        </div>
       </div>
 
       {/* Specs — hidden on mobile */}
@@ -84,21 +98,31 @@ export const OurProductsSection: React.FC = () => {
 
   const previewProducts: PreviewProduct[] = allProducts.slice(0, 4).map((p) => {
     if (p.id === 'weight-loss-oil') {
+      const priceNum = p.retailPrice !== undefined && p.retailPrice !== null ? p.retailPrice : (p.unitPrice || 0);
+      const mrpNum = p.mrp && p.mrp > priceNum ? p.mrp : Math.round((priceNum * 1.43) / 10) * 10 - 1;
+      const discount = mrpNum > priceNum ? Math.round(((mrpNum - priceNum) / mrpNum) * 100) : 0;
       return {
         id: `${p.id}-herbal`,
         name: p.name,
         image: p.customImages !== undefined ? (p.customImages[0] || '/images/favicon-circle.png') : p.cardImage,
-        price: `₹${(p.retailPrice !== undefined && p.retailPrice !== null ? p.retailPrice : (p.unitPrice || 0)).toLocaleString('en-IN')}`,
+        price: `₹${priceNum.toLocaleString('en-IN')}`,
+        mrp: `₹${mrpNum.toLocaleString('en-IN')}`,
+        discountPercent: discount,
         type: 'herbal' as const,
         badge: p.badgeText || 'HERBAL REMEDY',
         specs: ['50ml Bottle', p.grade.split('•')[1]?.trim() || p.grade],
       };
     } else {
+      const priceNum = p.unitPrice || 0;
+      const mrpNum = Math.round((priceNum * 1.25) / 100) * 100;
+      const discount = mrpNum > priceNum ? Math.round(((mrpNum - priceNum) / mrpNum) * 100) : 0;
       return {
         id: `${p.id}-bulk`,
         name: `${p.categoryTitle} Oil — Bulk`,
         image: p.customImages !== undefined ? (p.customImages[0] || '/images/favicon-circle.png') : (p.id === 'cumin-seed-oil' ? '/images/cumin-seed-oil.png' : p.cardImage || '/images/bulk_1l.jpg'),
-        price: `₹${p.unitPrice.toLocaleString('en-IN')}`,
+        price: `₹${priceNum.toLocaleString('en-IN')}`,
+        mrp: `₹${mrpNum.toLocaleString('en-IN')}`,
+        discountPercent: discount,
         type: 'bulk' as const,
         badge: p.badgeText || 'B2B RAW OIL',
         specs: ['1L / 5L Available', 'Industrial Grade'],
