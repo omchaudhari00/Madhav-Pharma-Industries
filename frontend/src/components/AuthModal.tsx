@@ -144,10 +144,9 @@ export const AuthModal: React.FC = () => {
         };
 
         login(userObj, data.tokens?.access || 'demo-token');
+        closeAuth();
         if (userObj.role === 'Admin') navigate('/admin');
         else if (userObj.role === 'Sales') navigate('/sales');
-        else navigate('/customer');
-        closeAuth();
         setSignInLoading(false);
         return;
       } else {

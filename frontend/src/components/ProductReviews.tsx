@@ -197,6 +197,18 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
     fetchReviews();
   }, [fetchReviews]);
 
+  useEffect(() => {
+    if (user && sessionStorage.getItem('madhav_scroll_reviews') === 'true') {
+      sessionStorage.removeItem('madhav_scroll_reviews');
+      const el = document.getElementById('reviews');
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }, 150);
+      }
+    }
+  }, [user]);
+
   // ---------- Submit ----------
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -255,7 +267,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
   const isCustomer = user?.role === 'Customer';
 
   return (
-    <section className="mt-12 mb-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="reviews" className="mt-12 mb-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Section Header */}
       <div className="border-t border-neutral-200 pt-10 mb-8">
         <div className="flex items-center gap-3 mb-1">
@@ -320,7 +332,10 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
                     Sign in as a customer to leave your review.
                   </p>
                   <button
-                    onClick={() => openAuth('signin')}
+                    onClick={() => {
+                      sessionStorage.setItem('madhav_scroll_reviews', 'true');
+                      openAuth('signin');
+                    }}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#d4a373] hover:bg-[#c29161] text-black text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
                   >
                     <Lock className="w-3.5 h-3.5" />

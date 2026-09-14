@@ -38,10 +38,12 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
 };
 
 const ScrollToTopOnNav = () => {
-  const { pathname, hash } = useLocation();
+  const { pathname } = useLocation();
+  const prevPathname = React.useRef(pathname);
 
   React.useLayoutEffect(() => {
-    if (!hash) {
+    if (prevPathname.current !== pathname) {
+      prevPathname.current = pathname;
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
@@ -60,7 +62,7 @@ const ScrollToTopOnNav = () => {
 
       return () => clearTimeout(timer);
     }
-  }, [pathname, hash]);
+  }, [pathname]);
 
   return null;
 };

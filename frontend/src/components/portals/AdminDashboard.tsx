@@ -1361,22 +1361,6 @@ export const AdminDashboard: React.FC = () => {
                     <div><span className="text-neutral-500 block">Bank Account:</span> Axis Bank (AC: 923020039126687 • IFSC: UTIB0003165)</div>
                   </div>
                 </div>
-
-                <div className="p-6 rounded-2xl bg-white border border-neutral-200 space-y-4">
-                  <h4 className="text-lg font-bold text-neutral-900">Pending Review Approvals</h4>
-                  <div className="space-y-3 text-xs">
-                    <div className="p-3 rounded-xl bg-neutral-100/60 border border-neutral-100 flex items-center justify-between">
-                      <div>
-                        <span className="text-amber-300 font-bold">5★ - Pure Cumin Oil</span>
-                        <p className="text-neutral-700 mt-0.5">"Excellent aroma and GC-MS purity verified." - Apex Remedies</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button className="px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 font-bold">Approve</button>
-                        <button className="px-2 py-1 rounded bg-red-500/20 text-red-400 font-bold">Reject</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           )}
