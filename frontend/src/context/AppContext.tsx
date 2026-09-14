@@ -197,7 +197,8 @@ interface AppContextType {
     description?: string,
     price5L?: number,
     customImages5L?: string[],
-    description5L?: string
+    description5L?: string,
+    mrp?: number
   ) => void;
   viewingBulkProductId: string | null;
   setViewingBulkProductId: (id: string | null) => void;
@@ -766,7 +767,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     description?: string,
     price5L?: number,
     customImages5L?: string[],
-    description5L?: string
+    description5L?: string,
+    mrp?: number
   ) => {
     setAllProducts(prev => {
       const updated = prev.map(p => 
@@ -774,6 +776,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           ...p, 
           unitPrice: b2bPrice, 
           retailPrice: retailPrice, 
+          ...(mrp !== undefined && { mrp }),
           ...(customImages !== undefined && { customImages }), 
           ...(description !== undefined && { description }),
           ...(price5L !== undefined && { price5L }),
@@ -801,6 +804,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           code_id: id,
           unit_price: b2bPrice,
           retail_price: retailPrice,
+          mrp: mrp,
           price_5l: price5L,
           custom_images: customImages || [],
           custom_images_5l: customImages5L || [],

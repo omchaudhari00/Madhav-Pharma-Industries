@@ -79,7 +79,7 @@ export const ProductDetailPage: React.FC = () => {
     if (selectedSize === '1l') {
       productName = `${baseProduct.categoryTitle} Essential Oil (1 Litre)`;
       price = baseProduct.unitPrice;
-      mrp = Math.round((price * 1.25) / 100) * 100;
+      mrp = baseProduct.mrp && baseProduct.mrp > price ? baseProduct.mrp : Math.round((price * 1.25) / 100) * 100;
       priceLabel = 'Price per 1 Litre bottle';
       sizeLabel = '1L';
       category = 'B2B Raw Material';

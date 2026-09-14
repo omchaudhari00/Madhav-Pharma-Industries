@@ -184,6 +184,8 @@ class ProductViewSet(viewsets.ModelViewSet):
             prod.price = request.data['unit_price']
         if 'retail_price' in request.data:
             prod.retail_price = request.data['retail_price']
+        if 'mrp' in request.data:
+            prod.mrp = request.data['mrp']
         if 'price_5l' in request.data:
             prod.price_5l = request.data['price_5l']
         if 'custom_images' in request.data:

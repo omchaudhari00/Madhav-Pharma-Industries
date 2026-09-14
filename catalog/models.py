@@ -32,6 +32,7 @@ class Product(models.Model):
     custom_images = models.JSONField(default=list, blank=True)
     unit_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     retail_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    mrp = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     price_5l = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     custom_images_5l = models.JSONField(default=list, blank=True)

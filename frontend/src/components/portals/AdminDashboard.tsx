@@ -5,7 +5,8 @@ import {
   ShoppingBag, Settings as SettingsIcon, TrendingUp,
   CheckCircle, XCircle, AlertCircle, Eye, EyeOff, Edit3,
   Trash2, Plus, ArrowLeft, UserPlus, Star, IndianRupee,
-  RefreshCw, Lock, LogOut, X, PenLine, UserCheck, CheckSquare, Square
+  RefreshCw, Lock, LogOut, X, PenLine, UserCheck, CheckSquare, Square,
+  Calculator, Percent, Tag
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { generateInvoicePDF } from '../../utils/InvoiceGenerator';
@@ -75,6 +76,181 @@ const compressImage = (file: File): Promise<string> => {
     reader.onerror = () => reject('File read error');
     reader.readAsDataURL(file);
   });
+};
+
+interface PriceDiscountCalculatorProps {
+  label: string;
+  mrp: string;
+  discountPercent: number;
+  sellingPrice: string;
+  onMrpChange: (newMrp: string) => void;
+  onDiscountChange: (newDiscount: number) => void;
+  onSellingPriceChange: (newSellingPrice: string) => void;
+}
+
+const PriceDiscountCalculator: React.FC<PriceDiscountCalculatorProps> = ({
+  label,
+  mrp,
+  discountPercent,
+  sellingPrice,
+  onMrpChange,
+  onDiscountChange,
+  onSellingPriceChange
+}) => {
+  const mrpNum = Number(mrp) || 0;
+  const priceNum = Number(sellingPrice) || 0;
+  const savings = mrpNum > priceNum ? mrpNum - priceNum : 0;
+  const calculatedDiscount = mrpNum > 0 && mrpNum >= priceNum 
+    ? Math.round(((mrpNum - priceNum) / mrpNum) * 100) 
+    : 0;
+
+  const presets = [10, 15, 20, 25, 30, 35, 40, 50];
+
+  const handleMrpInput = (val: string) => {
+    onMrpChange(val);
+    const num = Number(val);
+    if (num > 0 && discountPercent > 0) {
+      const computedPrice = Math.round(num * (1 - discountPercent / 100));
+      onSellingPriceChange(computedPrice.toString());
+    }
+  };
+
+  const handleDiscountInput = (disc: number) => {
+    const clamped = Math.max(0, Math.min(99, disc));
+    onDiscountChange(clamped);
+    if (mrpNum > 0) {
+      const computedPrice = Math.round(mrpNum * (1 - clamped / 100));
+      onSellingPriceChange(computedPrice.toString());
+    }
+  };
+
+  const handleSellingPriceInput = (val: string) => {
+    onSellingPriceChange(val);
+    const num = Number(val);
+    if (mrpNum > 0 && num >= 0 && num <= mrpNum) {
+      const computedDisc = Math.round(((mrpNum - num) / mrpNum) * 100);
+      onDiscountChange(computedDisc);
+    }
+  };
+
+  return (
+    <div className="p-4 sm:p-5 rounded-2xl bg-neutral-900/90 border border-[#d4a373]/30 space-y-4 shadow-lg">
+      <div className="flex items-center justify-between border-b border-white/10 pb-3">
+        <div className="flex items-center gap-2 text-[#d4a373]">
+          <Calculator className="w-4 h-4" />
+          <span className="text-xs font-bold uppercase tracking-wider">
+            Discount &amp; Pricing Calculator
+          </span>
+        </div>
+        <span className="text-[11px] text-neutral-400 font-medium">{label}</span>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Original Rate / MRP */}
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-1.5">
+            Original MRP / Rate (₹)
+          </label>
+          <div className="relative">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 font-bold text-sm">₹</span>
+            <input
+              type="number"
+              min="0"
+              value={mrp}
+              onChange={(e) => handleMrpInput(e.target.value)}
+              className="w-full bg-neutral-950 border border-white/15 rounded-xl pl-8 pr-4 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-[#d4a373] focus:ring-1 focus:ring-[#d4a373]"
+              placeholder="e.g. 499"
+            />
+          </div>
+          <span className="text-[10px] text-neutral-400 mt-1 block">Base maximum retail rate before discount</span>
+        </div>
+
+        {/* Discount Percentage */}
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-1.5">
+            Discount Rate (%)
+          </label>
+          <div className="relative">
+            <input
+              type="number"
+              min="0"
+              max="99"
+              value={discountPercent || ''}
+              onChange={(e) => handleDiscountInput(Number(e.target.value) || 0)}
+              className="w-full bg-neutral-950 border border-white/15 rounded-xl pl-4 pr-8 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-[#d4a373] focus:ring-1 focus:ring-[#d4a373]"
+              placeholder="e.g. 30"
+            />
+            <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 font-bold text-sm">%</span>
+          </div>
+          <span className="text-[10px] text-neutral-400 mt-1 block">Percentage deduction applied to MRP</span>
+        </div>
+      </div>
+
+      {/* Quick Discount Presets */}
+      <div>
+        <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1.5">
+          Quick Preset Discounts:
+        </span>
+        <div className="flex flex-wrap gap-1.5">
+          {presets.map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => handleDiscountInput(p)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                discountPercent === p
+                  ? 'bg-[#d4a373] text-black shadow-sm'
+                  : 'bg-white/10 hover:bg-white/20 text-neutral-300 border border-white/10'
+              }`}
+            >
+              {p}% OFF
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Final Calculated Selling Price */}
+      <div className="pt-2 border-t border-white/10">
+        <label className="block text-xs font-bold uppercase tracking-wider text-neutral-200 mb-1.5">
+          Final Selling / Offer Price (₹)
+        </label>
+        <div className="relative">
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#d4a373] font-extrabold text-base">₹</span>
+          <input
+            type="number"
+            min="0"
+            value={sellingPrice}
+            onChange={(e) => handleSellingPriceInput(e.target.value)}
+            className="w-full bg-neutral-950 border border-[#d4a373]/50 rounded-xl pl-8 pr-4 py-3 text-base text-white font-extrabold font-mono focus:outline-none focus:border-[#d4a373] focus:ring-2 focus:ring-[#d4a373]/30"
+            placeholder="e.g. 349"
+          />
+        </div>
+        <p className="text-[10px] text-neutral-400 mt-1">
+          This is the actual offer rate customers pay at checkout. You can also edit it directly.
+        </p>
+      </div>
+
+      {/* Live Savings / Status Alert */}
+      {mrpNum > 0 && priceNum > 0 && (
+        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+            <div>
+              <span className="text-xs font-bold text-emerald-300 block">
+                {calculatedDiscount > 0 ? `${calculatedDiscount}% Discount Applied` : 'Regular Pricing (No Discount)'}
+              </span>
+              <span className="text-[11px] text-emerald-400/80">
+                Customer Saves ₹{savings.toLocaleString('en-IN')} (MRP: ₹{mrpNum.toLocaleString('en-IN')} &rarr; Offer: ₹{priceNum.toLocaleString('en-IN')})
+              </span>
+            </div>
+          </div>
+          <span className="text-xs font-bold font-mono px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
+            {calculatedDiscount}% OFF
+          </span>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export const AdminDashboard: React.FC = () => {
@@ -322,22 +498,29 @@ export const AdminDashboard: React.FC = () => {
 
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [editSizeTab, setEditSizeTab] = useState<'1l' | '5l'>('1l');
-  const [editForm1L, setEditForm1L] = useState({ price: '', description: '', images: [] as string[] });
-  const [editForm5L, setEditForm5L] = useState({ price: '', description: '', images: [] as string[] });
+  const [editForm1L, setEditForm1L] = useState({ price: '', mrp: '', discountPercent: 0, description: '', images: [] as string[] });
+  const [editForm5L, setEditForm5L] = useState({ price: '', mrp: '', discountPercent: 0, description: '', images: [] as string[] });
 
   const [products, setProducts] = useState<any[]>([]);
 
   useEffect(() => {
     if (allProducts && allProducts.length > 0) {
-      setProducts(allProducts.map((p, i) => ({
-        id: i + 1,
-        codeId: p.id,
-        name: p.name,
-        retailPrice: p.retailPrice?.toString() || '299',
-        price: `₹${p.unitPrice}/KG`,
-        availability: p.availability || 'In Stock',
-        active: true
-      })));
+      setProducts(allProducts.map((p, i) => {
+        const retailP = p.retailPrice || (p.id === 'weight-loss-oil' ? 349 : 299);
+        const mrpVal = p.mrp || (p.id === 'weight-loss-oil' ? 499 : Math.round((retailP * 1.43) / 10) * 10 - 1);
+        const disc = mrpVal > retailP ? Math.round(((mrpVal - retailP) / mrpVal) * 100) : 0;
+        return {
+          id: i + 1,
+          codeId: p.id,
+          name: p.name,
+          retailPrice: retailP.toString(),
+          mrp: mrpVal.toString(),
+          discountPercent: disc,
+          price: `₹${p.unitPrice}/KG`,
+          availability: p.availability || 'In Stock',
+          active: true
+        };
+      }));
     }
   }, [allProducts]);
 
@@ -1005,7 +1188,7 @@ export const AdminDashboard: React.FC = () => {
                       <th className="py-3 px-4">ID</th>
                       <th className="py-3 px-4">Product Name</th>
                       {/* removed MOQ column */}
-                      <th className="py-3 px-4">Unit Price</th>
+                      <th className="py-3 px-4">Pricing &amp; Discount</th>
                       <th className="py-3 px-4">Retail Stock</th>
                       <th className="py-3 px-4">B2B Bulk Stock</th>
                       <th className="py-3 px-4">Display Status</th>
@@ -1022,8 +1205,23 @@ export const AdminDashboard: React.FC = () => {
                         <tr key={p.id} className="hover:bg-neutral-100 transition-colors">
                           <td className="py-4 px-4 font-mono text-neutral-600">#{p.id}</td>
                           <td className="py-4 px-4 font-bold text-neutral-900">{p.name}</td>
-                          {/* removed MOQ cell */}
-                          <td className="py-4 px-4 font-mono text-neutral-900">{p.price}</td>
+                          {/* Pricing & Discount column */}
+                          <td className="py-4 px-4 font-mono text-neutral-900">
+                            <div className="flex flex-col gap-0.5">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-[#8a5d2b] text-sm">&#8377;{p.retailPrice}</span>
+                                {Number(p.mrp) > Number(p.retailPrice) && (
+                                  <span className="text-xs text-neutral-400 line-through">&#8377;{p.mrp}</span>
+                                )}
+                              </div>
+                              {p.discountPercent > 0 && (
+                                <span className="inline-flex items-center w-fit px-1.5 py-0.5 rounded text-[10px] font-extrabold text-emerald-700 bg-emerald-100 border border-emerald-300">
+                                  {p.discountPercent}% OFF
+                                </span>
+                              )}
+                              <span className="text-[10px] text-neutral-400 font-sans">B2B: {p.price}</span>
+                            </div>
+                          </td>
                           <td className="py-4 px-4">
                             <span className={`inline-flex items-center justify-center px-3 py-1 rounded-xl border text-xs font-bold whitespace-nowrap shadow-sm ${retailOos
                                 ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
@@ -1080,8 +1278,19 @@ export const AdminDashboard: React.FC = () => {
                               <button
                                 onClick={() => {
                                   const targetProduct = allProducts.find(ap => ap.id === p.codeId);
-                                  const parsedPrice1L = targetProduct?.unitPrice?.toString() || p.price.replace(/[^0-9]/g, '');
+                                  const parsedPrice1L = targetProduct?.retailPrice?.toString() || targetProduct?.unitPrice?.toString() || p.price.replace(/[^0-9]/g, '');
+                                  const parsedMrp1L = targetProduct?.mrp ? targetProduct.mrp.toString() : (
+                                    p.codeId === 'weight-loss-oil' ? '499' : (Math.round((Number(parsedPrice1L) * 1.43) / 10) * 10 - 1).toString()
+                                  );
+                                  const disc1L = Number(parsedMrp1L) > Number(parsedPrice1L)
+                                    ? Math.round(((Number(parsedMrp1L) - Number(parsedPrice1L)) / Number(parsedMrp1L)) * 100)
+                                    : 0;
+
                                   const parsedPrice5L = targetProduct?.price5L ? targetProduct.price5L.toString() : (targetProduct?.unitPrice ? (targetProduct.unitPrice * 5).toString() : '');
+                                  const parsedMrp5L = parsedPrice5L ? Math.round((Number(parsedPrice5L) * 1.22) / 100 * 100).toString() : '';
+                                  const disc5L = Number(parsedMrp5L) > Number(parsedPrice5L)
+                                    ? Math.round(((Number(parsedMrp5L) - Number(parsedPrice5L)) / Number(parsedMrp5L)) * 100)
+                                    : 0;
 
                                   let initImages1L: string[] = [];
                                   if (targetProduct?.customImages !== undefined && targetProduct.customImages.length > 0) {
@@ -1105,11 +1314,15 @@ export const AdminDashboard: React.FC = () => {
                                   setEditSizeTab('1l');
                                   setEditForm1L({
                                     price: parsedPrice1L,
+                                    mrp: parsedMrp1L,
+                                    discountPercent: disc1L,
                                     description: targetProduct?.description || '',
                                     images: initImages1L
                                   });
                                   setEditForm5L({
                                     price: parsedPrice5L,
+                                    mrp: parsedMrp5L,
+                                    discountPercent: disc5L,
                                     description: targetProduct?.description5L || targetProduct?.description || '',
                                     images: initImages5L
                                   });
@@ -1713,18 +1926,15 @@ export const AdminDashboard: React.FC = () => {
             <div className="space-y-6">
               {editSizeTab === '1l' || editingProduct.codeId === 'weight-loss-oil' ? (
                 <>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">
-                      {editingProduct.codeId === 'weight-loss-oil' ? 'Product Price (₹ per 50ml Bottle)' : 'Product Price (₹ per 1 Litre Bottle)'}
-                    </label>
-                    <input 
-                      type="text" 
-                      value={editForm1L.price}
-                      onChange={(e) => setEditForm1L({ ...editForm1L, price: e.target.value })}
-                      className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#d4a373]/50 focus:ring-1 focus:ring-[#d4a373]/50 transition-all font-mono"
-                      placeholder="e.g. 150"
-                    />
-                  </div>
+                  <PriceDiscountCalculator
+                    label={editingProduct.codeId === 'weight-loss-oil' ? 'Retail 50ml Bottle' : '1 Litre Bottle Variant'}
+                    mrp={editForm1L.mrp}
+                    discountPercent={editForm1L.discountPercent}
+                    sellingPrice={editForm1L.price}
+                    onMrpChange={(newMrp) => setEditForm1L(prev => ({ ...prev, mrp: newMrp }))}
+                    onDiscountChange={(newDisc) => setEditForm1L(prev => ({ ...prev, discountPercent: newDisc }))}
+                    onSellingPriceChange={(newPrice) => setEditForm1L(prev => ({ ...prev, price: newPrice }))}
+                  />
 
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">
@@ -1789,18 +1999,15 @@ export const AdminDashboard: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">
-                      Product Price (₹ per 5 Litre Industrial Drum)
-                    </label>
-                    <input 
-                      type="text" 
-                      value={editForm5L.price}
-                      onChange={(e) => setEditForm5L({ ...editForm5L, price: e.target.value })}
-                      className="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#d4a373]/50 focus:ring-1 focus:ring-[#d4a373]/50 transition-all font-mono"
-                      placeholder="e.g. 11000"
-                    />
-                  </div>
+                  <PriceDiscountCalculator
+                    label="5 Litre Industrial Drum Variant"
+                    mrp={editForm5L.mrp}
+                    discountPercent={editForm5L.discountPercent}
+                    sellingPrice={editForm5L.price}
+                    onMrpChange={(newMrp) => setEditForm5L(prev => ({ ...prev, mrp: newMrp }))}
+                    onDiscountChange={(newDisc) => setEditForm5L(prev => ({ ...prev, discountPercent: newDisc }))}
+                    onSellingPriceChange={(newPrice) => setEditForm5L(prev => ({ ...prev, price: newPrice }))}
+                  />
 
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-neutral-300 mb-2">
@@ -1879,13 +2086,19 @@ export const AdminDashboard: React.FC = () => {
                 type="button"
                 onClick={() => {
                     const parsedPrice1L = Number(editForm1L.price) || 100;
+                    const parsedMrp1L = Number(editForm1L.mrp) || undefined;
                     const parsedPrice5L = editForm5L.price ? Number(editForm5L.price) : parsedPrice1L * 5;
+                    const parsedMrp5L = Number(editForm5L.mrp) || undefined;
                     
                     // Update Admin UI state
                     setProducts(prev => prev.map(prod => prod.id === editingProduct.id ? { 
                       ...prod, 
                       price: `₹${editForm1L.price}/KG`,
-                      retailPrice: parsedPrice1L
+                      retailPrice: parsedPrice1L.toString(),
+                      mrp: parsedMrp1L ? parsedMrp1L.toString() : prod.mrp,
+                      discountPercent: parsedMrp1L && parsedMrp1L > parsedPrice1L
+                        ? Math.round(((parsedMrp1L - parsedPrice1L) / parsedMrp1L) * 100)
+                        : 0
                     } : prod));
                     
                     // Update global AppContext state and backend DB
@@ -1897,7 +2110,8 @@ export const AdminDashboard: React.FC = () => {
                       editForm1L.description,
                       parsedPrice5L,
                       editForm5L.images,
-                      editForm5L.description
+                      editForm5L.description,
+                      parsedMrp1L
                     );
                     
                     setEditingProduct(null);
