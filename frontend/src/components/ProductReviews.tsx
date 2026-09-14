@@ -20,22 +20,6 @@ interface RatingStats {
   breakdown: Record<string, number>;
 }
 
-// ---------- Dummy fallback (shown only when there are 0 real reviews) ----------
-
-const DUMMY_REVIEWS: ReviewItem[] = [
-  { id: -1, customer_name: 'Ravi Sharma', rating: 5, comment: 'Excellent quality! Very pure and authentic aroma. Will definitely order again.', review_date: '2026-08-15T10:30:00Z' },
-  { id: -2, customer_name: 'Priya Nair', rating: 4, comment: 'Good product, packaging could be better but the oil itself is top notch.', review_date: '2026-07-28T14:15:00Z' },
-  { id: -3, customer_name: 'Amit K.', rating: 5, comment: null, review_date: '2026-07-10T09:00:00Z' },
-  { id: -4, customer_name: 'Sunita Verma', rating: 4, comment: 'Very satisfied with the purity. Price is reasonable too.', review_date: '2026-06-22T16:45:00Z' },
-  { id: -5, customer_name: 'Rahul Patel', rating: 3, comment: 'Decent product. Delivery was a bit slow but quality was fine.', review_date: '2026-06-05T11:20:00Z' },
-];
-
-const DUMMY_STATS: RatingStats = {
-  average: 4.2,
-  total: 45,
-  breakdown: { '5': 25, '4': 12, '3': 5, '2': 2, '1': 1 },
-};
-
 // ---------- Helper Components ----------
 
 function StarDisplay({ rating, size = 18 }: { rating: number; size?: number }) {
@@ -150,7 +134,6 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
   const [stats, setStats] = useState<RatingStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
-  const [isDummy, setIsDummy] = useState(false);
 
   // Submission state
   const [myRating, setMyRating] = useState(0);
@@ -169,25 +152,27 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
       );
       if (res.ok) {
         const data = await res.json();
-        if (data.stats.total === 0) {
-          // Use dummy fallback so UI never looks empty
-          setReviews(DUMMY_REVIEWS);
-          setStats(DUMMY_STATS);
-          setIsDummy(true);
-        } else {
-          setReviews(data.reviews);
-          setStats(data.stats);
-          setIsDummy(false);
-        }
+        setReviews(data.reviews || []);
+        setStats(data.stats || {
+          average: 0,
+          total: 0,
+          breakdown: { '5': 0, '4': 0, '3': 0, '2': 0, '1': 0 }
+        });
       } else {
-        setReviews(DUMMY_REVIEWS);
-        setStats(DUMMY_STATS);
-        setIsDummy(true);
+        setReviews([]);
+        setStats({
+          average: 0,
+          total: 0,
+          breakdown: { '5': 0, '4': 0, '3': 0, '2': 0, '1': 0 }
+        });
       }
     } catch {
-      setReviews(DUMMY_REVIEWS);
-      setStats(DUMMY_STATS);
-      setIsDummy(true);
+      setReviews([]);
+      setStats({
+        average: 0,
+        total: 0,
+        breakdown: { '5': 0, '4': 0, '3': 0, '2': 0, '1': 0 }
+      });
     } finally {
       setLoading(false);
     }
@@ -337,9 +322,9 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
                   ))}
                 </div>
 
-                {isDummy && (
-                  <p className="text-[10px] text-neutral-400 italic border-t border-neutral-100 pt-3">
-                    Sample ratings shown for illustration. Be the first to leave a real review!
+                {stats.total === 0 && (
+                  <p className="text-xs text-neutral-400 italic border-t border-neutral-100 pt-3">
+                    No customer ratings yet. Be the first to share your thoughts!
                   </p>
                 )}
               </>
@@ -494,9 +479,12 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
             )}
 
             {reviews.length === 0 && (
-              <div className="text-center py-12 text-neutral-400">
-                <Star className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                <p className="text-sm font-medium">No reviews yet. Be the first!</p>
+              <div className="text-center py-14 px-6 bg-neutral-50/70 border border-dashed border-neutral-200 rounded-3xl">
+                <Star className="w-10 h-10 mx-auto mb-3 text-neutral-300 stroke-1" />
+                <p className="text-sm font-bold text-neutral-700">No customer reviews yet</p>
+                <p className="text-xs text-neutral-500 mt-1 max-w-sm mx-auto">
+                  Have you tried this product? Be the first customer to leave a review and rating!
+                </p>
               </div>
             )}
           </div>
