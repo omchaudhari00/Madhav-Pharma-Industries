@@ -32,7 +32,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(customer=user)
 
     def destroy(self, request, *args, **kwargs):
-        if not request.user.is_authenticated or request.user.role != 'Admin':
+        user = request.user
+        is_admin = user.is_authenticated and (
+            getattr(user, 'role', None) == 'Admin' or user.is_staff or user.is_superuser
+        )
+        if not is_admin:
             return Response(
                 {"detail": "Only admins can delete reviews."},
                 status=status.HTTP_403_FORBIDDEN

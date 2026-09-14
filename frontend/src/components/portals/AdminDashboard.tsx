@@ -1613,7 +1613,10 @@ export const AdminDashboard: React.FC = () => {
                       {allReviews.length > 0 ? allReviews.map((review: any) => (
                         <tr key={review.id} className="hover:bg-neutral-50 transition-colors">
                           <td className="py-4 px-4 font-semibold text-neutral-900">{review.customer_name || `User #${review.customer}`}</td>
-                          <td className="py-4 px-4 text-neutral-500 font-mono text-xs">{review.product}</td>
+                          <td className="py-4 px-4 text-xs">
+                            <span className="font-semibold text-neutral-800 block">{review.product_name || review.product}</span>
+                            <span className="text-neutral-400 font-mono text-[11px]">{review.product}</span>
+                          </td>
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-1">
                               {[1,2,3,4,5].map(s => (

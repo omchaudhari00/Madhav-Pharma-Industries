@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Star, User, ChevronDown, ChevronUp, Send, Lock } from 'lucide-react';
+import { Star, User, ChevronDown, ChevronUp, Send, Lock, Trash2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://madhav-pharma-industries.onrender.com';
@@ -263,6 +263,27 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
     }
   };
 
+  const handleDeleteReview = async (reviewId: number) => {
+    if (!token || user?.role !== 'Admin') return;
+    if (!window.confirm('Delete this customer review? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/interactions/reviews/${reviewId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.ok || res.status === 204) {
+        await fetchReviews();
+      } else {
+        alert('Failed to delete review. Please ensure you are signed in as an Admin.');
+      }
+    } catch (e) {
+      console.error('Failed to delete review:', e);
+      alert('Error deleting review. Please check connection.');
+    }
+  };
+
   const displayedReviews = showAll ? reviews : reviews.slice(0, REVIEWS_PREVIEW_COUNT);
   const isCustomer = user?.role === 'Customer';
 
@@ -431,8 +452,21 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
                         <p className="text-[11px] text-neutral-500">{formatDate(review.review_date)}</p>
                       </div>
                     </div>
-                    <div className="shrink-0 pt-0.5">
-                      <StarDisplay rating={review.rating} size={14} />
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="pt-0.5">
+                        <StarDisplay rating={review.rating} size={14} />
+                      </div>
+                      {user?.role === 'Admin' && review.id > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteReview(review.id)}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold transition-colors cursor-pointer border border-red-200/60"
+                          title="Delete this review (Admin only)"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                   {review.comment && (
