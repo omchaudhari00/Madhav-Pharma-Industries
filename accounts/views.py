@@ -6,10 +6,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone
 from datetime import timedelta
 import time
-from django.core.mail import send_mail
+from backend.services.notifications import send_otp, send_otp_email
 from django.conf import settings
 from django.db.models import Q
 from django.contrib.auth.hashers import check_password
+from decimal import Decimal
 
 from .models import User, CustomerProfile, OTPRecord, Address
 from .serializers import (
@@ -162,20 +163,19 @@ class RequestOTPView(APIView):
                         User.objects.filter(mobile_number=mobile_number).first()
 
         if existing_user:
-            # Anti-Enumeration: Send email to existing account notifying them of registration attempt
-            subject = "Madhav Pharma Industries - Registration Attempt Notification"
-            message = (
-                f"Hello,\n\n"
-                f"Someone recently attempted to register a new account using this email address at Madhav Pharma Industries.\n\n"
-                f"If you already have an account, you can sign in directly or use our password reset page if you have forgotten your credentials.\n\n"
-                f"If this was not you, no action is needed and your account remains secure.\n\n"
-                f"Regards,\nMadhav Pharma Industries"
-            )
+            # Anti-Enumeration: Silently notify existing account of the attempt via email
             try:
                 if existing_user.email:
+                    from django.core.mail import send_mail
                     send_mail(
-                        subject=subject,
-                        message=message,
+                        subject="Madhav Pharma Industries - Registration Attempt Notification",
+                        message=(
+                            f"Hello,\n\n"
+                            f"Someone recently attempted to register a new account using this email address at Madhav Pharma Industries.\n\n"
+                            f"If you already have an account, you can sign in directly or use our password reset page if you have forgotten your credentials.\n\n"
+                            f"If this was not you, no action is needed and your account remains secure.\n\n"
+                            f"Regards,\nMadhav Pharma Industries"
+                        ),
                         from_email=settings.DEFAULT_FROM_EMAIL,
                         recipient_list=[existing_user.email],
                         fail_silently=True,
@@ -196,25 +196,11 @@ class RequestOTPView(APIView):
             validity_minutes=10
         )
 
-        subject = "Madhav Pharma Industries - Your Verification Code"
-        message = (
-            f"Hello,\n\n"
-            f"Your 6-digit registration verification code is: {raw_otp}\n\n"
-            f"This code is valid for 10 minutes and can only be used once. Do not share this code with anyone.\n\n"
-            f"Regards,\nMadhav Pharma Industries"
-        )
         try:
-            if email:
-                send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[email],
-                    fail_silently=False,
-                )
-        except Exception as e:
-            print(f"[Email Error] Failed to send OTP email to {email}: {e}")
-            return Response({"error": "Failed to send verification code. Please check server email service."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            send_otp(email=email, mobile_number=mobile_number, otp=raw_otp, purpose='registration')
+        except RuntimeError as e:
+            print(f"[OTP Delivery Error]: {e}")
+            return Response({"error": "Failed to send verification code. Please try again shortly."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({
             "message": "If this email address is eligible for registration, a 6-digit verification code has been sent."
@@ -250,25 +236,11 @@ class ResendOTPView(APIView):
             validity_minutes=10
         )
 
-        subject = "Madhav Pharma Industries - Your Verification Code (Resend)"
-        message = (
-            f"Hello,\n\n"
-            f"Your new 6-digit verification code is: {raw_otp}\n\n"
-            f"This code is valid for 10 minutes. Do not share this code with anyone.\n\n"
-            f"Regards,\nMadhav Pharma Industries"
-        )
         try:
-            if email:
-                send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[email],
-                    fail_silently=False,
-                )
-        except Exception as e:
-            print(f"[Email Error] Failed to resend OTP to {email}: {e}")
-            return Response({"error": "Failed to send verification code."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            send_otp(email=email, mobile_number=mobile_number, otp=raw_otp, purpose='registration')
+        except RuntimeError as e:
+            print(f"[OTP Delivery Error]: {e}")
+            return Response({"error": "Failed to send verification code. Please try again shortly."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({
             "message": "If this email address is eligible for registration, a new verification code has been sent."
@@ -514,38 +486,28 @@ class ForgotPasswordRequestOTPView(APIView):
         user = User.objects.filter(email__iexact=identifier).first() or \
                User.objects.filter(mobile_number=identifier).first()
 
-        if user and user.email:
+        if user:
             record, raw_otp = OTPRecord.create_otp(
-                email=user.email,
+                email=user.email or '',
                 mobile_number=user.mobile_number or '',
                 user=user,
                 purpose='password_reset',
                 validity_minutes=15
             )
 
-            # Send OTP email
-            subject = "Madhav Pharma Industries - Password Reset Code"
-            message = (
-                f"Hello {user.first_name or 'Valued Customer'},\n\n"
-                f"Your single-use password reset verification code is: {raw_otp}\n\n"
-                f"This code is valid for 15 minutes. It can only be used once.\n"
-                f"If you did not request a password reset, please ignore this email.\n\n"
-                f"Regards,\nMadhav Pharma Industries"
-            )
             try:
-                send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[user.email],
-                    fail_silently=False,
+                send_otp(
+                    email=user.email or '',
+                    mobile_number=user.mobile_number or '',
+                    otp=raw_otp,
+                    purpose='password_reset'
                 )
-            except Exception as e:
-                print(f"[Email Error] Failed to send password reset OTP to {user.email}: {e}")
-                # Internal log; do not leak failure or user existence to caller
+            except RuntimeError as e:
+                print(f"[OTP Delivery Error] Password reset for {user.email or user.mobile_number}: {e}")
+                # Do not leak failure to caller (anti-enumeration)
 
         else:
-            # Timing attack mitigation: simulate email dispatch latency
+            # Timing attack mitigation: simulate dispatch latency
             time.sleep(0.35)
 
         # Anti-enumeration: exact same response regardless of user existence, NO leaked email_hint
