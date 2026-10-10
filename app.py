@@ -147,7 +147,8 @@ def check_database():
             '',
             'See the Troubleshooting section of README.md for details.',
         )
-    step(f'PostgreSQL connected ({connection.settings_dict.get("NAME")})')
+    engine = connection.vendor.capitalize()
+    step(f'{engine} connected ({connection.settings_dict.get("NAME")})')
 
 
 def run_migrations():
