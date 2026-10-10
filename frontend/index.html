@@ -30,15 +30,5 @@
   <body class="bg-black text-white">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      // Only disable devtools in production (not on localhost or 127.0.0.1)
-      var host = window.location.hostname;
-      if (host !== 'localhost' && host !== '127.0.0.1' && host !== '') {
-        var s = document.createElement('script');
-        s.setAttribute('disable-devtool-auto', '');
-        s.src = 'https://cdn.jsdelivr.net/npm/disable-devtool@latest';
-        document.head.appendChild(s);
-      }
-    </script>
   </body>
 </html>
