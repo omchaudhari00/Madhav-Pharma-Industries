@@ -236,11 +236,18 @@ else:
         'https://www.madhavpharmaindustries.com',
     ]
 
-# Email Configuration (Resend HTTP API for Transactional Emails)
-ANYMAIL = {
-    "RESEND_API_KEY": os.getenv("RESEND_API_KEY", ""),
-}
-EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+# Email Configuration
+# In DEBUG mode without a RESEND_API_KEY, use the console backend so OTPs
+# are printed to the Django terminal (great for local development).
+# In production, use the Resend HTTP API via anymail.
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+if DEBUG and not RESEND_API_KEY:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+else:
+    ANYMAIL = {
+        "RESEND_API_KEY": RESEND_API_KEY,
+    }
+    EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
 DEFAULT_FROM_EMAIL = "no.reply@madhavpharmaindustries.com"
 
 # Payment Gateway Configuration (Razorpay)
