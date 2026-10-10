@@ -7,9 +7,9 @@ export const HeroSection: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <section id="hero" className="relative w-full min-h-[calc(100vh-88px)] bg-transparent text-black sm:text-white flex flex-col justify-center px-6 sm:px-8 xl:px-12 py-8 max-w-7xl mx-auto overflow-hidden font-display">
+    <section id="hero" className="relative w-full min-h-screen bg-transparent text-black sm:text-white flex flex-col justify-center px-6 sm:px-8 xl:px-12 py-8 max-w-7xl mx-auto overflow-hidden font-display">
       {/* Main Center Content: Centered on Mobile, iPad & iPad Pro (< 1280px), Right-aligned on Large Desktop */}
-      <div className="my-auto pt-8 pb-16 xl:py-16 relative z-10 flex flex-col justify-center items-center text-center mx-auto xl:items-end xl:text-right xl:ml-auto xl:mr-0">
+      <div className="my-auto pt-20 sm:pt-24 pb-16 xl:py-20 relative z-10 flex flex-col justify-center items-center text-center mx-auto xl:items-end xl:text-right xl:ml-auto xl:mr-0">
         <div className="max-w-2xl sm:max-w-3xl relative flex flex-col items-center xl:items-end">
 
           {/* Headline matching image typography exactly */}

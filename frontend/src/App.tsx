@@ -184,7 +184,7 @@ const AppContent: React.FC = () => {
               <div className="relative z-10">
                 <Navbar />
 
-                <main>
+                <main className="-mt-16">
                   {/* Home Page Section Container with Background Image (< 1280px) */}
                   <div className="relative w-full overflow-hidden">
                     {/* Dedicated Mobile & iPad (including iPad Pro) Background Image ONLY for Home Page */}

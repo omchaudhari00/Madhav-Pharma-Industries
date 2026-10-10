@@ -16,22 +16,16 @@ export const Navbar: React.FC = () => {
   // Handle scroll detection for transparent-to-black navbar transition
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 5);
+      const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      setIsScrolled(scrollY > 10);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll(); // Check on mount
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Track desktop breakpoint (xl = 1280px) for transparent navbar
-  useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth >= 1280);
-    window.addEventListener('resize', handleResize, { passive: true });
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Solid on: mobile/iPad always | desktop when scrolled or not on home page
-  const isSolid = !isDesktop || isScrolled || location.pathname !== '/';
+  // Solid on: scrolled down OR mobile menu open OR not on home page
+  const isSolid = isScrolled || mobileMenuOpen || location.pathname !== '/';
 
   // Close mobile menu when tapping outside
   useEffect(() => {
@@ -59,7 +53,6 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <>
     <header 
       id="main-navbar-header" 
       className={`sticky top-0 z-40 w-full transition-all duration-500 ease-in-out ${
@@ -276,9 +269,6 @@ export const Navbar: React.FC = () => {
         )}
       </nav>
     </header>
-    {/* Spacer to prevent content from hiding under fixed navbar */}
-    <div className="h-16 w-full shrink-0" />
-    </>
   );
 };
 

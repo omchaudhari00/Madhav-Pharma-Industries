@@ -92,7 +92,7 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
   );
 }
 
-function RatingBar({ label, count, total }: { label: string; count: number; total: number }) {
+function RatingBar({ label, count, total }: { key?: React.Key; label: string; count: number; total: number }) {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
   return (
     <div className="flex items-center gap-2 group">
